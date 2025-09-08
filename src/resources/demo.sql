@@ -116,3 +116,21 @@ INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
 SELECT @o4, @p_jam, 2, price FROM PRODUCT WHERE id = @p_jam;
 INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
 SELECT @o4, @p_eggs, 1, price FROM PRODUCT WHERE id = @p_eggs;
+
+-- Demo events (relative to today)
+INSERT INTO EVENT (seats, title, description, event_date, created_by) VALUES
+(12, 'Cheese Making Workshop', 'Hands-on class led by our head cheesemaker.', DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'aneri'),
+(20, 'Kids Animal Feeding', 'Guided feeding time with goats, chickens, and rabbits.', DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'prossi'),
+(40, 'Farm-to-Table Dinner', 'Seasonal 4-course dinner with farm-fresh ingredients.', DATE_ADD(CURDATE(), INTERVAL 14 DAY), 'mrossi'),
+(25, 'Wine Tasting at Sunset', 'Local wines paired with farmhouse tapas.', DATE_ADD(CURDATE(), INTERVAL 21 DAY), 'gverdi'),
+(100, 'Harvest Festival', 'Live music, food stalls, and family activities.', DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'mbianchi');
+
+-- Optional demo subscriptions
+INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+SELECT e.id, 'mrossi', 2 FROM EVENT e WHERE e.title = 'Farm-to-Table Dinner';
+
+INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+SELECT e.id, 'lverdi', 3 FROM EVENT e WHERE e.title = 'Harvest Festival';
+
+INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+SELECT e.id, 'aneri', 1 FROM EVENT e WHERE e.title = 'Wine Tasting at Sunset';
