@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.db.models import F, Sum, DecimalField, Prefetch, ExpressionWrapper
+from django.utils import timezone
+from datetime import timedelta
 
 from .forms import RegisterForm
 from . import models
@@ -43,7 +45,9 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             username=request.user.username
         )
     except models.User.DoesNotExist:
-        return render(request, "profile.html", {"query": None, "orders": []})
+        return render(
+            request, "profile.html", {"query": None, "orders": [], "shifts": []}
+        )
 
     query = {
         "employee": getattr(ut, "employee", None),
@@ -78,10 +82,41 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         .order_by("-date", "-id")
     )
 
+    # Upcoming shifts (30 days) with fallback to recent
+    shifts = []
+    shifts_label = "Next 30 days"
+    if query["employee"]:
+        start = timezone.localdate()
+        end = start + timedelta(days=30)
+        upcoming = (
+            models.EmployeeShift.objects.select_related("shift")
+            .filter(
+                employee_username=query["employee"],
+                shift_date__range=(start, end),
+            )
+            .order_by("shift_date", "shift__start_time")
+        )
+        if upcoming.exists():
+            shifts = list(upcoming)
+            shifts_label = "Next 30 days"
+        else:
+            recent = (
+                models.EmployeeShift.objects.select_related("shift")
+                .filter(employee_username=query["employee"])
+                .order_by("-shift_date", "-shift__start_time")[:20]
+            )
+            shifts = list(recent)
+            shifts_label = "Recent shifts"
+
     return render(
         request,
         "profile.html",
-        {"query": query, "orders": orders},
+        {
+            "query": query,
+            "orders": orders,
+            "shifts": shifts,
+            "shifts_label": shifts_label,
+        },
     )
 
 
