@@ -40,10 +40,9 @@
                             <h5 class="card-title mb-0" title="{{ e.title }}">{{ e.title }}</h5>
                             <span class="badge text-bg-light">{{ e.event_date|date:"d/m/Y" }}</span>
                         </div>
-                        <p class="text-muted small mb-2">Created by: {{ e.created_by.username }}</p>
+                        <p class="text-muted small mb-2">Created by: {{ e.created_by.username.username }}</p>
                         <p class="mb-3 flex-grow-0">{{ e.description }}</p>
 
-                        <!-- Unified booking / status bar -->
                         <div class="booking-bar d-flex flex-wrap align-items-center gap-2 mt-auto pt-2 border-top">
                             <span class="badge bg-success">Seats left: {{ e.remaining }}</span>
                             <span class="badge bg-secondary">Total: {{ e.seats }}</span>
@@ -78,7 +77,6 @@
                             </a>
                             {% endif %}
                         </div>
-                        <!-- end booking bar -->
                     </div>
                 </div>
             </div>
