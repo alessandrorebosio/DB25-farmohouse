@@ -1,3 +1,5 @@
+USE farmhouse;
+
 -- Insert demo data
 INSERT INTO PERSON (cf, name, surname) VALUES
 ('RSSMRA80A01H501A', 'Mario', 'Rossi'),
@@ -64,3 +66,53 @@ INSERT INTO EMPLOYEE_HISTORY (username, role, change_date) VALUES
 ('mrossi', 'ADMIN', '2023-01-01 09:00:00'),
 ('lverdi', 'STAFF', '2023-01-01 09:00:00'),
 ('mbianchi', 'RECEPTIONIST', '2023-01-01 09:00:00');
+
+-- Example products
+INSERT INTO PRODUCT (name, price) VALUES
+('Farm Eggs (12 pcs)', 3.50),
+('Organic Milk (1L)', 1.80),
+('Fresh Bread', 2.20),
+('Cheese Wheel (kg)', 12.00),
+('Honey Jar (500g)', 6.50),
+('Apple Jam (300g)', 4.20);
+
+-- Example orders
+INSERT INTO ORDERS (date, username) VALUES
+('2023-09-11 10:15:00', 'mrossi'),
+('2023-09-11 17:45:00', 'lverdi'),
+('2023-09-12 09:05:00', 'lverdi'),
+('2023-09-13 11:30:00', 'mbianchi');
+
+-- Set order and product variables
+SET @o1 = (SELECT id FROM ORDERS WHERE date = '2023-09-11 10:15:00' AND username = 'mrossi');
+SET @o2 = (SELECT id FROM ORDERS WHERE date = '2023-09-11 17:45:00' AND username = 'lverdi');
+SET @o3 = (SELECT id FROM ORDERS WHERE date = '2023-09-12 09:05:00' AND username = 'lverdi');
+SET @o4 = (SELECT id FROM ORDERS WHERE date = '2023-09-13 11:30:00' AND username = 'mbianchi');
+
+SET @p_eggs = (SELECT id FROM PRODUCT WHERE name = 'Farm Eggs (12 pcs)');
+SET @p_bread = (SELECT id FROM PRODUCT WHERE name = 'Fresh Bread');
+SET @p_milk = (SELECT id FROM PRODUCT WHERE name = 'Organic Milk (1L)');
+SET @p_honey = (SELECT id FROM PRODUCT WHERE name = 'Honey Jar (500g)');
+SET @p_cheese = (SELECT id FROM PRODUCT WHERE name = 'Cheese Wheel (kg)');
+SET @p_jam = (SELECT id FROM PRODUCT WHERE name = 'Apple Jam (300g)');
+
+-- Order rows
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o1, @p_eggs, 2, price FROM PRODUCT WHERE id = @p_eggs;
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o1, @p_bread, 1, price FROM PRODUCT WHERE id = @p_bread;
+
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o2, @p_milk, 3, price FROM PRODUCT WHERE id = @p_milk;
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o2, @p_honey, 1, price FROM PRODUCT WHERE id = @p_honey;
+
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o3, @p_cheese, 1, price FROM PRODUCT WHERE id = @p_cheese;
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o3, @p_bread, 4, price FROM PRODUCT WHERE id = @p_bread;
+
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o4, @p_jam, 2, price FROM PRODUCT WHERE id = @p_jam;
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
+SELECT @o4, @p_eggs, 1, price FROM PRODUCT WHERE id = @p_eggs;
