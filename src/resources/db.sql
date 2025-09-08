@@ -71,3 +71,23 @@ CREATE TABLE ORDER_DETAIL (
     FOREIGN KEY (product) REFERENCES PRODUCT(id),
     FOREIGN KEY (`order`) REFERENCES ORDERS(id)
 );
+
+CREATE TABLE EVENT (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    seats INT NOT NULL CHECK (seats > 0),
+    title VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    event_date DATE NOT NULL,
+    created_by VARCHAR(32) NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES EMPLOYEE(username)
+);
+
+CREATE TABLE EVENT_SUBSCRIPTION (
+    event INT NOT NULL,
+    user_username VARCHAR(32) NOT NULL,
+    subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    participants INT NOT NULL CHECK (participants > 0),
+    PRIMARY KEY (event, user_username),
+    FOREIGN KEY (event) REFERENCES EVENT(id),
+    FOREIGN KEY (user_username) REFERENCES USER(username)
+);
