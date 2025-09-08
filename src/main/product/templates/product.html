@@ -1,9 +1,195 @@
 {% extends "core/base.html" %}
-{% block title %}Product{% endblock %}
+{% block title %}Products{% endblock %}
 
 {% block content %}
 <main class="hero">
-    <h1 class="mb-3">Product</h1>
+    <div class="container py-3">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <h1 class="mb-0">Products</h1>
+            {% if q %}
+            <a class="link-secondary text-decoration-none" href="{{ request.path }}">Reset</a>
+            {% endif %}
+        </div>
 
+        <form method="get" class="row g-2 align-items-center mb-3">
+            <div class="col-12 col-md-8 col-lg-6">
+                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search products..." />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+            {% if q %}
+            <div class="col-auto">
+                <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+            </div>
+            {% endif %}
+        </form>
+
+        <p class="text-muted mb-3">
+            {% with products|length as count %}
+            {{ count }} product{{ count|pluralize:"s" }} found
+            {% endwith %}
+        </p>
+
+        {% if products %}
+        <div class="row g-3">
+            {% for p in products %}
+            <div class="col-12 col-md-6 col-lg-6 col-xl-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-2 text-start" title="{{ p.name }}">{{ p.name }}</h5>
+
+                        <div class="mt-auto d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <span class="h4 mb-0 text-success">€ {{ p.price|floatformat:2 }}</span>
+
+                            {% if request.user.is_authenticated %}
+                            <form method="post" action="{% url 'add_to_cart' %}"
+                                class="d-flex align-items-center gap-2 m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ p.id }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <div class="input-group input-group-sm" style="max-width: 10rem;">
+                                    <span class="input-group-text">Qty</span>
+                                    <input type="number" name="qty" min="1" value="1" class="form-control text-center">
+                                </div>
+                                <button type="submit" class="btn btn-outline-primary">Add to cart</button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={{ request.get_full_path }}"
+                                class="btn btn-outline-primary btn-sm">
+                                Login to buy
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="display-6 mb-2">🧺</div>
+            <h3>No products found</h3>
+            <p class="text-muted">Try changing your search terms.</p>
+            {% if q %}<a class="btn btn-outline-secondary" href="{{ request.path }}">Show all</a>{% endif %}
+        </div>
+        {% endif %}
+    </div>
 </main>
+
+<style>
+    .hero {
+        background-color: #f8f9fa;
+    }
+
+    .product-search {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+    }
+
+    .product-search input[type="text"] {
+        flex: 1;
+        padding: .5rem .75rem;
+        border: 1px solid #dadada;
+        border-radius: .5rem;
+    }
+
+    .product-search button {
+        padding: .5rem .9rem;
+        border: 1px solid #0d6efd;
+        background: #0d6efd;
+        color: #fff;
+        border-radius: .5rem;
+        cursor: pointer;
+    }
+
+    .btn-secondary {
+        display: inline-block;
+        padding: .5rem .8rem;
+        border: 1px solid #c9c9c9;
+        background: #f6f6f6;
+        color: #333;
+        border-radius: .5rem;
+        text-decoration: none;
+    }
+
+    .muted {
+        color: #6b7280;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+
+    .product-card {
+        border: 1px solid #eee;
+        border-radius: .75rem;
+        padding: 1rem;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+    }
+
+    .product-header {
+        margin-bottom: .75rem;
+    }
+
+    .product-name {
+        font-size: 1rem;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .product-footer form {
+        margin: 0;
+    }
+
+    .price {
+        font-weight: 600;
+        color: #0f5132;
+        background: #e9f7ef;
+        padding: .25rem .5rem;
+        border-radius: .5rem;
+    }
+
+    .empty-state {
+        margin-top: 2rem;
+        text-align: center;
+        color: #6b7280;
+    }
+
+    .empty-state .icon {
+        font-size: 2rem;
+        margin-bottom: .5rem;
+    }
+
+    .add-to-cart {
+        display: inline-flex;
+        gap: .5rem;
+        align-items: center;
+    }
+
+    .qty-input {
+        width: 4.5rem;
+        padding: .35rem .5rem;
+        border: 1px solid #dadada;
+        border-radius: .5rem;
+        text-align: center;
+    }
+</style>
 {% endblock %}

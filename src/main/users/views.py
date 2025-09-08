@@ -3,10 +3,11 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
-
+from django.db.models import F, Sum, DecimalField, Prefetch, ExpressionWrapper
 
 from .forms import RegisterForm
 from . import models
+from product.models import Orders, OrderDetail
 
 
 # Create your views here.
@@ -42,17 +43,45 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             username=request.user.username
         )
     except models.User.DoesNotExist:
-        return render(request, "profile.html", {"query": None})
+        return render(request, "profile.html", {"query": None, "orders": []})
 
     query = {
         "employee": getattr(ut, "employee", None),
         "person": getattr(ut, "cf", None),
     }
 
+    # Ordini dell’utente con righe e totali
+    line_qs = (
+        OrderDetail.objects.select_related("product")
+        .annotate(
+            line_total=ExpressionWrapper(
+                F("quantity") * F("unit_price"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
+        )
+        .order_by("product__name")
+    )
+
+    orders = (
+        Orders.objects.filter(username_id=request.user.username)
+        .annotate(
+            order_total=Sum(
+                ExpressionWrapper(
+                    F("orderdetail__quantity") * F("orderdetail__unit_price"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                )
+            )
+        )
+        .prefetch_related(
+            Prefetch("orderdetail_set", queryset=line_qs, to_attr="lines")
+        )
+        .order_by("-date", "-id")
+    )
+
     return render(
         request,
         "profile.html",
-        {"query": query},
+        {"query": query, "orders": orders},
     )
 
 
