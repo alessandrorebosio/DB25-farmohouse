@@ -1,0 +1,50 @@
+DROP DATABASE IF EXISTS farmhouse;
+CREATE DATABASE farmhouse;
+USE farmhouse;
+
+CREATE TABLE PERSON (
+    cf VARCHAR(16) PRIMARY KEY,
+    name VARCHAR(32) NOT NULL,
+    surname VARCHAR(32) NOT NULL
+);
+
+CREATE TABLE USER (
+    username VARCHAR(32) PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    cf VARCHAR(16) UNIQUE NOT NULL,
+    FOREIGN KEY (cf) REFERENCES PERSON(cf)
+);
+
+CREATE TABLE EMPLOYEE (
+    username VARCHAR(32) PRIMARY KEY,
+    role VARCHAR(32) NOT NULL,
+    FOREIGN KEY (username) REFERENCES USER(username)
+);
+
+CREATE TABLE EMPLOYEE_HISTORY (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(32) NOT NULL,
+    role VARCHAR(32) NOT NULL,
+    change_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (username) REFERENCES EMPLOYEE(username)
+);
+
+CREATE TABLE SHIFT (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    day ENUM('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN') NOT NULL,
+    shift_name VARCHAR(32) NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL
+);
+
+CREATE TABLE EMPLOYEE_SHIFT (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_username VARCHAR(32) NOT NULL,
+    shift_id INT NOT NULL,
+    shift_date DATE NOT NULL,
+    status ENUM('SCHEDULED', 'COMPLETED', 'ABSENT') DEFAULT 'SCHEDULED',
+    FOREIGN KEY (employee_username) REFERENCES EMPLOYEE(username),
+    FOREIGN KEY (shift_id) REFERENCES SHIFT(id),
+    UNIQUE KEY unique_employee_shift (employee_username, shift_date)
+);
