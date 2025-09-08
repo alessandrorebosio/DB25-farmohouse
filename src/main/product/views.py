@@ -23,7 +23,7 @@ def product_view(request: HttpRequest) -> HttpResponse:
     products = Product.objects.all().order_by("name")
     if q:
         products = products.filter(name__icontains=q)
-    return render(request, "product.html", {"products": products, "q": q})
+    return render(request, "products.html", {"products": products, "q": q})
 
 
 @login_required(login_url="login")

@@ -134,3 +134,13 @@ SELECT e.id, 'lverdi', 3 FROM EVENT e WHERE e.title = 'Harvest Festival';
 
 INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
 SELECT e.id, 'aneri', 1 FROM EVENT e WHERE e.title = 'Wine Tasting at Sunset';
+
+-- Past event
+INSERT INTO EVENT (seats, title, description, event_date, created_by) VALUES
+(50, 'Farm Open Day', 'Open day.', DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'mrossi');
+
+-- Mario Rossi subscribed to a past event
+INSERT INTO EVENT_SUBSCRIPTION (event, user_username, subscription_date, participants)
+SELECT e.id, 'mrossi', '2025-08-30 00:00:00', 2
+FROM EVENT e
+WHERE e.title = 'Farm Open Day';

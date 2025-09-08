@@ -10,6 +10,7 @@ from datetime import timedelta
 from .forms import RegisterForm
 from . import models
 from product.models import Orders, OrderDetail
+from event.models import EventSubscription
 
 
 # Create your views here.
@@ -108,6 +109,13 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             shifts = list(recent)
             shifts_label = "Recent shifts"
 
+    subscriptions = (
+        EventSubscription.objects.select_related("event")
+        .filter(username_id=request.user.username)
+        .order_by("event__event_date", "event__title")
+    )
+    today = timezone.localdate()
+
     return render(
         request,
         "profile.html",
@@ -116,6 +124,8 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             "orders": orders,
             "shifts": shifts,
             "shifts_label": shifts_label,
+            "subscriptions": subscriptions,
+            "today": today,
         },
     )
 
