@@ -122,7 +122,7 @@
                                             <th class="text-center">Event date</th>
                                             <th class="text-center">Registered date</th>
                                             <th class="text-center">Participants</th>
-                                            <th class="text-center">Action</th>
+                                            <th class="text-center">Action</th> <!-- aggiunta -->
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -133,9 +133,24 @@
                                                 {{ subscription.event.event_date|date:"d/m/Y" }}
                                             </td>
                                             <td class="text-center">
-                                                {{ subscription.subscription_date|date:"d/m/Y" }}</td>
+                                                {{ subscription.subscription_date|date:"d/m/Y" }}
+                                            </td>
                                             <td class="text-center">{{ subscription.participants }}</td>
                                             <td class="text-center">
+                                                {% if subscription.event.event_date >= today %}
+                                                <form method="post"
+                                                    action="{% url 'event_cancel' subscription.event.id %}"
+                                                    class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="next"
+                                                        value="{{ request.get_full_path }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        Cancel
+                                                    </button>
+                                                </form>
+                                                {% else %}
+                                                <span class="text-muted small">Past</span>
+                                                {% endif %}
                                             </td>
                                         </tr>
                                         {% endfor %}

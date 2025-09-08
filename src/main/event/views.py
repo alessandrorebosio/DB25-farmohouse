@@ -85,3 +85,27 @@ def book_event(request: HttpRequest, event_id: int) -> HttpResponse:
             participants=participants,
         )
     return redirect(request.POST.get("next") or "event_list")
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def cancel_event(request: HttpRequest, event_id: int) -> HttpResponse:
+    event = get_object_or_404(Event, pk=event_id)
+
+    # cannot cancel past events
+    if event.event_date < timezone.localdate():
+        messages.error(request, "Event already in the past; cannot cancel.")
+        return redirect(request.POST.get("next") or "event_list")
+
+    sub = (
+        EventSubscription.objects.select_for_update()
+        .filter(event=event, username_id=request.user.username)
+        .first()
+    )
+    if not sub:
+        messages.error(request, "No booking to cancel.")
+        return redirect(request.POST.get("next") or "event_list")
+
+    sub.delete()  # freeing seats automatically (capacity is derived)
+    return redirect(request.POST.get("next") or "event_list")
