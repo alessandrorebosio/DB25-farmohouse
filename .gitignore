@@ -1,0 +1,24 @@
+# Ignore VsCode customizations
+.vscode
+
+# Ignore MacOS file
+.DS_Store
+
+# Ignore Python chace file
+__pycache__/
+*.pyc
+
+# Ignore Venv folder
+venv
+
+# Ingore LaTeX file
+report/*.toc
+report/*.synctex.gz
+report/*.synctex.blg
+report/*.log
+report/*.out
+report/*.aux
+report/*.blg
+report/*.fdb_latexmk
+report/*.fls
+report/*.bbl
