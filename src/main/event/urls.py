@@ -21,4 +21,5 @@ from . import views
 
 urlpatterns = [
     path("events/", views.event_view, name="event_list"),
+    path("events/<int:event_id>/book/", views.book_event, name="event_book"),
 ]

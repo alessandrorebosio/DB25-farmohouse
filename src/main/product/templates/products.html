@@ -24,6 +24,13 @@
             </div>
         </form>
 
+        <p class="text-muted small mb-3">
+            {% with products|length as count %}
+            {{ count }} products{{ count|pluralize:"s" }} found
+            {% endwith %}
+        </p>
+
+
         {% if products %}
         <div class="row g-3">
             {% for p in products %}
