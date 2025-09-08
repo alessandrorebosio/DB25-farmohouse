@@ -48,3 +48,26 @@ CREATE TABLE EMPLOYEE_SHIFT (
     FOREIGN KEY (shift_id) REFERENCES SHIFT(id),
     UNIQUE KEY unique_employee_shift (employee_username, shift_date)
 );
+
+CREATE TABLE ORDERS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    username VARCHAR(32) NOT NULL,
+    FOREIGN KEY (username) REFERENCES USER(username)
+);
+
+CREATE TABLE PRODUCT (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(8,2) NOT NULL CHECK (price > 0)
+);
+
+CREATE TABLE ORDER_DETAIL (
+    `order` INT NOT NULL,
+    product INT NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    unit_price DECIMAL(8,2) NOT NULL CHECK (unit_price > 0),
+    PRIMARY KEY (`order`, product),
+    FOREIGN KEY (product) REFERENCES PRODUCT(id),
+    FOREIGN KEY (`order`) REFERENCES ORDERS(id)
+);
