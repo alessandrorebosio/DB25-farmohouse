@@ -1,4 +1,7 @@
+from django import forms
 from django.contrib import admin
+from django.contrib.auth.hashers import make_password
+
 from . import models
 
 
@@ -33,6 +36,29 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ("username", "email", "cf__cf", "cf__name", "cf__surname")
     list_select_related = ("cf",)
     ordering = ("username",)
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if "password" in form.base_fields:
+            form.base_fields["password"].widget = forms.PasswordInput(render_value=True)
+            if obj:
+                form.base_fields["password"].help_text = (
+                    "Leave blank to keep current password."
+                )
+                form.base_fields["password"].required = False
+            else:
+                form.base_fields["password"].help_text = "Enter a new password."
+        return form
+
+    def save_model(self, request, obj, form, change):
+        raw = form.cleaned_data.get("password")
+        if change and not raw:
+            old = type(obj).objects.get(pk=obj.pk)
+            obj.password = old.password
+        else:
+            if raw and not raw.startswith(("pbkdf2_", "argon2$", "bcrypt$")):
+                obj.password = make_password(raw)
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(models.Employee)
