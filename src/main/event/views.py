@@ -11,7 +11,6 @@ from django.db import transaction
 from .models import Event, EventSubscription
 
 
-@login_required
 def event_view(request: HttpRequest) -> HttpResponse:
     q = (request.GET.get("q") or "").strip()
     today = timezone.localdate()
