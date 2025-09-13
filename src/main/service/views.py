@@ -8,7 +8,6 @@ from django.db.models import Count
 
 def service_list(request):
     """Show all service types as cards."""
-    # Ottieni i tipi di servizio distinti con conteggio
     service_types = Service.objects.values('service_type').annotate(
         count=Count('id')
     ).order_by('service_type')
@@ -24,7 +23,7 @@ def service_type_booking(request, service_type):
             start_date = form.cleaned_data["start_date"]
             end_date = form.cleaned_data["end_date"]
 
-            # Salva le date in sessione
+            # Save dates in session
             request.session["booking_start_date"] = str(start_date)
             request.session["booking_end_date"] = str(end_date)
             request.session["service_type"] = service_type
@@ -51,12 +50,12 @@ def booking_results(request):
     start_date = parse_date(start_date)
     end_date = parse_date(end_date)
 
-    # Servizi già prenotati in questo intervallo di date
+    # Services already booked
     reserved_services = ReservationDetail.objects.filter(
         Q(start_date__lte=end_date) & Q(end_date__gte=start_date)
     ).values_list("service_id", flat=True)
 
-    # Servizi disponibili del tipo specificato
+    # Services avaiable
     available_services = Service.objects.exclude(id__in=reserved_services).filter(
         status="AVAILABLE",
         service_type=service_type

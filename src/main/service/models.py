@@ -45,6 +45,7 @@ class Service(models.Model):
 
 
 class ReservationDetail(models.Model):
+    pk = models.CompositePrimaryKey("reservation", "service")
     reservation = models.ForeignKey(
         Reservation,
         on_delete=models.CASCADE,
