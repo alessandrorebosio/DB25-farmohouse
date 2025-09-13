@@ -1,0 +1,160 @@
+\documentclass[a4paper,12pt]{report}
+
+% Codifica, lingua, font
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{lmodern}
+
+% Impaginazione
+\usepackage{geometry}
+
+% Grafica, colori, tabelle, float
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+
+% Matematica
+\usepackage{amsmath}
+
+% Verbatim e listing
+\usepackage{fancyvrb}
+\usepackage{alltt}
+\usepackage{listings}
+
+% Liste
+% \usepackage{enumitem}
+
+% Link e riferimenti intelligenti (hyperref prima di cleveref)
+\usepackage{hyperref}
+% \usepackage[italian]{cleveref}
+
+\geometry{margin=1in}
+
+% colori
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeBlue}{HTML}{6495ED}
+\definecolor{codegreen}{HTML}{12911F}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% stile listings
+\lstdefinestyle{sqlstyle}{
+    language=SQL,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{codeBlue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codeBlue},
+    basicstyle=\footnotesize\ttfamily,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=10pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false
+}
+
+% ambiente dedicato
+\lstnewenvironment{sqlcode}[1][]{
+    \lstset{style=sqlstyle,#1}
+}{}
+
+\hypersetup{
+    colorlinks=false,
+    pdfborder={1 1 1},
+    linkbordercolor={1 0 0},
+    urlbordercolor={1 0 0},
+    citebordercolor={1 0 0},
+    pdftitle={Elaborato Basi di Dati},
+    pdfauthor={Maisam Noumi, Alessandro Rebosio, Filippo Ricciotti}
+}
+
+\title{
+    \vspace*{2cm}
+    \LARGE Relazione per il corso di \\[0.5cm]
+    \textit{Basi di Dati} \\[2cm]
+    \Huge\textbf{Agriturismo} \\[2cm]
+}
+
+\author{
+    \Large
+    Alessandro Rebosio \\
+    Filippo Ricciotti
+}
+
+\date{
+    \vspace{1cm}
+    \today \\[0.5cm]
+    Anno Accademico 2024-2025
+}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\appendix
+\chapter{Guida Utente}
+
+\section{Clonazione del repository}
+Clonare il progetto da GitHub e accedere alla cartella:
+
+\begin{verbatim}
+> git clone https://github.com/alessandrorebosio/D25-farmhouse.git
+> cd DB25-farmhouse
+\end{verbatim}
+
+\section{Installazione delle dipendenze}
+
+Si consiglia di utilizzare un ambiente virtuale Python per isolare le dipendenze del progetto.
+
+\begin{verbatim}
+> python3 -m venv venv
+\end{verbatim}
+
+\noindent Attivazione dell'ambiente virtuale
+\begin{verbatim}
+# Su Linux/macOS:
+> source venv/bin/activate
+# Su Windows:
+> venv\Scripts\activate
+\end{verbatim}
+
+\noindent Installazione delle dipendenze dal file requirements.txt
+\begin{verbatim}
+> pip install -r requirements.txt
+\end{verbatim}
+
+\section{Creazione del database}
+
+Per creare il database MySQL a partire dagli script SQL forniti, assicurarsi di avere MySQL
+installato e in esecuzione.
+
+\begin{verbatim}
+> mysql -u root -p < app/sql/db.sql
+> mysql -u root -p < app/sql/demo.sql
+\end{verbatim}
+
+Verrà richiesta la password dell'utente \texttt{root}. Il comando eseguirà tutte le
+istruzioni SQL contenute nel file \texttt{db.sql}, creando tabelle, vincoli e dati di
+esempio necessari per l'applicazione.
+
+\section{Avvio dell'applicazione}
+
+Per avviare l'applicazione Django, assicurarsi che l'ambiente virtuale sia attivo e che il database
+sia stato creato correttamente.
+
+\begin{verbatim}
+> python manage.py migrate
+> python manage.py runserver
+\end{verbatim}
+
+L'applicazione sarà accessibile all'indirizzo \url{http://localhost:8000/} tramite browser. Effettuare
+il login o la registrazione per iniziare a utilizzare il sistema.
+
+\end{document}
