@@ -16,7 +16,13 @@ Including another URLconf
 """
 
 from django.urls import path
+from . import views
+
+app_name = 'services'
 
 urlpatterns = [
+    path('', views.service_list, name='service_list'),  # /service/
+    path('<slug:slug>/', views.service_detail, name='service_detail'),  # /service/<slug>/
+    path('book/<int:service_id>/', views.book_service, name='book_service'),  # /service/book/<id>/
 
 ]
