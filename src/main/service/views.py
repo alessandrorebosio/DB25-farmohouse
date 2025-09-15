@@ -1,10 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.utils.dateparse import parse_date
 from .models import Service, Reservation, ReservationDetail
-from .forms import BookingDateForm
-from django.db.models import Count
 from datetime import datetime, time
 
 
@@ -37,7 +34,6 @@ def service_list(request):
         if room_end < room_start:
             room_error = "End date must be on or after start date."
         else:
-            # nights: at least 1 if same-day check-in/out
             delta_days = (room_end - room_start).days
             room_nights = max(1, delta_days)
             start_dt = datetime.combine(room_start, time.min)
@@ -64,7 +60,6 @@ def service_list(request):
                 .order_by("id")
             )
 
-            # attach total_price for convenience
             for s in qs_rooms:
                 s.total_price = s.price * room_nights
             available_rooms = list(qs_rooms)
@@ -114,77 +109,19 @@ def service_list(request):
 
 
 @login_required
-def booking_confirm(request, service_id):
-    service = get_object_or_404(Service, id=service_id)
-    start_date = parse_date(request.session.get("booking_start_date") or "")
-    end_date = parse_date(request.session.get("booking_end_date") or "")
-
-    if not start_date or not end_date:
-        return redirect("service:service_list")
-
-    # Compute nights and total (rooms = nights, restaurant = 1 day)
-    is_room = service.type == "ROOM"
-    delta_days = (end_date - start_date).days
-    nights = max(1, delta_days) if is_room else 1
-    total_price = service.price * nights
-
-    # Overlap check (prevent double booking for the selected period)
-    start_dt = datetime.combine(start_date, time.min)
-    end_dt = datetime.combine(end_date, time.max)
-    overlap_exists = ReservationDetail.objects.filter(
-        service=service, start_date__lte=end_dt, end_date__gte=start_dt
-    ).exists()
-
-    context = {
-        "service": service,
-        "start_date": start_date,
-        "end_date": end_date,
-        "booked": False,
-        "is_room": is_room,
-        "nights": nights,
-        "total_price": total_price,
-        "overlap_error": (
-            "This service is no longer available for the selected dates."
-            if overlap_exists
-            else None
-        ),
-    }
-
-    if request.method == "POST":
-        if overlap_exists:
-            return render(request, "booking_confirm.html", context)
-
-        reservation = Reservation.objects.create(username_id=request.user.username)
-        ReservationDetail.objects.create(
-            reservation=reservation,
-            service=service,
-            start_date=start_dt,
-            end_date=end_dt,
-        )
-
-        # Do not change service.status; availability is handled via ReservationDetail
-        request.session.pop("booking_start_date", None)
-        request.session.pop("booking_end_date", None)
-
-        context["booked"] = True
-        return render(request, "booking_confirm.html", context)
-
-    return render(request, "booking_confirm.html", context)
-
-
-@login_required
 def quick_book(request, service_id):
     """
-    Helper: set session dates from query params and redirect to booking_confirm.
     Accepts:
-      - Rooms: ?start=YYYY-MM-DD&end=YYYY-MM-DD
-      - Restaurant: ?date=YYYY-MM-DD (sets start=end=date)
+      - Rooms: ?start=YYYY-MM-DD&end=YYYY-MM-DD&people=INT
+      - Restaurant: ?date=YYYY-MM-DD&people=INT (sets start=end=date)
+    Saves dates and people in session then redirects to booking_confirm.
     """
     service = get_object_or_404(Service, id=service_id)
 
     start_param = request.GET.get("start")
     end_param = request.GET.get("end")
     date_param = request.GET.get("date")
+    people_param = request.GET.get("people")
 
     start_date = None
     end_date = None
@@ -207,4 +144,79 @@ def quick_book(request, service_id):
     request.session["booking_start_date"] = str(start_date)
     request.session["booking_end_date"] = str(end_date)
 
+    # people
+    try:
+        ppl = int(people_param) if people_param is not None else 1
+        if ppl <= 0:
+            ppl = 1
+    except ValueError:
+        ppl = 1
+    request.session["booking_people"] = ppl
+
     return redirect("service:booking_confirm", service_id=service.id)
+
+
+@login_required
+def booking_confirm(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    start_date = parse_date(request.session.get("booking_start_date") or "")
+    end_date = parse_date(request.session.get("booking_end_date") or "")
+    people = request.session.get("booking_people") or 1
+    try:
+        people = int(people)
+        if people <= 0:
+            people = 1
+    except (TypeError, ValueError):
+        people = 1
+
+    if not start_date or not end_date:
+        return redirect("service:service_list")
+
+    is_room = service.type == "ROOM"
+    delta_days = (end_date - start_date).days
+    nights = max(1, delta_days) if is_room else 1
+    total_price = service.price * nights
+
+    start_dt = datetime.combine(start_date, time.min)
+    end_dt = datetime.combine(end_date, time.max)
+    overlap_exists = ReservationDetail.objects.filter(
+        service=service, start_date__lte=end_dt, end_date__gte=start_dt
+    ).exists()
+
+    context = {
+        "service": service,
+        "start_date": start_date,
+        "end_date": end_date,
+        "people": people,
+        "booked": False,
+        "is_room": is_room,
+        "nights": nights,
+        "total_price": total_price,
+        "overlap_error": (
+            "This service is no longer available for the selected dates."
+            if overlap_exists
+            else None
+        ),
+    }
+
+    if request.method == "POST":
+        if overlap_exists:
+            return render(request, "booking_confirm.html", context)
+
+        reservation = Reservation.objects.create(username_id=request.user.username)
+        ReservationDetail.objects.create(
+            reservation=reservation,
+            service=service,
+            start_date=start_dt,
+            end_date=end_dt,
+            people=people,
+        )
+
+        request.session.pop("booking_start_date", None)
+        request.session.pop("booking_end_date", None)
+        request.session.pop("booking_people", None)
+
+        context["booked"] = True
+        return render(request, "booking_confirm.html", context)
+
+    return render(request, "booking_confirm.html", context)

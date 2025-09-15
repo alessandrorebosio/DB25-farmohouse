@@ -26,28 +26,25 @@
                             <div class="input-group input-group-flat">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_start" name="room_start" class="form-control"
-                                    value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}" />
+                                    value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}">
                             </div>
                         </div>
-
                         <div class="col-12 col-md-3">
                             <label for="room_end" class="form-label small text-muted">End date</label>
                             <div class="input-group input-group-flat">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_end" name="room_end" class="form-control"
-                                    value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}" />
+                                    value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}">
                             </div>
                         </div>
-
                         <div class="col-12 col-md-3">
                             <label for="room_people" class="form-label small text-muted">People</label>
                             <div class="input-group input-group-flat">
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="room_people" name="room_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 2" value="{{ room_people }}" />
+                                    step="1" placeholder="e.g. 2" value="{{ room_people }}">
                             </div>
                         </div>
-
                         <div class="col-12 col-md-3 d-flex gap-2">
                             <button type="submit" class="btn btn-primary ms-auto px-4">Search rooms</button>
                             <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
@@ -64,50 +61,39 @@
                     {% if available_rooms %}
                     <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
                         {% with available_rooms|length as count %}
-                        <span class="chip chip-primary">
-                            {{ count }} room{% if count != 1 %}s{% endif %} available
-                        </span>
+                        <span class="chip chip-primary">{{ count }} room{% if count != 1 %}s{% endif %} available</span>
                         {% endwith %}
-                        {% if room_nights %}
                         <span class="chip chip-info">Nights: {{ room_nights }}</span>
                         <span class="chip chip-muted">{{ room_people }} pax</span>
-                        <span class="chip chip-muted">
-                            {{ room_start|date:"d/m/Y" }} → {{ room_end|date:"d/m/Y" }}
-                        </span>
-                        {% endif %}
+                        <span class="chip chip-muted">{{ room_start|date:"d/m/Y" }} → {{ room_end|date:"d/m/Y" }}</span>
                     </div>
 
                     <div class="row g-3 g-md-4">
                         {% for s in available_rooms %}
                         <div class="col-12 col-md-6 col-lg-4">
                             <div class="card h-100 border-0 rounded-4 card-hover position-relative">
-                                <!-- Price ribbon -->
                                 <div class="price-ribbon">
                                     €{{ s.price|floatformat:2 }} <span class="small text-muted">/ night</span>
                                 </div>
-
                                 <div class="card-body d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">
-                                            Room <span class="fw-semibold">{{ s.room.code|default:"—" }}</span>
-                                        </h5>
+                                        <h5 class="card-title mb-0">Room <span class="fw-semibold">
+                                                {{ s.room.code|default:"—" }}</span></h5>
                                         {% if s.room.max_capacity %}
                                         <span class="badge bg-light border text-body">{{ s.room.max_capacity }}
                                             pax</span>
                                         {% endif %}
                                     </div>
-
                                     <ul class="list-unstyled small mb-3">
                                         <li class="d-flex justify-content-between">
                                             <span class="text-muted">Total</span>
                                             <strong class="text-success">€{{ s.total_price|floatformat:2 }}</strong>
                                         </li>
                                     </ul>
-
                                     <div class="mt-auto d-flex gap-2">
                                         {% if request.user.is_authenticated %}
                                         <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'service:quick_book' s.id %}?start={{ room_start|date:'Y-m-d' }}&end={{ room_end|date:'Y-m-d' }}">
+                                            href="{% url 'service:quick_book' s.id %}?start={{ room_start|date:'Y-m-d' }}&end={{ room_end|date:'Y-m-d' }}&people={{ room_people }}">
                                             Book
                                         </a>
                                         {% else %}
@@ -149,19 +135,17 @@
                             <div class="input-group input-group-flat">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="table_date" name="table_date" class="form-control"
-                                    value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}" />
+                                    value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}">
                             </div>
                         </div>
-
                         <div class="col-12 col-md-4">
                             <label for="table_people" class="form-label small text-muted">People</label>
                             <div class="input-group input-group-flat">
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="table_people" name="table_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 4" value="{{ table_people }}" />
+                                    step="1" placeholder="e.g. 4" value="{{ table_people }}">
                             </div>
                         </div>
-
                         <div class="col-12 col-md-4 d-flex gap-2">
                             <button type="submit" class="btn btn-primary ms-auto px-4">Search tables</button>
                             <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
@@ -178,9 +162,8 @@
                     {% if available_tables %}
                     <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
                         {% with available_tables|length as count %}
-                        <span class="chip chip-primary">
-                            {{ count }} table{% if count != 1 %}s{% endif %} available
-                        </span>
+                        <span class="chip chip-primary">{{ count }} table{% if count != 1 %}s{% endif %}
+                            available</span>
                         {% endwith %}
                         <span class="chip chip-info">{{ table_date|date:"d/m/Y" }}</span>
                         <span class="chip chip-muted">{{ table_people }} pax</span>
@@ -192,19 +175,17 @@
                             <div class="card h-100 border-0 rounded-4 card-hover">
                                 <div class="card-body d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">
-                                            Table <span class="fw-semibold">{{ s.restaurant.code|default:"—" }}</span>
-                                        </h5>
+                                        <h5 class="card-title mb-0">Table <span class="fw-semibold">
+                                                {{ s.restaurant.code|default:"—" }}</span></h5>
                                         {% if s.restaurant.max_capacity %}
                                         <span class="badge bg-light border text-body">{{ s.restaurant.max_capacity }}
                                             pax</span>
                                         {% endif %}
                                     </div>
-
                                     <div class="mt-auto d-flex gap-2">
                                         {% if request.user.is_authenticated %}
                                         <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}">
+                                            href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}&people={{ table_people }}">
                                             Book
                                         </a>
                                         {% else %}
@@ -234,7 +215,6 @@
 </main>
 
 <style>
-    /* Cards */
     .card-elevated {
         box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.06);
     }
@@ -250,7 +230,6 @@
         border-color: rgba(13, 110, 253, .25);
     }
 
-    /* Section header */
     .section-header {
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), transparent);
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -273,7 +252,6 @@
         background: rgba(108, 117, 125, .15);
     }
 
-    /* Inputs */
     .input-group-flat .input-group-text {
         background: #fff;
         border-right: 0;
@@ -287,7 +265,6 @@
         box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
     }
 
-    /* Chips / badges */
     .chip {
         --bg: rgba(0, 0, 0, .06);
         --fg: #212529;
@@ -316,7 +293,6 @@
         --fg: #495057;
     }
 
-    /* Price ribbon */
     .price-ribbon {
         position: absolute;
         top: 10px;
@@ -330,15 +306,9 @@
         box-shadow: 0 .25rem .75rem rgba(13, 110, 253, .08);
         font-weight: 600;
     }
-
-    /* Empty state */
-    .empty-state .display-6 {
-        opacity: .9;
-    }
 </style>
 
 <script>
-    // Client-side niceties: keep end >= start for rooms
     (function () {
         const start = document.getElementById('room_start');
         const end = document.getElementById('room_end');

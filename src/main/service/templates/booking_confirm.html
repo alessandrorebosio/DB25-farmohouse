@@ -28,8 +28,9 @@
                             <div class="border rounded-3 p-3 h-100">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="text-muted">Service</span>
-                                    <span class="badge bg-secondary">{{ service.get_type_display|default:service.type
-                                        }}</span>
+                                    <span class="badge bg-secondary">
+                                        {{ service.get_type_display|default:service.type }}
+                                    </span>
                                 </div>
                                 <div class="small text-muted">Service ID</div>
                                 <div class="fw-semibold">{{ service.id }}</div>
@@ -47,16 +48,22 @@
                     </div>
 
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="border rounded-3 p-3 h-100">
                                 <div class="small text-muted">Start date</div>
                                 <div class="fw-semibold">{{ start_date }}</div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="border rounded-3 p-3 h-100">
                                 <div class="small text-muted">{% if is_room %}End date{% else %}Date{% endif %}</div>
                                 <div class="fw-semibold">{{ end_date }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted">People</div>
+                                <div class="fw-semibold">{{ people }}</div>
                             </div>
                         </div>
                     </div>
