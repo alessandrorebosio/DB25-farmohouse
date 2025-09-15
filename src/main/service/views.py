@@ -69,34 +69,6 @@ def booking_results(request):
         "service_type": service_type,
     })
     
-    
-    
-# @login_required
-# def booking_confirm(request, service_id):
-#     """Step 3: Confirm booking for chosen service."""
-#     service = get_object_or_404(Service, id=service_id)
-#     start_date = parse_date(request.session.get("booking_start_date"))
-#     end_date = parse_date(request.session.get("booking_end_date"))
-
-#     if request.method == "POST":
-#         reservation = Reservation.objects.create(username=request.user)
-#         ReservationDetail.objects.create(
-#             reservation=reservation,
-#             service=service,
-#             start_date=start_date,
-#             end_date=end_date,
-#         )
-#         service.status = "OCCUPIED"
-#         service.save()
-#         return render(request, "booking_confirm.html", {"service": service})
-
-#     return render(request, "booking_confirm.html", {
-#         "service": service,
-#         "start_date": start_date,
-#         "end_date": end_date,
-#     })
-
-
 @login_required
 def booking_confirm(request, service_id):
     service = get_object_or_404(Service, id=service_id)
