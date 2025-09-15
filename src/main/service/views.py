@@ -5,6 +5,7 @@ from django.utils.dateparse import parse_date
 from .models import Service, Reservation, ReservationDetail
 from .forms import BookingDateForm
 from django.db.models import Count
+from datetime import datetime
 
 def service_list(request):
     """Show all service types as cards."""
@@ -69,15 +70,42 @@ def booking_results(request):
     })
     
     
+    
+# @login_required
+# def booking_confirm(request, service_id):
+#     """Step 3: Confirm booking for chosen service."""
+#     service = get_object_or_404(Service, id=service_id)
+#     start_date = parse_date(request.session.get("booking_start_date"))
+#     end_date = parse_date(request.session.get("booking_end_date"))
+
+#     if request.method == "POST":
+#         reservation = Reservation.objects.create(username=request.user)
+#         ReservationDetail.objects.create(
+#             reservation=reservation,
+#             service=service,
+#             start_date=start_date,
+#             end_date=end_date,
+#         )
+#         service.status = "OCCUPIED"
+#         service.save()
+#         return render(request, "booking_confirm.html", {"service": service})
+
+#     return render(request, "booking_confirm.html", {
+#         "service": service,
+#         "start_date": start_date,
+#         "end_date": end_date,
+#     })
+
+
 @login_required
 def booking_confirm(request, service_id):
-    """Step 3: Confirm booking for chosen service."""
     service = get_object_or_404(Service, id=service_id)
     start_date = parse_date(request.session.get("booking_start_date"))
     end_date = parse_date(request.session.get("booking_end_date"))
 
     if request.method == "POST":
-        reservation = Reservation.objects.create(user=request.user)
+        reservation = Reservation.objects.create(username_id=request.user.username)
+        
         ReservationDetail.objects.create(
             reservation=reservation,
             service=service,
@@ -86,10 +114,18 @@ def booking_confirm(request, service_id):
         )
         service.status = "OCCUPIED"
         service.save()
-        return render(request, "booking_confirm.html", {"service": service})
+
+        return render(request, "booking_confirm.html", {
+            "service": service,
+            "start_date": start_date,
+            "end_date": end_date,
+            "booked": True,   # flag for template
+        })
 
     return render(request, "booking_confirm.html", {
         "service": service,
         "start_date": start_date,
         "end_date": end_date,
+        "booked": False,     # GET = not yet booked
     })
+
