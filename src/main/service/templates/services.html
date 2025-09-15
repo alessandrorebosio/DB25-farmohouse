@@ -1,34 +1,85 @@
 {% extends "core/base.html" %}
-{% block content %}
-<div class="container mt-4">
-  <h2>Our Services</h2>
-  <div class="row">
-    {% for service_type in service_types %}
-      <div class="col-md-4 mb-3">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title">{{ service_type.service_type }}</h5>
-            <p><strong>Available:</strong> {{ service_type.count }}</p>
+{% block title %}Services{% endblock %}
 
-            <div class="mt-auto">
-              {% if request.user.is_authenticated %}
-                <a href="{% url 'service:service_type_booking' service_type.service_type %}"
-                   class="btn btn-primary">
-                  Book
-                </a>
-              {% else %}
-                <a href="{% url 'login' %}?next={% url 'service:service_type_booking' service_type.service_type %}"
-                   class="btn btn-outline-primary">
-                  Login to book
-                </a>
-              {% endif %}
+{% block content %}
+<main class="hero">
+    <div class="container py-3">
+
+        <form method="get" class="services-header mb-3">
+            <div class="row align-items-end gy-2">
+                <div class="col-md-3">
+                    <h1 class="mb-0 services-title">Services</h1>
+                </div>
+
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <input type="text" name="q" value="{{ q }}" class="form-control"
+                            placeholder="Search services...">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                        {% if q %}
+                        <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-          </div>
+        </form>
+
+        <p class="text-muted small mb-3">
+            {% with service_types|length as count %}
+            {{ count }} service type{{ count|pluralize:"s" }} found
+            {% endwith %}
+        </p>
+
+        {% if service_types %}
+        <div class="row g-3">
+            {% for st in service_types %}
+            <div class="col-12 col-md-6 col-lg-6 col-xl-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0" title="{{ st.type }}">{{ st.type|lower|capfirst }}</h5>
+                        </div>
+
+                        <div class="booking-bar d-flex flex-wrap align-items-center gap-2 mt-auto pt-2 border-top">
+                            <span class="badge bg-success">Available: {{ st.count }}</span>
+
+                            {% if request.user.is_authenticated %}
+                            <a href="{% url 'service:service_type_booking' st.type %}"
+                                class="btn btn-outline-primary btn-sm ms-auto">
+                                Book
+                            </a>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={% url 'service:service_type_booking' st.type %}"
+                                class="btn btn-outline-primary btn-sm ms-auto">
+                                Login to book
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-      </div>
-    {% empty %}
-      <p>No services available.</p>
-    {% endfor %}
-  </div>
-</div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="display-6 mb-2">🧩</div>
+            <h3>No services found</h3>
+            <p class="text-muted">Try changing your search terms.</p>
+            {% if q %}<a class="btn btn-outline-secondary" href="{{ request.path }}">Show all</a>{% endif %}
+        </div>
+        {% endif %}
+    </div>
+</main>
+
+<style>
+    .hero {
+        background: #f8f9fa;
+    }
+
+    @media (max-width: 576px) {
+        form h1 {
+            width: 100%;
+        }
+    }
+</style>
 {% endblock %}

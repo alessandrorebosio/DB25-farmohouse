@@ -28,7 +28,7 @@ def event_view(request: HttpRequest) -> HttpResponse:
             my_participants=Coalesce(
                 Sum(
                     "subscriptions__participants",
-                    filter=Q(subscriptions__username_id=request.user.username),
+                    filter=Q(subscriptions__user_id=request.user.username),  # <<< fix
                 ),
                 0,
                 output_field=IntegerField(),
@@ -47,7 +47,8 @@ def event_view(request: HttpRequest) -> HttpResponse:
 def book_event(request: HttpRequest, event_id: int) -> HttpResponse:
     event = get_object_or_404(Event, pk=event_id)
 
-    EventSubscription.objects.select_for_update().filter(event=event)
+    # lock delle subscription dell'evento per evitare race
+    subs_qs = EventSubscription.objects.select_for_update().filter(event=event)
 
     try:
         participants = int(request.POST.get("participants", "0"))
@@ -57,9 +58,7 @@ def book_event(request: HttpRequest, event_id: int) -> HttpResponse:
         messages.error(request, "Invalid number of participants.")
         return redirect(request.POST.get("next") or "event_list")
 
-    taken = EventSubscription.objects.filter(event=event).aggregate(
-        taken=Coalesce(Sum("participants"), 0)
-    )["taken"]
+    taken = subs_qs.aggregate(taken=Coalesce(Sum("participants"), 0))["taken"]
     remaining = event.seats - taken
 
     if remaining <= 0:
@@ -69,9 +68,7 @@ def book_event(request: HttpRequest, event_id: int) -> HttpResponse:
         messages.error(request, f"You can book at most {remaining} more.")
         return redirect(request.POST.get("next") or "event_list")
 
-    sub = EventSubscription.objects.filter(
-        event=event, username_id=request.user.username
-    ).first()
+    sub = subs_qs.filter(user_id=request.user.username).first()  # <<< fix
 
     if sub:
         sub.participants += participants
@@ -79,7 +76,7 @@ def book_event(request: HttpRequest, event_id: int) -> HttpResponse:
     else:
         EventSubscription.objects.create(
             event=event,
-            username_id=request.user.username,
+            user_id=request.user.username,  # <<< fix
             subscription_date=timezone.now(),
             participants=participants,
         )
@@ -99,7 +96,7 @@ def cancel_event(request: HttpRequest, event_id: int) -> HttpResponse:
 
     sub = (
         EventSubscription.objects.select_for_update()
-        .filter(event=event, username_id=request.user.username)
+        .filter(event=event, user_id=request.user.username)  # <<< fix
         .first()
     )
     if not sub:

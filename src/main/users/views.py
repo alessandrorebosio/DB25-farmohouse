@@ -3,7 +3,14 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
-from django.db.models import F, Sum, DecimalField, Prefetch, ExpressionWrapper, DurationField
+from django.db.models import (
+    F,
+    Sum,
+    DecimalField,
+    Prefetch,
+    ExpressionWrapper,
+    DurationField,
+)
 from django.utils import timezone
 from datetime import timedelta
 
@@ -12,6 +19,7 @@ from . import models
 from product.models import Orders, OrderDetail
 from event.models import EventSubscription
 from service.models import Reservation, ReservationDetail, Service
+
 
 # Create your views here.
 def register_view(request: HttpRequest) -> HttpResponse:
@@ -47,7 +55,9 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         )
     except models.User.DoesNotExist:
         return render(
-            request, "profile.html", {"query": None, "orders": [], "shifts": [], "reservations": []}
+            request,
+            "profile.html",
+            {"query": None, "orders": [], "shifts": [], "reservations": []},
         )
 
     query = {
@@ -111,27 +121,26 @@ def profile_view(request: HttpRequest) -> HttpResponse:
 
     subscriptions = (
         EventSubscription.objects.select_related("event")
-        .filter(username_id=request.user.username)
+        .filter(user_id=request.user.username)  # fix: era username_id
         .order_by("event__event_date", "event__title")
     )
 
-    #Booked reservations
+    # Booked reservations
     reservations = Reservation.objects.filter(
         username_id=request.user.username
-    ).order_by('-reservation_date')
-    
+    ).order_by("-reservation_date")
+
     reservation_list = []
     for reservation in reservations:
         details = ReservationDetail.objects.filter(
             reservation=reservation
-        ).select_related('service')
-        
+        ).select_related("service")
+
         reservation.reservation_details = list(details)
         reservation_list.append(reservation)
 
-
     today = timezone.localdate()
-    
+
     return render(
         request,
         "profile.html",

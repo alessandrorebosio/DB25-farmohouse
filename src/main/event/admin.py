@@ -6,9 +6,9 @@ from . import models
 class EventSubscriptionInline(admin.TabularInline):
     model = models.EventSubscription
     extra = 0
-    autocomplete_fields = ("username",)
-    readonly_fields = ("username", "participants", "subscription_date")
-    fields = ("username", "participants", "subscription_date")
+    autocomplete_fields = ("user",)
+    readonly_fields = ("user", "participants", "subscription_date")
+    fields = ("user", "participants", "subscription_date")
     can_delete = False
     show_change_link = False
 

@@ -20,7 +20,7 @@ class Reservation(models.Model):
 class Service(models.Model):
     id = models.AutoField(primary_key=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    service_type = models.CharField(
+    type = models.CharField(
         max_length=20,
         choices=[
             ("RESTAURANT", "Restaurant"),
@@ -75,7 +75,7 @@ class Restaurant(models.Model):
         primary_key=True,
         related_name="restaurant",
     )
-    table_code = models.CharField(max_length=3, unique=True)
+    code = models.CharField(max_length=3, unique=True)
     max_capacity = models.IntegerField()
 
     class Meta:
@@ -91,7 +91,7 @@ class Room(models.Model):
         primary_key=True,
         related_name="room",
     )
-    room_code = models.CharField(max_length=3, unique=True)
+    code = models.CharField(max_length=3, unique=True)
     max_capacity = models.IntegerField()
 
     class Meta:
