@@ -3,16 +3,18 @@
 
 {% block content %}
 <main class="hero">
-    <div class="container py-3">
+    <div class="container py-4 py-md-5">
 
-        <form method="get" class="products-header mb-3">
-            <div class="row align-items-center">
-                <div class="col-md-3">
-                    <h1 class="mb-0 products-title">Products</h1>
+        <!-- Header + Search -->
+        <form method="get" class="mb-3 mb-md-4">
+            <div class="row g-2 g-md-3 align-items-center">
+                <div class="col-12 col-md-4 col-lg-3">
+                    <h1 class="mb-0 display-6 fw-semibold">Products</h1>
+                    <div class="text-muted small">Browse our store</div>
                 </div>
-
-                <div class="col-md-9">
-                    <div class="input-group">
+                <div class="col-12 col-md-8 col-lg-9">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white">🔎</span>
                         <input type="text" name="q" value="{{ q }}" class="form-control"
                             placeholder="Search products...">
                         <button type="submit" class="btn btn-primary">Search</button>
@@ -26,31 +28,43 @@
 
         <p class="text-muted small mb-3">
             {% with products|length as count %}
-            {{ count }} products{{ count|pluralize:"s" }} found
+            <span class="chip chip-muted">{{ count }} product{{ count|pluralize:"s" }} found</span>
+            {% if q %}<span class="chip chip-info">Query: “{{ q }}”</span>{% endif %}
             {% endwith %}
         </p>
 
-
         {% if products %}
-        <div class="row g-3">
+        <div class="row g-3 g-md-4">
             {% for p in products %}
-            <div class="col-12 col-md-6 col-lg-6 col-xl-6">
-                <div class="card h-100 shadow-sm">
+            <div class="col-12 col-md-6 col-lg-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 card-hover position-relative">
+
+                    <!-- Price ribbon -->
+                    <div class="price-ribbon">
+                        € {{ p.price|floatformat:2 }}
+                    </div>
+
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title mb-2 text-start" title="{{ p.name }}">{{ p.name }}</h5>
+
+                        {% if p.description %}
+                        <p class="text-muted small mb-3">{{ p.description }}</p>
+                        {% endif %}
+
                         <div class="mt-auto d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <span class="h4 mb-0 text-success">€ {{ p.price|floatformat:2 }}</span>
+                            <span class="h5 mb-0 text-success">€ {{ p.price|floatformat:2 }}</span>
+
                             {% if request.user.is_authenticated %}
                             <form method="post" action="{% url 'add_to_cart' %}"
                                 class="d-flex align-items-center gap-2 m-0">
                                 {% csrf_token %}
                                 <input type="hidden" name="product_id" value="{{ p.id }}">
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <div class="input-group input-group-sm" style="max-width: 10rem;">
+                                <div class="input-group input-group-sm" style="max-width: 11rem;">
                                     <span class="input-group-text">Qty</span>
                                     <input type="number" name="qty" min="1" value="1" class="form-control text-center">
                                 </div>
-                                <button type="submit" class="btn btn-outline-primary">Add to cart</button>
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Add to cart</button>
                             </form>
                             {% else %}
                             <a href="{% url 'login' %}?next={{ request.get_full_path }}"
@@ -76,14 +90,52 @@
 </main>
 
 <style>
-    .hero {
-        background: #f8f9fa;
+    .card-hover {
+        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
+        border: 1px solid rgba(0, 0, 0, .06);
     }
 
-    @media (max-width: 576px) {
-        form h1 {
-            width: 100%;
-        }
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
+        border-color: rgba(13, 110, 253, .2);
+    }
+
+    .chip {
+        --bg: rgba(0, 0, 0, .06);
+        --fg: #212529;
+        background: var(--bg);
+        color: var(--fg);
+        border-radius: 999px;
+        padding: .25rem .6rem;
+        font-size: .8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .chip-info {
+        --bg: rgba(13, 202, 240, .18);
+        --fg: #087990;
+    }
+
+    .chip-muted {
+        --bg: rgba(108, 117, 125, .15);
+        --fg: #495057;
+    }
+
+    .price-ribbon {
+        position: absolute;
+        top: 10px;
+        right: -6px;
+        background: #fff;
+        color: #0d6efd;
+        border: 1px solid rgba(13, 110, 253, .25);
+        border-right: none;
+        padding: .35rem .6rem .35rem .75rem;
+        border-radius: 999px 0 0 999px;
+        box-shadow: 0 .25rem .75rem rgba(13, 110, 253, .08);
+        font-weight: 600;
     }
 </style>
 {% endblock %}
