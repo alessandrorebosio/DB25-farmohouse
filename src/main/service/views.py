@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
 from .models import Service, Reservation, ReservationDetail
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 
 def service_list(request):
@@ -177,8 +177,19 @@ def booking_confirm(request, service_id):
     nights = max(1, delta_days) if is_room else 1
     total_price = service.price * nights
 
-    start_dt = datetime.combine(start_date, time.min)
-    end_dt = datetime.combine(end_date, time.max)
+    # Apply check-in/out times
+    if is_room:
+        start_dt = datetime.combine(start_date, time(14, 0))  # 14:00 check-in
+        # ensure checkout is at least next day if same/earlier date is passed
+        end_base_date = (
+            end_date if end_date > start_date else (start_date + timedelta(days=1))
+        )
+        end_dt = datetime.combine(end_base_date, time(10, 0))  # 10:00 check-out
+    else:
+        # keep full-day window for restaurant bookings
+        start_dt = datetime.combine(start_date, time.min)
+        end_dt = datetime.combine(end_date, time.max)
+
     overlap_exists = ReservationDetail.objects.filter(
         service=service, start_date__lte=end_dt, end_date__gte=start_dt
     ).exists()

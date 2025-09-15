@@ -10,9 +10,9 @@ from django.db.models import (
     Prefetch,
     ExpressionWrapper,
 )
+from decimal import Decimal
 from django.utils import timezone
 from datetime import timedelta
-from decimal import Decimal
 
 from .forms import RegisterForm
 from . import models
@@ -142,20 +142,18 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             svc = d.service
             d.is_room = svc.type == "ROOM"
 
-            # Stesso calcolo di services/views.py
+            # Notti: (end.date - start.date).days, niente +1; minimo 1 solo per camere
             start_d = d.start_date.date()
             end_d = d.end_date.date()
-            if d.is_room:
-                delta_days = (end_d - start_d).days
-                d.nights = max(1, delta_days)
-            else:
-                d.nights = 1
+            nights = (end_d - start_d).days if d.is_room else 1
+            if d.is_room and nights <= 0:
+                nights = 1
 
-            d.total_price = (svc.price or Decimal("0")) * d.nights
+            d.nights = nights
+            d.total_price = (svc.price or Decimal("0.00")) * nights
             total += d.total_price
-        r.total_price = total
 
-    today = timezone.localdate()
+        r.total_price = total
 
     return render(
         request,
@@ -167,7 +165,7 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             "shifts_label": shifts_label,
             "subscriptions": subscriptions,
             "reservations": reservations,
-            "today": today,
+            "today": timezone.localdate(),
         },
     )
 
