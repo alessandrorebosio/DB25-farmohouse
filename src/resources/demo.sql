@@ -68,13 +68,13 @@ INSERT INTO EMPLOYEE_HISTORY (username, role, change_date) VALUES
 ('mbianchi', 'RECEPTIONIST', '2023-01-01 09:00:00');
 
 -- Example products
-INSERT INTO PRODUCT (name, price) VALUES
-('Farm Eggs (12 pcs)', 3.50),
-('Organic Milk (1L)', 1.80),
-('Fresh Bread', 2.20),
-('Cheese Wheel (kg)', 12.00),
-('Honey Jar (500g)', 6.50),
-('Apple Jam (300g)', 4.20);
+INSERT INTO PRODUCT (name, description, price) VALUES
+('Farm Eggs (12 pcs)', 'Free-range eggs collected daily from our hens.', 3.50),
+('Organic Milk (1L)', 'Fresh whole milk from grass-fed cows.', 1.80),
+('Fresh Bread', 'Baked this morning with stone-milled flour.', 2.20),
+('Cheese Wheel (kg)', 'Aged farmhouse cheese with a rich, nutty flavor.', 12.00),
+('Honey Jar (500g)', 'Raw wildflower honey, unfiltered and unpasteurized.', 6.50),
+('Apple Jam (300g)', 'Handmade jam from orchard apples, low sugar.', 4.20);
 
 -- Example orders
 INSERT INTO ORDERS (date, username) VALUES
