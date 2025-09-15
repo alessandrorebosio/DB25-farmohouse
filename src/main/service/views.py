@@ -1,123 +1,222 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.utils.dateparse import parse_date
 from .models import Service, Reservation, ReservationDetail
-from .forms import BookingDateForm
-from django.db.models import Count
-from datetime import datetime
+from datetime import datetime, time
 
 
 def service_list(request):
-    """Show service types with available count, with search."""
-    q = (request.GET.get("q") or "").strip()
+    """Search availability for Rooms and Restaurant."""
+    # Rooms form params
+    room_start_str = (request.GET.get("room_start") or "").strip()
+    room_end_str = (request.GET.get("room_end") or "").strip()
+    room_people_str = (request.GET.get("room_people") or "").strip()
 
-    qs = Service.objects.filter(status="AVAILABLE")
-    if q:
-        qs = qs.filter(type__icontains=q)
+    # Restaurant form params
+    table_date_str = (request.GET.get("table_date") or "").strip()
+    table_people_str = (request.GET.get("table_people") or "").strip()
 
-    service_types = qs.values("type").annotate(count=Count("id")).order_by("type")
+    room_start = parse_date(room_start_str) if room_start_str else None
+    room_end = parse_date(room_end_str) if room_end_str else None
+    room_people = int(room_people_str) if room_people_str.isdigit() else None
 
-    return render(request, "services.html", {"service_types": service_types, "q": q})
+    table_date = parse_date(table_date_str) if table_date_str else None
+    table_people = int(table_people_str) if table_people_str.isdigit() else None
 
+    available_rooms = []
+    available_tables = []
+    room_nights = None
+    room_error = None
+    table_error = None
 
-@login_required
-def service_type_booking(request, service_type):
-    """Step 1: Choose start/end date for a service type."""
-    if request.method == "POST":
-        form = BookingDateForm(request.POST)
-        if form.is_valid():
-            start_date = form.cleaned_data["start_date"]
-            end_date = form.cleaned_data["end_date"]
+    # Rooms availability
+    if room_start and room_end and room_people:
+        if room_end < room_start:
+            room_error = "End date must be on or after start date."
+        else:
+            delta_days = (room_end - room_start).days
+            room_nights = max(1, delta_days)
+            start_dt = datetime.combine(room_start, time.min)
+            end_dt = datetime.combine(room_end, time.max)
 
-            # Save dates in session
-            request.session["booking_start_date"] = str(start_date)
-            request.session["booking_end_date"] = str(end_date)
-            request.session["service_type"] = service_type
+            reserved_room_ids = (
+                ReservationDetail.objects.filter(
+                    service__type="ROOM",
+                    start_date__lte=end_dt,
+                    end_date__gte=start_dt,
+                )
+                .values_list("service_id", flat=True)
+                .distinct()
+            )
 
-            return redirect("service:booking_results")
-    else:
-        form = BookingDateForm()
+            qs_rooms = (
+                Service.objects.filter(
+                    type="ROOM",
+                    status="AVAILABLE",
+                    room__max_capacity__gte=room_people,
+                )
+                .exclude(id__in=reserved_room_ids)
+                .select_related("room")
+                .order_by("id")
+            )
+
+            for s in qs_rooms:
+                s.total_price = s.price * room_nights
+            available_rooms = list(qs_rooms)
+
+    # Restaurant availability (single day)
+    if table_date and table_people:
+        start_dt = datetime.combine(table_date, time.min)
+        end_dt = datetime.combine(table_date, time.max)
+
+        reserved_table_ids = (
+            ReservationDetail.objects.filter(
+                service__type="RESTAURANT",
+                start_date__lte=end_dt,
+                end_date__gte=start_dt,
+            )
+            .values_list("service_id", flat=True)
+            .distinct()
+        )
+
+        available_tables = list(
+            Service.objects.filter(
+                type="RESTAURANT",
+                status="AVAILABLE",
+                restaurant__max_capacity__gte=table_people,
+            )
+            .exclude(id__in=reserved_table_ids)
+            .select_related("restaurant")
+            .order_by("id")
+        )
 
     return render(
         request,
-        "service_type_booking.html",
-        {"service_type": service_type, "form": form},
-    )
-
-
-@login_required
-def booking_results(request):
-    """Step 2: Show available services of the selected type in the given date range."""
-    start_date = request.session.get("booking_start_date")
-    end_date = request.session.get("booking_end_date")
-    service_type = request.session.get("service_type")
-
-    if not start_date or not end_date or not service_type:
-        return redirect("service:service_list")
-
-    start_date = parse_date(start_date)
-    end_date = parse_date(end_date)
-
-    # Services already booked (overlap) for the selected type
-    reserved_services = ReservationDetail.objects.filter(
-        Q(start_date__lte=end_date) & Q(end_date__gte=start_date),
-        service__type=service_type,
-    ).values_list("service_id", flat=True)
-
-    # Services available of that type
-    available_services = Service.objects.filter(
-        type=service_type, status="AVAILABLE"
-    ).exclude(id__in=reserved_services)
-
-    return render(
-        request,
-        "booking_results.html",
+        "services.html",
         {
-            "available_services": available_services,
-            "start_date": start_date,
-            "end_date": end_date,
-            "service_type": service_type,
+            "room_start": room_start,
+            "room_end": room_end,
+            "room_people": room_people,
+            "room_nights": room_nights,
+            "room_error": room_error,
+            "available_rooms": available_rooms,
+            "table_date": table_date,
+            "table_people": table_people,
+            "table_error": table_error,
+            "available_tables": available_tables,
         },
     )
+
+
+@login_required
+def quick_book(request, service_id):
+    """
+    Accepts:
+      - Rooms: ?start=YYYY-MM-DD&end=YYYY-MM-DD&people=INT
+      - Restaurant: ?date=YYYY-MM-DD&people=INT (sets start=end=date)
+    Saves dates and people in session then redirects to booking_confirm.
+    """
+    service = get_object_or_404(Service, id=service_id)
+
+    start_param = request.GET.get("start")
+    end_param = request.GET.get("end")
+    date_param = request.GET.get("date")
+    people_param = request.GET.get("people")
+
+    start_date = None
+    end_date = None
+
+    if date_param:
+        d = parse_date(date_param)
+        if d:
+            start_date = d
+            end_date = d
+    else:
+        s = parse_date(start_param) if start_param else None
+        e = parse_date(end_param) if end_param else None
+        if s and e:
+            start_date = s
+            end_date = e
+
+    if not start_date or not end_date:
+        return redirect("service:service_list")
+
+    request.session["booking_start_date"] = str(start_date)
+    request.session["booking_end_date"] = str(end_date)
+
+    # people
+    try:
+        ppl = int(people_param) if people_param is not None else 1
+        if ppl <= 0:
+            ppl = 1
+    except ValueError:
+        ppl = 1
+    request.session["booking_people"] = ppl
+
+    return redirect("service:booking_confirm", service_id=service.id)
 
 
 @login_required
 def booking_confirm(request, service_id):
     service = get_object_or_404(Service, id=service_id)
-    start_date = parse_date(request.session.get("booking_start_date"))
-    end_date = parse_date(request.session.get("booking_end_date"))
+    start_date = parse_date(request.session.get("booking_start_date") or "")
+    end_date = parse_date(request.session.get("booking_end_date") or "")
+    people = request.session.get("booking_people") or 1
+    try:
+        people = int(people)
+        if people <= 0:
+            people = 1
+    except (TypeError, ValueError):
+        people = 1
+
+    if not start_date or not end_date:
+        return redirect("service:service_list")
+
+    is_room = service.type == "ROOM"
+    delta_days = (end_date - start_date).days
+    nights = max(1, delta_days) if is_room else 1
+    total_price = service.price * nights
+
+    start_dt = datetime.combine(start_date, time.min)
+    end_dt = datetime.combine(end_date, time.max)
+    overlap_exists = ReservationDetail.objects.filter(
+        service=service, start_date__lte=end_dt, end_date__gte=start_dt
+    ).exists()
+
+    context = {
+        "service": service,
+        "start_date": start_date,
+        "end_date": end_date,
+        "people": people,
+        "booked": False,
+        "is_room": is_room,
+        "nights": nights,
+        "total_price": total_price,
+        "overlap_error": (
+            "This service is no longer available for the selected dates."
+            if overlap_exists
+            else None
+        ),
+    }
 
     if request.method == "POST":
-        reservation = Reservation.objects.create(username_id=request.user.username)
+        if overlap_exists:
+            return render(request, "booking_confirm.html", context)
 
+        reservation = Reservation.objects.create(username_id=request.user.username)
         ReservationDetail.objects.create(
             reservation=reservation,
             service=service,
-            start_date=start_date,
-            end_date=end_date,
-        )
-        service.status = "OCCUPIED"
-        service.save()
-
-        return render(
-            request,
-            "booking_confirm.html",
-            {
-                "service": service,
-                "start_date": start_date,
-                "end_date": end_date,
-                "booked": True,  # flag for template
-            },
+            start_date=start_dt,
+            end_date=end_dt,
+            people=people,
         )
 
-    return render(
-        request,
-        "booking_confirm.html",
-        {
-            "service": service,
-            "start_date": start_date,
-            "end_date": end_date,
-            "booked": False,  # GET = not yet booked
-        },
-    )
+        request.session.pop("booking_start_date", None)
+        request.session.pop("booking_end_date", None)
+        request.session.pop("booking_people", None)
+
+        context["booked"] = True
+        return render(request, "booking_confirm.html", context)
+
+    return render(request, "booking_confirm.html", context)

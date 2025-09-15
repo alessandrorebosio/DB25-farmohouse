@@ -9,10 +9,10 @@ from django.db.models import (
     DecimalField,
     Prefetch,
     ExpressionWrapper,
-    DurationField,
 )
 from django.utils import timezone
 from datetime import timedelta
+from decimal import Decimal
 
 from .forms import RegisterForm
 from . import models
@@ -21,7 +21,6 @@ from event.models import EventSubscription
 from service.models import Reservation, ReservationDetail, Service
 
 
-# Create your views here.
 def register_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -65,7 +64,6 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         "person": getattr(ut, "cf", None),
     }
 
-    # Ordini dell’utente con righe e totali
     line_qs = (
         OrderDetail.objects.select_related("product")
         .annotate(
@@ -93,7 +91,6 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         .order_by("-date", "-id")
     )
 
-    # Upcoming shifts (30 days) with fallback to recent
     shifts = []
     shifts_label = "Next 30 days"
     if query["employee"]:
@@ -121,23 +118,42 @@ def profile_view(request: HttpRequest) -> HttpResponse:
 
     subscriptions = (
         EventSubscription.objects.select_related("event")
-        .filter(user_id=request.user.username)  # fix: era username_id
+        .filter(user_id=request.user.username)
         .order_by("event__event_date", "event__title")
     )
 
-    # Booked reservations
-    reservations = Reservation.objects.filter(
-        username_id=request.user.username
-    ).order_by("-reservation_date")
+    reservations = (
+        Reservation.objects.filter(username_id=request.user.username)
+        .prefetch_related(
+            Prefetch(
+                "details",
+                queryset=ReservationDetail.objects.select_related(
+                    "service", "service__room", "service__restaurant"
+                ).order_by("start_date"),
+                to_attr="reservation_details",
+            )
+        )
+        .order_by("-reservation_date")
+    )
 
-    reservation_list = []
-    for reservation in reservations:
-        details = ReservationDetail.objects.filter(
-            reservation=reservation
-        ).select_related("service")
+    for r in reservations:
+        total = Decimal("0.00")
+        for d in r.reservation_details:
+            svc = d.service
+            d.is_room = svc.type == "ROOM"
 
-        reservation.reservation_details = list(details)
-        reservation_list.append(reservation)
+            # Stesso calcolo di services/views.py
+            start_d = d.start_date.date()
+            end_d = d.end_date.date()
+            if d.is_room:
+                delta_days = (end_d - start_d).days
+                d.nights = max(1, delta_days)
+            else:
+                d.nights = 1
+
+            d.total_price = (svc.price or Decimal("0")) * d.nights
+            total += d.total_price
+        r.total_price = total
 
     today = timezone.localdate()
 
