@@ -51,8 +51,8 @@ class OrdersAdmin(admin.ModelAdmin):
 
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "price", "ordered_qty")
-    search_fields = ("name",)
+    list_display = ("id", "name", "price", "ordered_qty", "short_description")
+    search_fields = ("name", "description")
     ordering = ("name",)
 
     def get_queryset(self, request):
@@ -63,3 +63,11 @@ class ProductAdmin(admin.ModelAdmin):
         return obj._ordered or 0
 
     ordered_qty.short_description = "Ordered Qty"
+
+    def short_description(self, obj):
+        if not obj.description:
+            return ""
+        text = str(obj.description)
+        return text if len(text) <= 80 else text[:80] + "…"
+
+    short_description.short_description = "Description"

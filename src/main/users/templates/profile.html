@@ -248,7 +248,7 @@
                                                 {{ reservation.reservation_date|date:"d/m/Y H:i" }}
                                             </span>
                                             <span class="ms-auto">
-                                                Services: {{ reservation.reservation_details|length }}
+                                                Total: € {{ reservation.total_price|default:0|floatformat:2 }}
                                             </span>
                                         </button>
                                     </h2>

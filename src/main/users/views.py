@@ -12,6 +12,7 @@ from django.db.models import (
 )
 from django.utils import timezone
 from datetime import timedelta
+from decimal import Decimal
 
 from .forms import RegisterForm
 from . import models
@@ -136,18 +137,23 @@ def profile_view(request: HttpRequest) -> HttpResponse:
     )
 
     for r in reservations:
+        total = Decimal("0.00")
         for d in r.reservation_details:
             svc = d.service
-            is_room = svc.type == "ROOM"
-            if is_room:
-                delta_days = (d.end_date.date() - d.start_date.date()).days
-                nights = max(1, delta_days)
+            d.is_room = svc.type == "ROOM"
+
+            # Stesso calcolo di services/views.py
+            start_d = d.start_date.date()
+            end_d = d.end_date.date()
+            if d.is_room:
+                delta_days = (end_d - start_d).days
+                d.nights = max(1, delta_days)
             else:
-                nights = 1
-            d.is_room = is_room
-            d.nights = nights
-            d.total_price = svc.price * nights
-            # d.people already available from schema
+                d.nights = 1
+
+            d.total_price = (svc.price or Decimal("0")) * d.nights
+            total += d.total_price
+        r.total_price = total
 
     today = timezone.localdate()
 
