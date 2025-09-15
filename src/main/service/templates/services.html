@@ -2,84 +2,354 @@
 {% block title %}Services{% endblock %}
 
 {% block content %}
-<main class="hero">
-    <div class="container py-3">
+{% now 'Y-m-d' as today %}
 
-        <form method="get" class="services-header mb-3">
-            <div class="row align-items-end gy-2">
-                <div class="col-md-3">
-                    <h1 class="mb-0 services-title">Services</h1>
+<main class="hero">
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1 class="display-6 fw-semibold mb-2">Services</h1>
+            <p class="text-muted mb-0">Check availability for rooms and the restaurant</p>
+        </header>
+
+        <!-- Rooms -->
+        <section class="mb-5">
+            <div class="card card-elevated rounded-4 border-0 overflow-hidden">
+                <div class="section-header d-flex align-items-center gap-2 px-4 py-3">
+                    <div class="icon-circle bg-primary-subtle text-primary">🛏️</div>
+                    <h2 class="h5 mb-0">Rooms</h2>
                 </div>
 
-                <div class="col-md-9">
-                    <div class="input-group">
-                        <input type="text" name="q" value="{{ q }}" class="form-control"
-                            placeholder="Search services...">
-                        <button type="submit" class="btn btn-primary">Search</button>
-                        {% if q %}
-                        <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+                <div class="card-body px-4 pb-4">
+                    <form method="get" class="row gy-3 align-items-end" novalidate>
+                        <div class="col-12 col-md-3">
+                            <label for="room_start" class="form-label small text-muted">Start date</label>
+                            <div class="input-group input-group-flat">
+                                <span class="input-group-text">📅</span>
+                                <input type="date" id="room_start" name="room_start" class="form-control"
+                                    value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="room_end" class="form-label small text-muted">End date</label>
+                            <div class="input-group input-group-flat">
+                                <span class="input-group-text">📅</span>
+                                <input type="date" id="room_end" name="room_end" class="form-control"
+                                    value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="room_people" class="form-label small text-muted">People</label>
+                            <div class="input-group input-group-flat">
+                                <span class="input-group-text">👥</span>
+                                <input type="number" id="room_people" name="room_people" class="form-control" min="1"
+                                    step="1" placeholder="e.g. 2" value="{{ room_people }}" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary ms-auto px-4">Search rooms</button>
+                            <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+                        </div>
+                    </form>
+
+                    {% if room_start and room_end and room_people %}
+                    <hr class="my-4">
+
+                    {% if room_error %}
+                    <div class="alert alert-warning rounded-3">{{ room_error }}</div>
+                    {% endif %}
+
+                    {% if available_rooms %}
+                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
+                        {% with available_rooms|length as count %}
+                        <span class="chip chip-primary">
+                            {{ count }} room{% if count != 1 %}s{% endif %} available
+                        </span>
+                        {% endwith %}
+                        {% if room_nights %}
+                        <span class="chip chip-info">Nights: {{ room_nights }}</span>
+                        <span class="chip chip-muted">{{ room_people }} pax</span>
+                        <span class="chip chip-muted">
+                            {{ room_start|date:"d/m/Y" }} → {{ room_end|date:"d/m/Y" }}
+                        </span>
                         {% endif %}
                     </div>
-                </div>
-            </div>
-        </form>
 
-        <p class="text-muted small mb-3">
-            {% with service_types|length as count %}
-            {{ count }} service type{{ count|pluralize:"s" }} found
-            {% endwith %}
-        </p>
+                    <div class="row g-3 g-md-4">
+                        {% for s in available_rooms %}
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card h-100 border-0 rounded-4 card-hover position-relative">
+                                <!-- Price ribbon -->
+                                <div class="price-ribbon">
+                                    €{{ s.price|floatformat:2 }} <span class="small text-muted">/ night</span>
+                                </div>
 
-        {% if service_types %}
-        <div class="row g-3">
-            {% for st in service_types %}
-            <div class="col-12 col-md-6 col-lg-6 col-xl-6">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title mb-0" title="{{ st.type }}">{{ st.type|lower|capfirst }}</h5>
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0">
+                                            Room <span class="fw-semibold">{{ s.room.code|default:"—" }}</span>
+                                        </h5>
+                                        {% if s.room.max_capacity %}
+                                        <span class="badge bg-light border text-body">{{ s.room.max_capacity }}
+                                            pax</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <ul class="list-unstyled small mb-3">
+                                        <li class="d-flex justify-content-between">
+                                            <span class="text-muted">Total</span>
+                                            <strong class="text-success">€{{ s.total_price|floatformat:2 }}</strong>
+                                        </li>
+                                    </ul>
+
+                                    <div class="mt-auto d-flex gap-2">
+                                        {% if request.user.is_authenticated %}
+                                        <a class="btn btn-outline-primary btn-sm px-3"
+                                            href="{% url 'service:quick_book' s.id %}?start={{ room_start|date:'Y-m-d' }}&end={{ room_end|date:'Y-m-d' }}">
+                                            Book
+                                        </a>
+                                        {% else %}
+                                        <a class="btn btn-outline-primary btn-sm px-3"
+                                            href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
+                                            Login to book
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="booking-bar d-flex flex-wrap align-items-center gap-2 mt-auto pt-2 border-top">
-                            <span class="badge bg-success">Available: {{ st.count }}</span>
-
-                            {% if request.user.is_authenticated %}
-                            <a href="{% url 'service:service_type_booking' st.type %}"
-                                class="btn btn-outline-primary btn-sm ms-auto">
-                                Book
-                            </a>
-                            {% else %}
-                            <a href="{% url 'login' %}?next={% url 'service:service_type_booking' st.type %}"
-                                class="btn btn-outline-primary btn-sm ms-auto">
-                                Login to book
-                            </a>
-                            {% endif %}
-                        </div>
+                        {% endfor %}
                     </div>
+                    {% else %}
+                    <div class="empty-state text-center py-5">
+                        <div class="display-6 mb-2">🛏️</div>
+                        <h5 class="mb-1">No rooms available</h5>
+                        <p class="text-muted mb-0">Try changing dates or number of people.</p>
+                    </div>
+                    {% endif %}
+                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center py-5">
-            <div class="display-6 mb-2">🧩</div>
-            <h3>No services found</h3>
-            <p class="text-muted">Try changing your search terms.</p>
-            {% if q %}<a class="btn btn-outline-secondary" href="{{ request.path }}">Show all</a>{% endif %}
-        </div>
-        {% endif %}
+        </section>
+
+        <!-- Restaurant -->
+        <section>
+            <div class="card card-elevated rounded-4 border-0 overflow-hidden">
+                <div class="section-header d-flex align-items-center gap-2 px-4 py-3">
+                    <div class="icon-circle bg-secondary-subtle text-secondary">🍽️</div>
+                    <h2 class="h5 mb-0">Restaurant</h2>
+                </div>
+
+                <div class="card-body px-4 pb-4">
+                    <form method="get" class="row gy-3 align-items-end" novalidate>
+                        <div class="col-12 col-md-4">
+                            <label for="table_date" class="form-label small text-muted">Date</label>
+                            <div class="input-group input-group-flat">
+                                <span class="input-group-text">📅</span>
+                                <input type="date" id="table_date" name="table_date" class="form-control"
+                                    value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label for="table_people" class="form-label small text-muted">People</label>
+                            <div class="input-group input-group-flat">
+                                <span class="input-group-text">👥</span>
+                                <input type="number" id="table_people" name="table_people" class="form-control" min="1"
+                                    step="1" placeholder="e.g. 4" value="{{ table_people }}" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary ms-auto px-4">Search tables</button>
+                            <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+                        </div>
+                    </form>
+
+                    {% if table_date and table_people %}
+                    <hr class="my-4">
+
+                    {% if table_error %}
+                    <div class="alert alert-warning rounded-3">{{ table_error }}</div>
+                    {% endif %}
+
+                    {% if available_tables %}
+                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
+                        {% with available_tables|length as count %}
+                        <span class="chip chip-primary">
+                            {{ count }} table{% if count != 1 %}s{% endif %} available
+                        </span>
+                        {% endwith %}
+                        <span class="chip chip-info">{{ table_date|date:"d/m/Y" }}</span>
+                        <span class="chip chip-muted">{{ table_people }} pax</span>
+                    </div>
+
+                    <div class="row g-3 g-md-4">
+                        {% for s in available_tables %}
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card h-100 border-0 rounded-4 card-hover">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0">
+                                            Table <span class="fw-semibold">{{ s.restaurant.code|default:"—" }}</span>
+                                        </h5>
+                                        {% if s.restaurant.max_capacity %}
+                                        <span class="badge bg-light border text-body">{{ s.restaurant.max_capacity }}
+                                            pax</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mt-auto d-flex gap-2">
+                                        {% if request.user.is_authenticated %}
+                                        <a class="btn btn-outline-primary btn-sm px-3"
+                                            href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}">
+                                            Book
+                                        </a>
+                                        {% else %}
+                                        <a class="btn btn-outline-primary btn-sm px-3"
+                                            href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
+                                            Login to book
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state text-center py-5">
+                        <div class="display-6 mb-2">🍽️</div>
+                        <h5 class="mb-1">No tables available</h5>
+                        <p class="text-muted mb-0">Try changing the date or number of people.</p>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
     </div>
 </main>
 
 <style>
-    .hero {
-        background: #f8f9fa;
+    /* Cards */
+    .card-elevated {
+        box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.06);
     }
 
-    @media (max-width: 576px) {
-        form h1 {
-            width: 100%;
-        }
+    .card-hover {
+        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .card-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.9rem 1.6rem rgba(0, 0, 0, 0.08);
+        border-color: rgba(13, 110, 253, .25);
+    }
+
+    /* Section header */
+    .section-header {
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), transparent);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .icon-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        display: inline-grid;
+        place-items: center;
+        font-size: 18px;
+    }
+
+    .bg-primary-subtle {
+        background: rgba(13, 110, 253, .12);
+    }
+
+    .bg-secondary-subtle {
+        background: rgba(108, 117, 125, .15);
+    }
+
+    /* Inputs */
+    .input-group-flat .input-group-text {
+        background: #fff;
+        border-right: 0;
+    }
+
+    .input-group-flat .form-control {
+        border-left: 0;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+    }
+
+    /* Chips / badges */
+    .chip {
+        --bg: rgba(0, 0, 0, .06);
+        --fg: #212529;
+        background: var(--bg);
+        color: var(--fg);
+        border-radius: 999px;
+        padding: .35rem .75rem;
+        font-size: .85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .chip-primary {
+        --bg: rgba(13, 110, 253, .12);
+        --fg: #0d6efd;
+    }
+
+    .chip-info {
+        --bg: rgba(13, 202, 240, .18);
+        --fg: #087990;
+    }
+
+    .chip-muted {
+        --bg: rgba(108, 117, 125, .15);
+        --fg: #495057;
+    }
+
+    /* Price ribbon */
+    .price-ribbon {
+        position: absolute;
+        top: 10px;
+        right: -6px;
+        background: #fff;
+        color: #0d6efd;
+        border: 1px solid rgba(13, 110, 253, .25);
+        border-right: none;
+        padding: .35rem .6rem .35rem .75rem;
+        border-radius: 999px 0 0 999px;
+        box-shadow: 0 .25rem .75rem rgba(13, 110, 253, .08);
+        font-weight: 600;
+    }
+
+    /* Empty state */
+    .empty-state .display-6 {
+        opacity: .9;
     }
 </style>
+
+<script>
+    // Client-side niceties: keep end >= start for rooms
+    (function () {
+        const start = document.getElementById('room_start');
+        const end = document.getElementById('room_end');
+        if (start && end) {
+            const sync = () => {
+                if (start.value) end.min = start.value;
+                if (end.value && start.value && end.value < start.value) end.value = start.value;
+            };
+            start.addEventListener('change', sync);
+            window.addEventListener('DOMContentLoaded', sync);
+        }
+    })();
+</script>
 {% endblock %}
