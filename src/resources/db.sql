@@ -84,12 +84,12 @@ CREATE TABLE EVENT (
 
 CREATE TABLE EVENT_SUBSCRIPTION (
     event INT NOT NULL,
-    user_username VARCHAR(32) NOT NULL,
+    user VARCHAR(32) NOT NULL,
     subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     participants INT NOT NULL CHECK (participants > 0),
-    PRIMARY KEY (event, user_username),
+    PRIMARY KEY (event, user),
     FOREIGN KEY (event) REFERENCES EVENT(id),
-    FOREIGN KEY (user_username) REFERENCES USER(username)
+    FOREIGN KEY (user) REFERENCES USER(username)
 );
 
 CREATE TABLE RESERVATION (
@@ -103,7 +103,7 @@ CREATE TABLE RESERVATION (
 CREATE TABLE SERVICE (
     id INT AUTO_INCREMENT PRIMARY KEY,
     price DECIMAL(8,2) NOT NULL CHECK (price > 0),
-    service_type ENUM('RESTAURANT', 'POOL', 'PLAYGROUND', 'ROOM') NOT NULL,
+    type ENUM('RESTAURANT', 'POOL', 'PLAYGROUND', 'ROOM') NOT NULL,
     status ENUM('AVAILABLE', 'OCCUPIED', 'MAINTENANCE') NOT NULL DEFAULT 'AVAILABLE'
 );
 
@@ -111,7 +111,8 @@ CREATE TABLE RESERVATION_DETAIL (
     reservation INT NOT NULL,
     service INT NOT NULL,
     start_date DATETIME NOT NULL,
-    end_date DATETIME NOT NULL CHECK (start_date <= end_date),
+    end_date DATETIME NOT NULL,
+    CHECK (start_date <= end_date),
     PRIMARY KEY (reservation, service),
     FOREIGN KEY (reservation) REFERENCES RESERVATION(id),
     FOREIGN KEY (service) REFERENCES SERVICE(id)
@@ -119,14 +120,14 @@ CREATE TABLE RESERVATION_DETAIL (
 
 CREATE TABLE RESTAURANT (
     service INT PRIMARY KEY,
-    table_code VARCHAR(3) UNIQUE NOT NULL,
+    code VARCHAR(3) UNIQUE NOT NULL,
     max_capacity INT NOT NULL CHECK (max_capacity > 0),
     FOREIGN KEY (service) REFERENCES SERVICE(id)
 );
 
 CREATE TABLE ROOM (
     service INT PRIMARY KEY,
-    room_code VARCHAR(3) UNIQUE NOT NULL,
+    code VARCHAR(3) UNIQUE NOT NULL,
     max_capacity INT NOT NULL CHECK (max_capacity > 0),
     FOREIGN KEY (service) REFERENCES SERVICE(id)
 );

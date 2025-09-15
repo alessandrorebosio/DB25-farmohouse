@@ -126,13 +126,13 @@ INSERT INTO EVENT (seats, title, description, event_date, created_by) VALUES
 (100, 'Harvest Festival', 'Live music, food stalls, and family activities.', DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'mbianchi');
 
 -- Optional demo subscriptions
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
 SELECT e.id, 'mrossi', 2 FROM EVENT e WHERE e.title = 'Farm-to-Table Dinner';
 
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
 SELECT e.id, 'lverdi', 3 FROM EVENT e WHERE e.title = 'Harvest Festival';
 
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
 SELECT e.id, 'aneri', 1 FROM EVENT e WHERE e.title = 'Wine Tasting at Sunset';
 
 -- Past event
@@ -140,14 +140,14 @@ INSERT INTO EVENT (seats, title, description, event_date, created_by) VALUES
 (50, 'Farm Open Day', 'Open day.', DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'mrossi');
 
 -- Mario Rossi subscribed to a past event
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, subscription_date, participants)
+INSERT INTO EVENT_SUBSCRIPTION (event, user, subscription_date, participants)
 SELECT e.id, 'mrossi', '2025-08-30 00:00:00', 2
 FROM EVENT e
 WHERE e.title = 'Farm Open Day';
 
 
 -- Insert demo services
-INSERT INTO SERVICE (price, service_type, status) VALUES
+INSERT INTO SERVICE (price, type, status) VALUES
 (25.00, 'RESTAURANT', 'AVAILABLE'),
 (25.00, 'RESTAURANT', 'AVAILABLE'),
 (60.00, 'ROOM', 'AVAILABLE'),
@@ -155,21 +155,21 @@ INSERT INTO SERVICE (price, service_type, status) VALUES
 (45.00, 'ROOM', 'MAINTENANCE');
 
 -- Link restaurant services
-INSERT INTO RESTAURANT (service, table_code, max_capacity)
-SELECT id, 'T01', 4 FROM SERVICE WHERE service_type = 'RESTAURANT' AND status = 'AVAILABLE' LIMIT 1;
+INSERT INTO RESTAURANT (service, code, max_capacity)
+SELECT id, 'T01', 4 FROM SERVICE WHERE type = 'RESTAURANT' AND status = 'AVAILABLE' LIMIT 1;
 
-INSERT INTO RESTAURANT (service, table_code, max_capacity)
-SELECT id, 'T02', 6 FROM SERVICE WHERE service_type = 'RESTAURANT' AND status = 'AVAILABLE' ORDER BY id DESC LIMIT 1;
+INSERT INTO RESTAURANT (service, code, max_capacity)
+SELECT id, 'T02', 6 FROM SERVICE WHERE type = 'RESTAURANT' AND status = 'AVAILABLE' ORDER BY id DESC LIMIT 1;
 
 -- Link room services
-INSERT INTO ROOM (service, room_code, max_capacity)
-SELECT id, 'R01', 2 FROM SERVICE WHERE service_type = 'ROOM' AND status = 'AVAILABLE' LIMIT 1;
+INSERT INTO ROOM (service, code, max_capacity)
+SELECT id, 'R01', 2 FROM SERVICE WHERE type = 'ROOM' AND status = 'AVAILABLE' LIMIT 1;
 
-INSERT INTO ROOM (service, room_code, max_capacity)
-SELECT id, 'R02', 4 FROM SERVICE WHERE service_type = 'ROOM' AND status = 'AVAILABLE' ORDER BY id DESC LIMIT 1;
+INSERT INTO ROOM (service, code, max_capacity)
+SELECT id, 'R02', 4 FROM SERVICE WHERE type = 'ROOM' AND status = 'AVAILABLE' ORDER BY id DESC LIMIT 1;
 
-INSERT INTO ROOM (service, room_code, max_capacity)
-SELECT id, 'R03', 3 FROM SERVICE WHERE service_type = 'ROOM' AND status = 'MAINTENANCE' LIMIT 1;
+INSERT INTO ROOM (service, code, max_capacity)
+SELECT id, 'R03', 3 FROM SERVICE WHERE type = 'ROOM' AND status = 'MAINTENANCE' LIMIT 1;
 
 -- Insert demo reservations
 INSERT INTO RESERVATION (username, reservation_date) VALUES
@@ -185,10 +185,10 @@ SET @r3 = (SELECT id FROM RESERVATION WHERE username = 'mbianchi' AND reservatio
 SET @r4 = (SELECT id FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-18 09:15:00');
 
 -- Store some service IDs
-SET @s_table1 = (SELECT id FROM SERVICE WHERE service_type = 'RESTAURANT' ORDER BY id ASC LIMIT 1);
-SET @s_table2 = (SELECT id FROM SERVICE WHERE service_type = 'RESTAURANT' ORDER BY id DESC LIMIT 1);
-SET @s_room1 = (SELECT id FROM SERVICE WHERE service_type = 'ROOM' ORDER BY id ASC LIMIT 1);
-SET @s_room2 = (SELECT id FROM SERVICE WHERE service_type = 'ROOM' ORDER BY id DESC LIMIT 1);
+SET @s_table1 = (SELECT id FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id ASC LIMIT 1);
+SET @s_table2 = (SELECT id FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id DESC LIMIT 1);
+SET @s_room1 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id ASC LIMIT 1);
+SET @s_room2 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1);
 
 -- Reservation details
 INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date)
