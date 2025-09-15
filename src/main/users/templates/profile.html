@@ -227,8 +227,9 @@
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#reservation{{ reservation.id }}" aria-expanded="false"
                                         aria-controls="reservation{{ reservation.id }}">
-                                        <span class="text-muted ms-2">{{ reservation.reservation_date|date:"d/m/Y H:i"
-                                            }}</span>
+                                        <span class="text-muted ms-2">
+                                            {{ reservation.reservation_date|date:"d/m/Y H:i" }}
+                                        </span>
                                         <span class="ms-auto">Total: €
                                             {{ reservation.total_price|default:0|floatformat:2 }}
                                         </span>
