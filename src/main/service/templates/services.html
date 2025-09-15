@@ -21,32 +21,32 @@
 
                 <div class="card-body px-4 pb-4">
                     <form method="get" class="row gy-3 align-items-end" novalidate>
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md">
                             <label for="room_start" class="form-label small text-muted">Start date</label>
-                            <div class="input-group input-group-flat">
+                            <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_start" name="room_start" class="form-control"
                                     value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}">
                             </div>
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md">
                             <label for="room_end" class="form-label small text-muted">End date</label>
-                            <div class="input-group input-group-flat">
+                            <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_end" name="room_end" class="form-control"
                                     value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}">
                             </div>
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md">
                             <label for="room_people" class="form-label small text-muted">People</label>
-                            <div class="input-group input-group-flat">
+                            <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="room_people" name="room_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 2" value="{{ room_people }}">
+                                    step="1" placeholder="e.g. 2" value="{{ room_people|default:1 }}">
                             </div>
                         </div>
-                        <div class="col-12 col-md-3 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary ms-auto px-4">Search rooms</button>
+                        <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
+                            <button type="submit" class="btn btn-primary ms-auto ms-md-0 px-4">Search rooms</button>
                             <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
                         </div>
                     </form>
@@ -130,24 +130,24 @@
 
                 <div class="card-body px-4 pb-4">
                     <form method="get" class="row gy-3 align-items-end" novalidate>
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md">
                             <label for="table_date" class="form-label small text-muted">Date</label>
-                            <div class="input-group input-group-flat">
+                            <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="table_date" name="table_date" class="form-control"
                                     value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}">
                             </div>
                         </div>
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md">
                             <label for="table_people" class="form-label small text-muted">People</label>
-                            <div class="input-group input-group-flat">
+                            <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="table_people" name="table_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 4" value="{{ table_people }}">
+                                    step="1" placeholder="e.g. 4" value="{{ table_people|default:1 }}">
                             </div>
                         </div>
-                        <div class="col-12 col-md-4 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary ms-auto px-4">Search tables</button>
+                        <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
+                            <button type="submit" class="btn btn-primary ms-auto ms-md-0 px-4">Search tables</button>
                             <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
                         </div>
                     </form>
