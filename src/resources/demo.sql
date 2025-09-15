@@ -148,8 +148,8 @@ WHERE e.title = 'Farm Open Day';
 
 -- Insert demo services
 INSERT INTO SERVICE (price, type, status) VALUES
-(25.00, 'RESTAURANT', 'AVAILABLE'),
-(25.00, 'RESTAURANT', 'AVAILABLE'),
+(0, 'RESTAURANT', 'AVAILABLE'),
+(0, 'RESTAURANT', 'AVAILABLE'),
 (60.00, 'ROOM', 'AVAILABLE'),
 (80.00, 'ROOM', 'AVAILABLE'),
 (45.00, 'ROOM', 'MAINTENANCE');
