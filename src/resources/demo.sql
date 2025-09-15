@@ -148,8 +148,8 @@ WHERE e.title = 'Farm Open Day';
 
 -- Insert demo services
 INSERT INTO SERVICE (price, type, status) VALUES
-(25.00, 'RESTAURANT', 'AVAILABLE'),
-(25.00, 'RESTAURANT', 'AVAILABLE'),
+(0, 'RESTAURANT', 'AVAILABLE'),
+(0, 'RESTAURANT', 'AVAILABLE'),
 (60.00, 'ROOM', 'AVAILABLE'),
 (80.00, 'ROOM', 'AVAILABLE'),
 (45.00, 'ROOM', 'MAINTENANCE');
@@ -191,9 +191,9 @@ SET @s_room1 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id ASC LIMIT
 SET @s_room2 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1);
 
 -- Reservation details
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date)
+INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
 VALUES
-(@r1, @s_table1, '2025-09-15 12:00:00', '2025-09-15 14:00:00'), -- Mario Rossi booked a table
-(@r2, @s_room1, '2025-09-16 15:00:00', '2025-09-18 10:00:00'), -- Luigi Verdi booked a room
-(@r3, @s_room2, '2025-09-17 18:00:00', '2025-09-19 10:00:00'), -- Marco Bianchi booked another room
-(@r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00'); -- Anna Neri booked a restaurant table
+(@r1, @s_table1, '2025-09-15 12:00:00', '2025-09-15 14:00:00', 3), -- Table T01 (cap 4)
+(@r2, @s_room1,  '2025-09-16 15:00:00', '2025-09-18 10:00:00', 2), -- Room R01 (cap 2)
+(@r3, @s_room2,  '2025-09-17 18:00:00', '2025-09-19 10:00:00', 3), -- Room R02 (cap 4)
+(@r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00', 5); -- Table T02 (cap 6)

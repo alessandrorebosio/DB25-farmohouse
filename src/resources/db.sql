@@ -102,7 +102,7 @@ CREATE TABLE RESERVATION (
 
 CREATE TABLE SERVICE (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    price DECIMAL(8,2) NOT NULL CHECK (price > 0),
+    price DECIMAL(8,2) NOT NULL CHECK (price >= 0),
     type ENUM('RESTAURANT', 'POOL', 'PLAYGROUND', 'ROOM') NOT NULL,
     status ENUM('AVAILABLE', 'OCCUPIED', 'MAINTENANCE') NOT NULL DEFAULT 'AVAILABLE'
 );
@@ -112,6 +112,7 @@ CREATE TABLE RESERVATION_DETAIL (
     service INT NOT NULL,
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
+    people INT NOT NULL CHECK (people > 0),
     CHECK (start_date <= end_date),
     PRIMARY KEY (reservation, service),
     FOREIGN KEY (reservation) REFERENCES RESERVATION(id),
