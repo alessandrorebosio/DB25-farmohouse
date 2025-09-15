@@ -112,6 +112,7 @@ CREATE TABLE RESERVATION_DETAIL (
     service INT NOT NULL,
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
+    people INT NOT NULL CHECK (people > 0),
     CHECK (start_date <= end_date),
     PRIMARY KEY (reservation, service),
     FOREIGN KEY (reservation) REFERENCES RESERVATION(id),
