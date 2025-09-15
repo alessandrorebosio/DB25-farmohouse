@@ -59,6 +59,7 @@ CREATE TABLE ORDERS (
 CREATE TABLE PRODUCT (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
     price DECIMAL(8,2) NOT NULL CHECK (price > 0)
 );
 
@@ -112,6 +113,7 @@ CREATE TABLE RESERVATION_DETAIL (
     service INT NOT NULL,
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
+    people INT NOT NULL CHECK (people > 0),
     CHECK (start_date <= end_date),
     PRIMARY KEY (reservation, service),
     FOREIGN KEY (reservation) REFERENCES RESERVATION(id),

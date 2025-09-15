@@ -68,13 +68,13 @@ INSERT INTO EMPLOYEE_HISTORY (username, role, change_date) VALUES
 ('mbianchi', 'RECEPTIONIST', '2023-01-01 09:00:00');
 
 -- Example products
-INSERT INTO PRODUCT (name, price) VALUES
-('Farm Eggs (12 pcs)', 3.50),
-('Organic Milk (1L)', 1.80),
-('Fresh Bread', 2.20),
-('Cheese Wheel (kg)', 12.00),
-('Honey Jar (500g)', 6.50),
-('Apple Jam (300g)', 4.20);
+INSERT INTO PRODUCT (name, description, price) VALUES
+('Farm Eggs (12 pcs)', 'Free-range eggs collected daily from our hens.', 3.50),
+('Organic Milk (1L)', 'Fresh whole milk from grass-fed cows.', 1.80),
+('Fresh Bread', 'Baked this morning with stone-milled flour.', 2.20),
+('Cheese Wheel (kg)', 'Aged farmhouse cheese with a rich, nutty flavor.', 12.00),
+('Honey Jar (500g)', 'Raw wildflower honey, unfiltered and unpasteurized.', 6.50),
+('Apple Jam (300g)', 'Handmade jam from orchard apples, low sugar.', 4.20);
 
 -- Example orders
 INSERT INTO ORDERS (date, username) VALUES
@@ -191,9 +191,9 @@ SET @s_room1 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id ASC LIMIT
 SET @s_room2 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1);
 
 -- Reservation details
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date)
+INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
 VALUES
-(@r1, @s_table1, '2025-09-15 12:00:00', '2025-09-15 14:00:00'), -- Mario Rossi booked a table
-(@r2, @s_room1, '2025-09-16 15:00:00', '2025-09-18 10:00:00'), -- Luigi Verdi booked a room
-(@r3, @s_room2, '2025-09-17 18:00:00', '2025-09-19 10:00:00'), -- Marco Bianchi booked another room
-(@r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00'); -- Anna Neri booked a restaurant table
+(@r1, @s_table1, '2025-09-15 12:00:00', '2025-09-15 14:00:00', 3), -- Table T01 (cap 4)
+(@r2, @s_room1,  '2025-09-16 15:00:00', '2025-09-18 10:00:00', 2), -- Room R01 (cap 2)
+(@r3, @s_room2,  '2025-09-17 18:00:00', '2025-09-19 10:00:00', 3), -- Room R02 (cap 4)
+(@r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00', 5); -- Table T02 (cap 6)
