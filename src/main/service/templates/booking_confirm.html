@@ -20,7 +20,7 @@
                         <table class="table table-bordered">
                             <tr>
                                 <th>Service Type:</th>
-                                <td>{{ service.service_type }}</td>
+                                <td>{{ service.get_type_display|default:service.type }}</td>
                             </tr>
                             <tr>
                                 <th>Service ID:</th>
@@ -77,7 +77,7 @@
                             <table class="table table-bordered">
                                 <tr>
                                     <th>Service Type:</th>
-                                    <td>{{ service.service_type }}</td>
+                                    <td>{{ service.get_type_display|default:service.type }}</td>
                                 </tr>
                                 <tr>
                                     <th>Service ID:</th>
