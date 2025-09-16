@@ -16,7 +16,8 @@ Including another URLconf
 """
 
 from django.urls import path
+from .views import review_view
 
 urlpatterns = [
-    
+    path("reviews/", review_view, name="review_list"),
 ]
