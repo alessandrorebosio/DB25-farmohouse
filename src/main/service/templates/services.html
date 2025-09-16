@@ -11,6 +11,17 @@
             <p class="text-muted mb-0">Check availability for rooms and the restaurant</p>
         </header>
 
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div
+                class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} rounded-3">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Rooms -->
         <section class="mb-5">
             <div class="card card-elevated rounded-4 border-0 overflow-hidden">
