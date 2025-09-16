@@ -25,8 +25,7 @@ CREATE TABLE EMPLOYEE (
 CREATE TABLE EMPLOYEE_HISTORY (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(32) NOT NULL,
-    role VARCHAR(32) NOT NULL,
-    change_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fired_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES EMPLOYEE(username)
 );
 
@@ -147,4 +146,120 @@ CREATE TABLE REVIEW (
     CHECK ((service IS NULL) + (event IS NULL) = 1),
     UNIQUE KEY unique_user_service_review (`user`, service),
     UNIQUE KEY unique_user_event_review (`user`, event)
+);
+
+-- Trigger: allow reviews only after the event/service has been used
+DROP TRIGGER IF EXISTS trg_review_before_insert;
+DELIMITER $$
+CREATE TRIGGER trg_review_before_insert
+BEFORE INSERT ON REVIEW
+FOR EACH ROW
+BEGIN
+  DECLARE cnt INT DEFAULT 0;
+
+  -- Exactly one between event and service must be set
+  IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
+  END IF;
+
+  -- Event check: user must be subscribed and the event date must be in the past
+  IF NEW.event IS NOT NULL THEN
+    SELECT COUNT(*)
+      INTO cnt
+      FROM EVENT e
+      JOIN EVENT_SUBSCRIPTION es
+        ON es.event = e.id
+       AND es.`user` = NEW.`user`
+     WHERE e.id = NEW.event
+       AND e.event_date < CURDATE(); -- event already occurred (DATE type)
+
+    IF cnt = 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
+    END IF;
+  END IF;
+
+  -- Service check: the user must have a reservation for that service that has already ended
+  IF NEW.service IS NOT NULL THEN
+    SELECT COUNT(*)
+      INTO cnt
+      FROM RESERVATION r
+      JOIN RESERVATION_DETAIL rd
+        ON rd.reservation = r.id
+       AND rd.service = NEW.service
+     WHERE r.username = NEW.`user`
+       AND rd.end_date < NOW(); -- reservation already completed
+
+    IF cnt = 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+    END IF;
+  END IF;
+END$$
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_review_before_update;
+DELIMITER $$
+CREATE TRIGGER trg_review_before_update
+BEFORE UPDATE ON REVIEW
+FOR EACH ROW
+BEGIN
+  DECLARE cnt INT DEFAULT 0;
+
+  -- Exactly one between event and service must be set
+  IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
+  END IF;
+
+  -- Event check: user must be subscribed and the event date must be in the past
+  IF NEW.event IS NOT NULL THEN
+    SELECT COUNT(*)
+      INTO cnt
+      FROM EVENT e
+      JOIN EVENT_SUBSCRIPTION es
+        ON es.event = e.id
+       AND es.`user` = NEW.`user`
+     WHERE e.id = NEW.event
+       AND e.event_date < CURDATE();
+
+    IF cnt = 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
+    END IF;
+  END IF;
+
+  -- Service check: the user must have a reservation for that service that has already ended
+  IF NEW.service IS NOT NULL THEN
+    SELECT COUNT(*)
+      INTO cnt
+      FROM RESERVATION r
+      JOIN RESERVATION_DETAIL rd
+        ON rd.reservation = r.id
+       AND rd.service = NEW.service
+     WHERE r.username = NEW.`user`
+       AND rd.end_date < NOW();
+
+    IF cnt = 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+    END IF;
+  END IF;
+END$$
+DELIMITER ;
+
+-- View: active employees (present in EMPLOYEE) with personal info and last role change date
+CREATE VIEW active_employees AS
+SELECT 
+    e.username,
+    u.email,
+    p.name,
+    p.surname,
+    e.role
+FROM EMPLOYEE e
+JOIN USER u ON e.username = u.username
+JOIN PERSON p ON u.cf = p.cf
+WHERE e.username NOT IN (
+    SELECT username FROM EMPLOYEE_HISTORY
 );
