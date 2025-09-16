@@ -5,6 +5,27 @@ from .models import Service, Reservation, ReservationDetail
 from datetime import datetime, time, timedelta
 from django.urls import reverse
 
+# Slot di 2 ore per pasto
+MEAL_START_TIMES = {
+    "breakfast": time(8, 0),
+    "lunch": time(12, 30),
+    "dinner": time(19, 30),
+}
+MEAL_LABELS = {
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+}
+
+
+def get_meal_slot(date_obj, meal_key):
+    start_t = MEAL_START_TIMES.get(meal_key)
+    if not (date_obj and start_t):
+        return None, None
+    start_dt = datetime.combine(date_obj, start_t)
+    end_dt = start_dt + timedelta(hours=2)
+    return start_dt, end_dt
+
 
 def service_list(request):
     room_start_str = (request.GET.get("room_start") or "").strip()
@@ -13,6 +34,7 @@ def service_list(request):
 
     table_date_str = (request.GET.get("table_date") or "").strip()
     table_people_str = (request.GET.get("table_people") or "").strip()
+    table_meal = (request.GET.get("table_meal") or "").strip().lower()
 
     room_start = parse_date(room_start_str) if room_start_str else None
     room_end = parse_date(room_end_str) if room_end_str else None
@@ -20,6 +42,8 @@ def service_list(request):
 
     table_date = parse_date(table_date_str) if table_date_str else None
     table_people = int(table_people_str) if table_people_str.isdigit() else None
+    if table_meal not in {"breakfast", "lunch", "dinner"}:
+        table_meal = None
 
     available_rooms = []
     available_tables = []
@@ -60,16 +84,16 @@ def service_list(request):
                 s.total_price = s.price * room_nights
             available_rooms = list(qs_rooms)
 
-    # Restaurant availability (single day)
-    if table_date and table_people:
-        start_dt = datetime.combine(table_date, time.min)
-        end_dt = datetime.combine(table_date, time.max)
+    # Restaurant availability (2-hour slot per meal)
+    if table_date and table_people and table_meal:
+        start_dt, end_dt = get_meal_slot(table_date, table_meal)
 
         reserved_table_ids = (
             ReservationDetail.objects.filter(
                 service__type="RESTAURANT",
-                start_date__lte=end_dt,
-                end_date__gte=start_dt,
+                # sovrapposizione su slot da 2 ore (consenti back-to-back)
+                start_date__lt=end_dt,
+                end_date__gt=start_dt,
             )
             .values_list("service_id", flat=True)
             .distinct()
@@ -84,6 +108,12 @@ def service_list(request):
             .select_related("restaurant")
             .order_by("id")
         )
+        table_meal_label = MEAL_LABELS.get(table_meal)
+    elif table_date and table_people and not table_meal:
+        table_meal_label = None
+        table_error = "Seleziona il pasto (Colazione, Pranzo o Cena)."
+    else:
+        table_meal_label = None
 
     return render(
         request,
@@ -97,6 +127,8 @@ def service_list(request):
             "available_rooms": available_rooms,
             "table_date": table_date,
             "table_people": table_people,
+            "table_meal": table_meal,
+            "table_meal_label": table_meal_label,
             "table_error": table_error,
             "available_tables": available_tables,
         },
@@ -111,6 +143,7 @@ def quick_book(request, service_id):
     end_param = request.GET.get("end")
     date_param = request.GET.get("date")
     people_param = request.GET.get("people")
+    meal_param = (request.GET.get("meal") or "").strip().lower()
 
     start_date = None
     end_date = None
@@ -142,22 +175,29 @@ def quick_book(request, service_id):
     if is_room:
         delta_days = (end_date - start_date).days
         nights = max(1, delta_days)
-        start_dt = datetime.combine(start_date, time(14, 0))  # check-in 14:00
+        start_dt = datetime.combine(start_date, time(14, 0))
         end_base_date = (
             end_date if end_date > start_date else (start_date + timedelta(days=1))
         )
-        end_dt = datetime.combine(end_base_date, time(10, 0))  # check-out 10:00
+        end_dt = datetime.combine(end_base_date, time(10, 0))
         total_price = service.price * nights
         redirect_url = f"{reverse('service:service_list')}?room_start={start_date}&room_end={end_date}&room_people={people}"
+        # Verifica overlap camere (includi sovrapposizioni)
+        overlap_exists = ReservationDetail.objects.filter(
+            service=service, start_date__lte=end_dt, end_date__gte=start_dt
+        ).exists()
     else:
-        start_dt = datetime.combine(start_date, time.min)
-        end_dt = datetime.combine(end_date, time.max)
-        total_price = service.price
-        redirect_url = f"{reverse('service:service_list')}?table_date={start_date}&table_people={people}"
+        # Ristorante: slot di 2 ore per il pasto
+        if meal_param not in MEAL_START_TIMES:
+            return redirect(
+                f"{reverse('service:service_list')}?table_date={start_date}&table_people={people}"
+            )
+        start_dt, end_dt = get_meal_slot(start_date, meal_param)
+        redirect_url = f"{reverse('service:service_list')}?table_date={start_date}&table_people={people}&table_meal={meal_param}"
 
-    overlap_exists = ReservationDetail.objects.filter(
-        service=service, start_date__lte=end_dt, end_date__gte=start_dt
-    ).exists()
+        overlap_exists = ReservationDetail.objects.filter(
+            service=service, start_date__lt=end_dt, end_date__gt=start_dt
+        ).exists()
 
     if overlap_exists:
         return redirect(redirect_url)
