@@ -31,13 +31,14 @@
                 </div>
 
                 <div class="card-body px-4 pb-4">
-                    <form method="get" class="row gy-3 align-items-end" novalidate>
+                    <form method="get" class="row gy-3 align-items-end needs-validation" novalidate>
                         <div class="col-12 col-md">
                             <label for="room_start" class="form-label small text-muted">Start date</label>
                             <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_start" name="room_start" class="form-control"
-                                    value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}">
+                                    value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}" required>
+                                <div class="invalid-feedback">Campo obbligatorio.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md">
@@ -45,7 +46,8 @@
                             <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_end" name="room_end" class="form-control"
-                                    value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}">
+                                    value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}" required>
+                                <div class="invalid-feedback">Campo obbligatorio.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md">
@@ -53,7 +55,8 @@
                             <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="room_people" name="room_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 2" value="{{ room_people|default:1 }}">
+                                    step="1" placeholder="e.g. 2" value="{{ room_people|default:1 }}" required>
+                                <div class="invalid-feedback">Campo obbligatorio.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
@@ -140,13 +143,29 @@
                 </div>
 
                 <div class="card-body px-4 pb-4">
-                    <form method="get" class="row gy-3 align-items-end" novalidate>
+                    <form method="get" class="row gy-3 align-items-end needs-validation" novalidate>
                         <div class="col-12 col-md">
                             <label for="table_date" class="form-label small text-muted">Date</label>
                             <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="table_date" name="table_date" class="form-control"
-                                    value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}">
+                                    value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}" required>
+                                <div class="invalid-feedback">Campo obbligatorio.</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md">
+                            <label for="table_meal" class="form-label small text-muted">Meal</label>
+                            <div class="input-group input-group-flat w-100">
+                                <span class="input-group-text">🍽️</span>
+                                <select id="table_meal" name="table_meal" class="form-select" required>
+                                    <option value="" {% if not table_meal %}selected{% endif %}>Select…</option>
+                                    <option value="breakfast" {% if table_meal == 'breakfast' %}selected{% endif %}>
+                                        Breakfast</option>
+                                    <option value="lunch" {% if table_meal == 'lunch' %}selected{% endif %}>Lunch</option>
+                                    <option value="dinner" {% if table_meal == 'dinner' %}selected{% endif %}>Dinner
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">Campo obbligatorio.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md">
@@ -154,7 +173,8 @@
                             <div class="input-group input-group-flat w-100">
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="table_people" name="table_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 4" value="{{ table_people|default:1 }}">
+                                    step="1" placeholder="e.g. 4" value="{{ table_people|default:1 }}" required>
+                                <div class="invalid-feedback">Campo obbligatorio.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
@@ -163,7 +183,7 @@
                         </div>
                     </form>
 
-                    {% if table_date and table_people %}
+                    {% if table_date and table_people and table_meal %}
                     <hr class="my-4">
 
                     {% if table_error %}
@@ -178,6 +198,7 @@
                         {% endwith %}
                         <span class="chip chip-info">{{ table_date|date:"d/m/Y" }}</span>
                         <span class="chip chip-muted">{{ table_people }} pax</span>
+                        <span class="chip chip-muted">{{ table_meal_label }}</span>
                     </div>
 
                     <div class="row g-3 g-md-4">
@@ -196,7 +217,7 @@
                                     <div class="mt-auto d-flex gap-2">
                                         {% if request.user.is_authenticated %}
                                         <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}&people={{ table_people }}">
+                                            href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}&people={{ table_people }}&meal={{ table_meal }}">
                                             Book
                                         </a>
                                         {% else %}
@@ -218,6 +239,9 @@
                         <p class="text-muted mb-0">Try changing the date or number of people.</p>
                     </div>
                     {% endif %}
+                    {% elif table_date and table_people and not table_meal %}
+                    <hr class="my-4">
+                    <div class="alert alert-warning rounded-3">Seleziona il pasto (Colazione, Pranzo o Cena).</div>
                     {% endif %}
                 </div>
             </div>
@@ -331,6 +355,20 @@
             start.addEventListener('change', sync);
             window.addEventListener('DOMContentLoaded', sync);
         }
+    })();
+
+    // Bootstrap client-side validation for required fields
+    (function () {
+        const forms = document.querySelectorAll('form.needs-validation');
+        Array.from(forms).forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
     })();
 </script>
 {% endblock %}
