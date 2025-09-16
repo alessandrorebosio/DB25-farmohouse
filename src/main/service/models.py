@@ -29,15 +29,6 @@ class Service(models.Model):
             ("ROOM", "Room"),
         ],
     )
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ("AVAILABLE", "Available"),
-            ("OCCUPIED", "Occupied"),
-            ("MAINTENANCE", "Maintenance"),
-        ],
-        default="AVAILABLE",
-    )
 
     class Meta:
         managed = False

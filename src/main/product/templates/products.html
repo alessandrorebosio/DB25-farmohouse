@@ -36,7 +36,7 @@
         {% if products %}
         <div class="row g-3 g-md-4">
             {% for p in products %}
-            <div class="col-12 col-md-6 col-lg-6">
+            <div class="col-12">
                 <div class="card h-100 border-0 shadow-sm rounded-4 card-hover position-relative">
 
                     <!-- Price ribbon -->
@@ -48,7 +48,7 @@
                         <h5 class="card-title mb-2 text-start" title="{{ p.name }}">{{ p.name }}</h5>
 
                         {% if p.description %}
-                        <p class="text-muted small mb-3">{{ p.description }}</p>
+                        <p class="text-muted small mb-3 text-start">{{ p.description }}</p>
                         {% endif %}
 
                         <div class="mt-auto d-flex align-items-center justify-content-between flex-wrap gap-2">

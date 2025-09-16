@@ -52,7 +52,6 @@ def service_list(request):
             qs_rooms = (
                 Service.objects.filter(
                     type="ROOM",
-                    status="AVAILABLE",
                     room__max_capacity__gte=room_people,
                 )
                 .exclude(id__in=reserved_room_ids)
@@ -82,7 +81,6 @@ def service_list(request):
         available_tables = list(
             Service.objects.filter(
                 type="RESTAURANT",
-                status="AVAILABLE",
                 restaurant__max_capacity__gte=table_people,
             )
             .exclude(id__in=reserved_table_ids)

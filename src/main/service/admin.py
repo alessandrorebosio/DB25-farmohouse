@@ -37,8 +37,8 @@ class ReservationAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ("id", "type", "status", "price", "code_display", "capacity_display")
-    list_filter = ("type", "status")
+    list_display = ("id", "type", "price", "code_display", "capacity_display")
+    list_filter = ("type", )
     search_fields = ("id", "restaurant__code", "room__code")
     ordering = ("id",)
     list_select_related = ("restaurant", "room")
