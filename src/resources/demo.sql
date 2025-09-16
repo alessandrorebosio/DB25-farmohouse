@@ -147,29 +147,33 @@ WHERE e.title = 'Farm Open Day';
 
 
 -- Insert demo services
-INSERT INTO SERVICE (price, type, status) VALUES
-(0, 'RESTAURANT', 'AVAILABLE'),
-(0, 'RESTAURANT', 'AVAILABLE'),
-(60.00, 'ROOM', 'AVAILABLE'),
-(80.00, 'ROOM', 'AVAILABLE'),
-(45.00, 'ROOM', 'MAINTENANCE');
+INSERT INTO SERVICE (price, type) VALUES
+(0, 'RESTAURANT'),
+(0, 'RESTAURANT'),
+(60.00, 'ROOM'),
+(80.00, 'ROOM'),
+(45.00, 'ROOM');
 
 -- Link restaurant services
 INSERT INTO RESTAURANT (service, code, max_capacity)
-SELECT id, 'T01', 4 FROM SERVICE WHERE type = 'RESTAURANT' AND status = 'AVAILABLE' LIMIT 1;
+SELECT id, 'T01', 4 FROM SERVICE WHERE type = 'RESTAURANT' LIMIT 1;
 
 INSERT INTO RESTAURANT (service, code, max_capacity)
-SELECT id, 'T02', 6 FROM SERVICE WHERE type = 'RESTAURANT' AND status = 'AVAILABLE' ORDER BY id DESC LIMIT 1;
+SELECT id, 'T02', 6 FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id DESC LIMIT 1;
 
 -- Link room services
 INSERT INTO ROOM (service, code, max_capacity)
-SELECT id, 'R01', 2 FROM SERVICE WHERE type = 'ROOM' AND status = 'AVAILABLE' LIMIT 1;
+SELECT id, 'R01', 2 FROM SERVICE WHERE type = 'ROOM' LIMIT 1;
 
 INSERT INTO ROOM (service, code, max_capacity)
-SELECT id, 'R02', 4 FROM SERVICE WHERE type = 'ROOM' AND status = 'AVAILABLE' ORDER BY id DESC LIMIT 1;
+SELECT id, 'R02', 4 FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1;
 
 INSERT INTO ROOM (service, code, max_capacity)
-SELECT id, 'R03', 3 FROM SERVICE WHERE type = 'ROOM' AND status = 'MAINTENANCE' LIMIT 1;
+SELECT id, 'R03', 3
+FROM SERVICE
+WHERE type = 'ROOM'
+  AND id NOT IN (SELECT service FROM ROOM)
+LIMIT 1;
 
 -- Insert demo reservations
 INSERT INTO RESERVATION (username, reservation_date) VALUES
