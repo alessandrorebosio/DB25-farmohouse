@@ -197,3 +197,51 @@ VALUES
 (@r2, @s_room1,  '2025-09-16 15:00:00', '2025-09-18 10:00:00', 2), -- Room R01 (cap 2)
 (@r3, @s_room2,  '2025-09-17 18:00:00', '2025-09-19 10:00:00', 3), -- Room R02 (cap 4)
 (@r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00', 5); -- Table T02 (cap 6)
+
+-- Alias for event IDs
+SET @e_workshop  = (SELECT id FROM EVENT WHERE title = 'Cheese Making Workshop');
+SET @e_festival  = (SELECT id FROM EVENT WHERE title = 'Harvest Festival');
+SET @e_open_day  = (SELECT id FROM EVENT WHERE title = 'Farm Open Day');
+
+-- Demo reviews for services
+INSERT INTO REVIEW (`user`, service, rating, comment)
+VALUES 
+('mrossi',  @s_table1, 5, 'Ottimo tavolo e servizio.'),
+('mbianchi', @s_room1,  3, 'Stanza pulita ma un po'' rumorosa.');
+
+-- Demo reviews for events
+INSERT INTO REVIEW (`user`, event, rating, comment)
+VALUES
+('lverdi',  @e_workshop, 4, 'Interessante e ben organizzato.'),
+('aneri',   @e_festival, 5, 'Fantastico!');
+
+-- Upsert: update review if it already exists for (user, target)
+INSERT INTO REVIEW (`user`, service, rating, comment)
+VALUES ('mrossi', @s_table1, 4, 'Aggiorno il voto.')
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
+-- Insert only if the user has completed a reservation for the service
+INSERT INTO REVIEW (`user`, service, rating, comment)
+SELECT 'mrossi', @s_table1, 5, 'Recensione dopo la prenotazione conclusa.'
+WHERE EXISTS (
+    SELECT 1
+    FROM RESERVATION r
+    JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
+    WHERE r.username = 'mrossi'
+        AND rd.service = @s_table1
+        AND rd.end_date <= NOW()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
+-- Insert only if the user attended a past event
+INSERT INTO REVIEW (`user`, event, rating, comment)
+SELECT 'mrossi', @e_open_day, 5, 'Giornata memorabile!'
+WHERE EXISTS (
+    SELECT 1
+    FROM EVENT_SUBSCRIPTION es
+    JOIN EVENT e ON e.id = es.event
+    WHERE es.user = 'mrossi'
+        AND es.event = @e_open_day
+        AND e.event_date <= CURDATE()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
