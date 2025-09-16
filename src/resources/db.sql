@@ -133,3 +133,19 @@ CREATE TABLE ROOM (
     max_capacity INT NOT NULL CHECK (max_capacity > 0),
     FOREIGN KEY (service) REFERENCES SERVICE(id)
 );
+
+CREATE TABLE REVIEW (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    `user` VARCHAR(32) NOT NULL,
+    service INT NULL,
+    event INT NULL,
+    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user`) REFERENCES USER(username) ON DELETE CASCADE,
+    FOREIGN KEY (service) REFERENCES SERVICE(id) ON DELETE CASCADE,
+    FOREIGN KEY (event) REFERENCES EVENT(id) ON DELETE CASCADE,
+    CHECK ((service IS NULL) + (event IS NULL) = 1),
+    UNIQUE KEY unique_user_service_review (`user`, service),
+    UNIQUE KEY unique_user_event_review (`user`, event)
+);
