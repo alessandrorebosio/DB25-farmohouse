@@ -8,67 +8,78 @@
     <div class="container py-4 py-md-5">
 
         <!-- Header + Filters -->
-            <form method="get" class="mb-3 mb-md-4">
-                <div class="row g-2 g-md-3 align-items-center">
-                    <!-- Titolo -->
-                    <div class="col-12 col-md-4 col-lg-3">
-                        <h1 class="mb-0 display-6 fw-semibold">Reviews</h1>
-                        <div class="text-muted small">What guests say about our services and events</div>
-                    </div>
+        <form method="get" class="mb-3 mb-md-4">
+            <div class="row g-2 g-md-3 align-items-center">
+                <!-- Titolo -->
+                <div class="col-12 col-md-4 col-lg-3">
+                    <h1 class="mb-0 display-6 fw-semibold">Reviews</h1>
+                    <div class="text-muted small">What guests say about our services and events</div>
+                </div>
 
-                    <!-- Filtri -->
-                    <div class="col-12 col-md-8 col-lg-9">
-                        <div class="row g-2">
-                            <div class="col-md-3">
-                                <select name="target" id="filter-target" class="form-select">
-                                    <option value="all" {% if filters.target == "all" %}selected{% endif %}>All</option>
-                                    <option value="service" {% if filters.target == "service" %}selected{% endif %}>Services</option>
-                                    <option value="event" {% if filters.target == "event" %}selected{% endif %}>Events</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select name="service_type" id="filter-service-type" class="form-select">
-                                    <option value="">-- all types --</option>
-                                    {% for st in service_types %}
-                                    <option value="{{ st }}" {% if filters.service_type == st %}selected{% endif %}>{{ st|title }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <input type="number" name="rating_min" min="1" max="5" value="{{ filters.rating_min }}" class="form-control" placeholder="Min ★">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="number" name="rating_max" min="1" max="5" value="{{ filters.rating_max }}" class="form-control" placeholder="Max ★">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="text" name="username" value="{{ filters.username }}" class="form-control" placeholder="User">
-                            </div>
-                            <div class="col-md-3">
-                                <select name="order" class="form-select">
-                                    <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest</option>
-                                    <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest</option>
-                                    <option value="rating_desc" {% if filters.order == "rating_desc" %}selected{% endif %}>Rating ↓</option>
-                                    <option value="rating_asc" {% if filters.order == "rating_asc" %}selected{% endif %}>Rating ↑</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Search text...">
-                            </div>
-                            <div class="col-md-2 d-grid">
-                                <button type="submit" class="btn btn-primary">Apply</button>
-                            </div>
-                            {% if filters.q or filters.service_type or filters.rating_min or filters.rating_max or filters.username or filters.target != "all" %}
-                            <div class="col-md-2 d-grid">
-                                <a href="{{ request.path }}" class="btn btn-outline-secondary">Reset</a>
-                            </div>
-                            {% endif %}
+                <!-- Filtri -->
+                <div class="col-12 col-md-8 col-lg-9">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <select name="target" id="filter-target" class="form-select">
+                                <option value="all" {% if filters.target == "all" %}selected{% endif %}>All</option>
+                                <option value="service" {% if filters.target == "service" %}selected{% endif %}>Services
+                                </option>
+                                <option value="event" {% if filters.target == "event" %}selected{% endif %}>Events
+                                </option>
+                            </select>
                         </div>
+                        <div class="col-md-3">
+                            <select name="service_type" id="filter-service-type" class="form-select">
+                                <option value="">-- all types --</option>
+                                {% for st in service_types %}
+                                <option value="{{ st }}" {% if filters.service_type == st %}selected{% endif %}>{{
+                                    st|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" name="rating_min" min="1" max="5" value="{{ filters.rating_min }}"
+                                class="form-control" placeholder="Min ★">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" name="rating_max" min="1" max="5" value="{{ filters.rating_max }}"
+                                class="form-control" placeholder="Max ★">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="text" name="username" value="{{ filters.username }}" class="form-control"
+                                placeholder="User">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="order" class="form-select">
+                                <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest
+                                </option>
+                                <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest
+                                </option>
+                                <option value="rating_desc" {% if filters.order == "rating_desc" %}selected{% endif %}>
+                                    Rating ↓</option>
+                                <option value="rating_asc" {% if filters.order == "rating_asc" %}selected{% endif %}>
+                                    Rating ↑</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="q" value="{{ filters.q }}" class="form-control"
+                                placeholder="Search text...">
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button type="submit" class="btn btn-primary">Apply</button>
+                        </div>
+                        {% if filters.q or filters.service_type or filters.rating_min or filters.rating_max or filters.username or filters.target != "all" %}
+                        <div class="col-md-2 d-grid">
+                            <a href="{{ request.path }}" class="btn btn-outline-secondary">Reset</a>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-            </form>
-            <p class="text-muted small mb-3">
-                <span class="chip chip-muted">{{ total }} review{{ total|pluralize:"s" }}</span>
-            </p>
+            </div>
+        </form>
+        <p class="text-muted small mb-3">
+            <span class="chip chip-muted">{{ total }} review{{ total|pluralize:"s" }}</span>
+        </p>
 
         <!-- Reviews list -->
         {% if page_obj.object_list %}
@@ -106,9 +117,7 @@
                                     <span class="visually-hidden">Rating: {{ r.rating }} out of 5</span>
                                     <span aria-hidden="true">
                                         {% for _ in "12345" %}
-                                        {% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}
-                                        {% endfor %}
-                                    </span>
+                                        {% if forloop.counter <= r.rating %}★{% else %}☆{% endif %} {% endfor %} </span>
                                 </div>
                             </div>
                         </div>
@@ -126,7 +135,8 @@
                 {% with base_qs=filters.base_qs %}
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ page_obj.previous_page_number }}">«</a>
+                    <a class="page-link"
+                        href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ page_obj.previous_page_number }}">«</a>
                 </li>
                 {% else %}
                 <li class="page-item disabled"><span class="page-link">«</span></li>
@@ -140,7 +150,8 @@
 
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ page_obj.next_page_number }}">»</a>
+                    <a class="page-link"
+                        href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ page_obj.next_page_number }}">»</a>
                 </li>
                 {% else %}
                 <li class="page-item disabled"><span class="page-link">»</span></li>
@@ -163,17 +174,45 @@
         transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
         border: 1px solid rgba(0, 0, 0, .06);
     }
+
     .card-hover:hover {
         transform: translateY(-2px);
         box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
         border-color: rgba(13, 110, 253, .2);
     }
-    .chip { --bg: rgba(0, 0, 0, .06); --fg: #212529; background: var(--bg); color: var(--fg);
-        border-radius: 999px; padding: .25rem .6rem; font-size: .8rem; display: inline-flex; align-items: center; gap: .35rem; }
-    .chip-primary { --bg: rgba(13, 110, 253, .12); --fg: #0d6efd; }
-    .chip-success { --bg: rgba(25, 135, 84, .14); --fg: #198754; }
-    .chip-info { --bg: rgba(13, 202, 240, .18); --fg: #087990; }
-    .chip-muted { --bg: rgba(108, 117, 125, .15); --fg: #495057; }
+
+    .chip {
+        --bg: rgba(0, 0, 0, .06);
+        --fg: #212529;
+        background: var(--bg);
+        color: var(--fg);
+        border-radius: 999px;
+        padding: .25rem .6rem;
+        font-size: .8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .chip-primary {
+        --bg: rgba(13, 110, 253, .12);
+        --fg: #0d6efd;
+    }
+
+    .chip-success {
+        --bg: rgba(25, 135, 84, .14);
+        --fg: #198754;
+    }
+
+    .chip-info {
+        --bg: rgba(13, 202, 240, .18);
+        --fg: #087990;
+    }
+
+    .chip-muted {
+        --bg: rgba(108, 117, 125, .15);
+        --fg: #495057;
+    }
 </style>
 
 <script>
