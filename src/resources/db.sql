@@ -25,8 +25,7 @@ CREATE TABLE EMPLOYEE (
 CREATE TABLE EMPLOYEE_HISTORY (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(32) NOT NULL,
-    role VARCHAR(32) NOT NULL,
-    change_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fired_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES EMPLOYEE(username)
 );
 
@@ -251,21 +250,16 @@ END$$
 DELIMITER ;
 
 -- View: active employees (present in EMPLOYEE) with personal info and last role change date
-DROP VIEW IF EXISTS vw_active_employees;
-CREATE VIEW vw_active_employees AS
-SELECT
+CREATE VIEW active_employees AS
+SELECT 
     e.username,
-    e.role,
     u.email,
-    p.cf,
     p.name,
     p.surname,
-    h.last_change_date
+    e.role
 FROM EMPLOYEE e
-JOIN `USER` u ON u.username = e.username
-JOIN PERSON p ON p.cf = u.cf
-LEFT JOIN (
-    SELECT username, MAX(change_date) AS last_change_date
-    FROM EMPLOYEE_HISTORY
-    GROUP BY username
-) h ON h.username = e.username;
+JOIN USER u ON e.username = u.username
+JOIN PERSON p ON u.cf = p.cf
+WHERE e.username NOT IN (
+    SELECT username FROM EMPLOYEE_HISTORY
+);

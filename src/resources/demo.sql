@@ -62,10 +62,9 @@ INSERT INTO EMPLOYEE_SHIFT (employee_username, shift_id, shift_date, status) VAL
 ('fbianchi', 9, '2023-09-15', 'SCHEDULED');
 
 -- Insert some history records
-INSERT INTO EMPLOYEE_HISTORY (username, role, change_date) VALUES
-('mrossi', 'ADMIN', '2023-01-01 09:00:00'),
-('lverdi', 'STAFF', '2023-01-01 09:00:00'),
-('mbianchi', 'RECEPTIONIST', '2023-01-01 09:00:00');
+INSERT INTO EMPLOYEE_HISTORY (username, fired_at) VALUES
+('lverdi', '2023-01-01 09:00:00'),
+('mbianchi', '2023-01-01 09:00:00');
 
 -- Example products
 INSERT INTO PRODUCT (name, description, price) VALUES
@@ -121,13 +120,13 @@ SELECT @o4, @p_eggs, 1, price FROM PRODUCT WHERE id = @p_eggs;
 INSERT INTO EVENT (seats, title, description, event_date, created_by) VALUES
 (12, 'Cheese Making Workshop', 'Hands-on class led by our head cheesemaker.', DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'aneri'),
 (20, 'Kids Animal Feeding', 'Guided feeding time with goats, chickens, and rabbits.', DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'prossi'),
-(40, 'Farm-to-Table Dinner', 'Seasonal 4-course dinner with farm-fresh ingredients.', DATE_ADD(CURDATE(), INTERVAL 14 DAY), 'mrossi'),
+(40, 'Farm to Table Dinner', 'Seasonal 4-course dinner with farm-fresh ingredients.', DATE_ADD(CURDATE(), INTERVAL 14 DAY), 'mrossi'),
 (25, 'Wine Tasting at Sunset', 'Local wines paired with farmhouse tapas.', DATE_ADD(CURDATE(), INTERVAL 21 DAY), 'gverdi'),
 (100, 'Harvest Festival', 'Live music, food stalls, and family activities.', DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'mbianchi');
 
 -- Optional demo subscriptions
 INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
-SELECT e.id, 'mrossi', 2 FROM EVENT e WHERE e.title = 'Farm-to-Table Dinner';
+SELECT e.id, 'mrossi', 2 FROM EVENT e WHERE e.title = 'Farm to Table Dinner';
 
 INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
 SELECT e.id, 'lverdi', 3 FROM EVENT e WHERE e.title = 'Harvest Festival';
@@ -207,45 +206,76 @@ SET @e_workshop  = (SELECT id FROM EVENT WHERE title = 'Cheese Making Workshop')
 SET @e_festival  = (SELECT id FROM EVENT WHERE title = 'Harvest Festival');
 SET @e_open_day  = (SELECT id FROM EVENT WHERE title = 'Farm Open Day');
 
--- Demo reviews for services
-INSERT INTO REVIEW (`user`, service, rating, comment)
-VALUES 
-('mrossi',  @s_table1, 5, 'Ottimo tavolo e servizio.'),
-('mbianchi', @s_room1,  3, 'Stanza pulita ma un po'' rumorosa.');
+-- Ensure extra eligibility for demo reviews
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
+SELECT @e_open_day, 'lverdi', 1
+WHERE NOT EXISTS (
+  SELECT 1 FROM EVENT_SUBSCRIPTION WHERE event = @e_open_day AND user = 'lverdi'
+);
 
--- Demo reviews for events
-INSERT INTO REVIEW (`user`, event, rating, comment)
-VALUES
-('lverdi',  @e_workshop, 4, 'Interessante e ben organizzato.'),
-('aneri',   @e_festival, 5, 'Fantastico!');
+INSERT INTO RESERVATION (username, reservation_date)
+SELECT 'aneri', '2025-09-10 19:00:00'
+WHERE NOT EXISTS (
+  SELECT 1 FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-10 19:00:00'
+);
+SET @r5 = (SELECT id FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-10 19:00:00');
 
--- Upsert: update review if it already exists for (user, target)
-INSERT INTO REVIEW (`user`, service, rating, comment)
-VALUES ('mrossi', @s_table1, 4, 'Aggiorno il voto.')
-ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+SELECT @r5, @s_table2, '2025-09-10 20:00:00', '2025-09-10 22:00:00', 2
+WHERE NOT EXISTS (
+  SELECT 1 FROM RESERVATION_DETAIL WHERE reservation = @r5 AND service = @s_table2
+);
 
--- Insert only if the user has completed a reservation for the service
+-- Demo reviews (conditional, safe to re-run)
+-- Service review: mrossi used @s_table1 (ended in the past)
 INSERT INTO REVIEW (`user`, service, rating, comment)
-SELECT 'mrossi', @s_table1, 5, 'Recensione dopo la prenotazione conclusa.'
+SELECT 'mrossi', @s_table1, 5, 'Great table and service.'
 WHERE EXISTS (
-    SELECT 1
-    FROM RESERVATION r
-    JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
-    WHERE r.username = 'mrossi'
-        AND rd.service = @s_table1
-        AND rd.end_date <= NOW()
+  SELECT 1
+  FROM RESERVATION r
+  JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
+  WHERE r.username = 'mrossi'
+    AND rd.service = @s_table1
+    AND rd.end_date < NOW()
 )
 ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
 
--- Insert only if the user attended a past event
-INSERT INTO REVIEW (`user`, event, rating, comment)
-SELECT 'mrossi', @e_open_day, 5, 'Giornata memorabile!'
+-- Service review: aneri used @s_table2 (ended in the past)
+INSERT INTO REVIEW (`user`, service, rating, comment)
+SELECT 'aneri', @s_table2, 4, 'Nice dinner experience.'
 WHERE EXISTS (
-    SELECT 1
-    FROM EVENT_SUBSCRIPTION es
-    JOIN EVENT e ON e.id = es.event
-    WHERE es.user = 'mrossi'
-        AND es.event = @e_open_day
-        AND e.event_date <= CURDATE()
+  SELECT 1
+  FROM RESERVATION r
+  JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
+  WHERE r.username = 'aneri'
+    AND rd.service = @s_table2
+    AND rd.end_date < NOW()
 )
 ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
+-- Event review: mrossi subscribed to past event @e_open_day
+INSERT INTO REVIEW (`user`, event, rating, comment)
+SELECT 'mrossi', @e_open_day, 5, 'Memorable day!'
+WHERE EXISTS (
+  SELECT 1
+  FROM EVENT_SUBSCRIPTION es
+  JOIN EVENT e ON e.id = es.event
+  WHERE es.user = 'mrossi'
+    AND es.event = @e_open_day
+    AND e.event_date < CURDATE()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
+-- Event review: lverdi subscribed to past event @e_open_day
+INSERT INTO REVIEW (`user`, event, rating, comment)
+SELECT 'lverdi', @e_open_day, 4, 'Well organized.'
+WHERE EXISTS (
+  SELECT 1
+  FROM EVENT_SUBSCRIPTION es
+  JOIN EVENT e ON e.id = es.event
+  WHERE es.user = 'lverdi'
+    AND es.event = @e_open_day
+    AND e.event_date < CURDATE()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
