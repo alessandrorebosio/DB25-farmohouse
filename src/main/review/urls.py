@@ -16,8 +16,11 @@ Including another URLconf
 """
 
 from django.urls import path
-from .views import review_view
+from .views import review_view,event_review_view, service_review_view
 
 urlpatterns = [
     path("reviews/", review_view, name="review_list"),
+    path('event/<int:event_id>/review/', event_review_view, name='event_review'),
+    path('service_review/<int:service_id>/', service_review_view, name='service_review'),
+
 ]

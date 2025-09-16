@@ -128,16 +128,14 @@
                                         <td>{{ subscription.subscription_date|date:"d/m/Y" }}</td>
                                         <td>{{ subscription.participants }}</td>
                                         <td>
-                                            {% if subscription.event.event_date >= today %}
-                                            <form method="post" action="{% url 'event_cancel' subscription.event.id %}"
-                                                class="d-inline">
+                                            {% if subscription.can_review %}
+                                                <a href="{% url 'event_review' subscription.event.id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                                            {% else %}
+                                                <form method="post" action="{% url 'event_cancel' subscription.event.id %}" class="d-inline">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger">Cancel</button>
-                                            </form>
-                                            {% else %}
-                                            <span class="text-muted small">Past</span>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                                </form>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -252,7 +250,7 @@
                                                         <th>Nights</th>
                                                         <th>Unit price</th>
                                                         <th>Total</th>
-                                                        <th>Status</th>
+                                                        <th>Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -279,15 +277,20 @@
                                                         <td>€
                                                             {{ detail.total_price|default:detail.service.price }}
                                                         </td>
-                                                        <td>
-                                                            <span class="badge 
-                                        {% if detail.service.status == 'AVAILABLE' %}bg-success
-                                        {% elif detail.service.status == 'OCCUPIED' %}bg-primary
-                                        {% elif detail.service.status == 'MAINTENANCE' %}bg-warning
-                                        {% else %}bg-secondary{% endif %}">
-                                                                {{ detail.service.status }}
-                                                            </span>
+                                                        <td class="align-middle">
+                                                            {% if detail.can_review %}
+                                                                <a href="{% url 'service_review' detail.service_id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                                                            {% elif detail.can_cancel %}
+                                                                <form method="post" action="{% url 'service:cancel_reservation' detail.reservation_id %}" class="d-inline">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                                                </form>
+                                                            {% else %}
+                                                                &nbsp;  {# cella vuota nella settimana precedente #}
+                                                            {% endif %}
                                                         </td>
+
                                                     </tr>
                                                     {% endfor %}
                                                 </tbody>
