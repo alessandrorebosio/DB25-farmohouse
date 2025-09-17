@@ -1,9 +1,16 @@
-from django.shortcuts import render
-from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseForbidden
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Review
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
+
+from users.views import _ensure_datetime
+from .models import Review
+from service.models import *
+from event.models import *
+from .forms import ReviewForm
 
 # /reviews/
 def review_view(request: HttpRequest) -> HttpResponse:
@@ -73,3 +80,60 @@ def review_view(request: HttpRequest) -> HttpResponse:
         "service_types": ["RESTAURANT", "POOL", "PLAYGROUND", "ROOM"],
     }
     return render(request, "review.html", context)
+
+
+@login_required
+def event_review_view(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
+    
+    if not EventSubscription.objects.filter(event=event, user_id=request.user.username).exists():
+        return HttpResponseForbidden("You did not attend this event.")
+    
+    review = Review.objects.filter(user_id=request.user.username, event=event).first()
+    
+    if request.method == "POST":
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            r = form.save(commit=False)
+            r.user_id = request.user.username  
+            r.event = event
+            r.save()
+            return redirect("profile")
+    else:
+        form = ReviewForm(instance=review)
+    
+    return render(request, "event_review_form.html", {"form": form, "event": event})
+
+@login_required
+def service_review_view(request, service_id):
+    # Ottieni l'ultima ReservationDetail per questo servizio e utente
+    detail = get_object_or_404(
+        ReservationDetail.objects.filter(
+            service_id=service_id,
+            reservation__username_id=request.user.username
+        ).order_by('-end_date'),  # Prendi la prenotazione più recente
+        end_date__lte=timezone.now()  # Solo prenotazioni concluse
+    )
+    
+    # Verifica che l'utente possa recensire (il filtro sopra già fa questo controllo)
+    if not (detail.end_date and _ensure_datetime(detail.end_date) <= timezone.now()):
+        return HttpResponseForbidden("Cannot review before end date.")
+    
+    # Cerca una recensione esistente
+    review = Review.objects.filter(
+        user_id=request.user.username, 
+        service_id=service_id
+    ).first()
+    
+    if request.method == "POST":
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            r = form.save(commit=False)
+            r.user_id = request.user.username
+            r.service_id = service_id
+            r.save()
+            return redirect("profile")
+    else:
+        form = ReviewForm(instance=review)
+    
+    return render(request, "service_review_form.html", {"form": form, "detail": detail})

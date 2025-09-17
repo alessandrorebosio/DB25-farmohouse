@@ -6,4 +6,4 @@ app_name = "service"
 urlpatterns = [
     path("services/", views.service_list, name="service_list"),
     path("book/<int:service_id>/quick/", views.quick_book, name="quick_book"),
-]
+    path('cancel-reservation/<int:reservation_id>/', views.cancel_reservation, name='cancel_reservation'),]

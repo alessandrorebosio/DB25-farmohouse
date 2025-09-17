@@ -12,7 +12,7 @@ from django.db.models import (
 )
 from decimal import Decimal
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, time,timedelta
 
 from .forms import RegisterForm
 from . import models
@@ -45,9 +45,25 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
     return render(request, "login.html", {"form": form, "next": next_url})
 
+def _ensure_datetime(value):
+    """Return a timezone-aware datetime from a date or datetime, or None."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        # if naive, makes aware
+        if timezone.is_naive(value):
+            return timezone.make_aware(value, timezone.get_current_timezone())
+        return value
+    # instance of date (but not datetime)
+    dt = datetime.combine(value, time.min)
+    return timezone.make_aware(dt, timezone.get_current_timezone())
+
 
 @login_required(login_url="login")
 def profile_view(request: HttpRequest) -> HttpResponse:
+    now = timezone.now()
+    today = timezone.localdate()
+
     try:
         ut = models.User.objects.select_related("cf", "employee").get(
             username=request.user.username
@@ -121,6 +137,13 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         .filter(user_id=request.user.username)
         .order_by("event__event_date", "event__title")
     )
+    for s in subscriptions:
+        ev_date = getattr(s.event, "event_date", None)
+        if isinstance(ev_date, datetime):
+            s.can_review = _ensure_datetime(ev_date) <= now
+        else:
+            s.can_review = (ev_date is not None) and (ev_date < today)
+
 
     reservations = (
         Reservation.objects.filter(username_id=request.user.username)
@@ -141,7 +164,19 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         for d in r.reservation_details:
             svc = d.service
             d.is_room = svc.type == "ROOM"
+            
+            
+            start_dt = _ensure_datetime(d.start_date)
+            end_dt = _ensure_datetime(d.end_date)
+            # can_review: fine prenotazione passata
+            d.can_review = (end_dt is not None) and (end_dt <= now)
 
+            # can_cancel: start > now + 7 giorni
+            d.can_cancel = (start_dt is not None) and ((start_dt - now) > timedelta(days=7))
+
+            # in_no_action_window: tra 0 e 7 giorni
+            d.in_no_action_window = (start_dt is not None) and (timedelta(0) <= (start_dt - now) <= timedelta(days=7))
+            
             # Notti: (end.date - start.date).days, niente +1; minimo 1 solo per camere
             start_d = d.start_date.date()
             end_d = d.end_date.date()

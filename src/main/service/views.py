@@ -1,6 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+
+from django.utils import timezone
 from .models import Service, Reservation, ReservationDetail
 from datetime import datetime, time, timedelta
 from django.urls import reverse
@@ -25,6 +29,7 @@ def get_meal_slot(date_obj, meal_key):
     start_dt = datetime.combine(date_obj, start_t)
     end_dt = start_dt + timedelta(hours=2)
     return start_dt, end_dt
+from django.db import transaction
 
 
 def service_list(request):
@@ -212,3 +217,36 @@ def quick_book(request, service_id):
     )
 
     return redirect(redirect_url)
+
+@login_required
+@require_POST
+@transaction.atomic
+def cancel_reservation(request, reservation_id):  # Deve essere reservation_id
+    """
+    Cancel a Reservation
+    """
+    
+    reservation_details = ReservationDetail.objects.filter(reservation_id=reservation_id)
+    
+    # Verify that the user is the author of the reservation
+    if not reservation_details.exists() or reservation_details.first().reservation.username_id != request.user.username:
+        messages.error(request, "You can only cancel your own reservations.")
+        return redirect(request.POST.get("next") or "profile")
+    
+    # Check if reservation has started
+    if reservation_details.first().start_date < timezone.now():
+        messages.error(request, "Cannot cancel a reservation that has already started.")
+        return redirect(request.POST.get("next") or "profile")
+    
+    # delete all details
+    reservation_details.delete()
+
+    try:
+        reservation = Reservation.objects.get(id=reservation_id)
+        if not reservation.details.exists():
+            reservation.delete()
+    except Reservation.DoesNotExist:
+        pass
+    
+    messages.success(request, "Reservation cancelled successfully.")
+    return redirect(request.POST.get("next") or "profile")
