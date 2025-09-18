@@ -22,6 +22,8 @@ class Orders(models.Model):
     class Meta:
         managed = False
         db_table = "ORDERS"
+        verbose_name = "Order"
+        verbose_name_plural = "Orders"
 
 
 class OrderDetail(models.Model):
@@ -34,6 +36,8 @@ class OrderDetail(models.Model):
     class Meta:
         managed = False
         db_table = "ORDER_DETAIL"
+        verbose_name = "Order detail"
+        verbose_name_plural = "Order details"
 
 
 class Product(models.Model):
@@ -44,3 +48,5 @@ class Product(models.Model):
     class Meta:
         managed = False
         db_table = "PRODUCT"
+        verbose_name = "Product"
+        verbose_name_plural = "Products"

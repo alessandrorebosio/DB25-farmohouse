@@ -15,6 +15,8 @@ class Reservation(models.Model):
     class Meta:
         managed = False
         db_table = "RESERVATION"
+        verbose_name = "Reservation"
+        verbose_name_plural = "Reservations"
 
 
 class Service(models.Model):
@@ -33,6 +35,8 @@ class Service(models.Model):
     class Meta:
         managed = False
         db_table = "SERVICE"
+        verbose_name = "Service"
+        verbose_name_plural = "Services"
 
 
 class ReservationDetail(models.Model):
@@ -57,6 +61,8 @@ class ReservationDetail(models.Model):
         managed = False
         db_table = "RESERVATION_DETAIL"
         unique_together = (("reservation", "service"),)
+        verbose_name = "Reservation detail"
+        verbose_name_plural = "Reservation details"
 
 
 class Restaurant(models.Model):
@@ -73,6 +79,8 @@ class Restaurant(models.Model):
     class Meta:
         managed = False
         db_table = "RESTAURANT"
+        verbose_name = "Restaurant"
+        verbose_name_plural = "Restaurants"
 
 
 class Room(models.Model):
@@ -89,3 +97,5 @@ class Room(models.Model):
     class Meta:
         managed = False
         db_table = "ROOM"
+        verbose_name = "Room"
+        verbose_name_plural = "Rooms"
