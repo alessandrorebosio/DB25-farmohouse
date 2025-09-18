@@ -392,6 +392,107 @@ DELIMITER ;
 
 \section{Traduzione delle operazioni}
 
+\chapter{Progettazione dell'applicazione}
+L'applicazione è stata sviluppata con il framework \textbf{Django}, che gestisce routing, 
+database e autenticazione in modo sicuro e scalabile.
+
+\section{Barra di Navigazione}
+La \textbf{barra di navigazione} permette un accesso rapido alle principali sezioni del sito, 
+come prodotti, eventi, servizi, area personale e funzioni amministrative.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/navbar.png}
+    \caption{Barra di navigazione}
+    \label{fig:navbar}
+\end{figure}
+
+\newpage
+\section{Interfaccia Utente}
+Dopo l'accesso, l'utente potrà visualizzare il profilo, con le prenotazioni e gli ordini, con 
+la possibilità di recensire o annullare prenotazioni future.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/profile.png}
+    \label{fig:profile}
+\end{figure}
+
+\subsection*{Servizi}
+Dopo aver scelto il servizio da prenotare, è sufficiente inserire i dati necessari; il sistema 
+mostrerà la disponibilità aggiornata del servizio selezionato.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/services.png}
+    \label{fig:services}
+\end{figure}
+
+\subsection*{Eventi}
+Nella sezione eventi, viene mostrato l'elenco degli eventi disponibili. L'utente può selezionare 
+l'evento di interesse, specificare il numero di partecipanti e procedere con la prenotazione. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/events.png}
+    \label{fig:events}
+\end{figure}
+
+\subsection*{Recensioni}
+Gli utenti possono visualizzare tutte le recensioni e filtrarle per evento o servizio.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/reviews.png}
+    \label{fig:reviews}
+\end{figure}
+
+\subsection*{Prodotti}
+
+La sezione prodotti consente agli utenti di consultare il catalogo, visualizzare i dettagli di 
+ciascun prodotto e aggiungerli al carrello per l'acquisto. Il sistema mostra in tempo reale il 
+contenuto del carrello e il totale dell'ordine. Fatto il checkout sarà visibile il riepilogo 
+nella sezione profilo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/products.png}
+    \label{fig:products}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/cart.png}
+    \label{fig:cart}
+\end{figure}
+
+
+\section{Interfaccia Amministratore}
+
+Per la gestione amministrativa, l'applicazione sfrutta la sezione \textbf{Django Admin}, 
+che consente agli amministratori di accedere rapidamente a tutte le tabelle del database, 
+modificare dati, gestire utenti, prodotti, eventi e prenotazioni tramite un'interfaccia web 
+sicura e strutturata.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/admin/DjangoAdmin.png}
+    \caption{Pannello admin django}
+    \label{fig:django-admin}
+\end{figure}
+
+Oltre al pannello standard di Django Admin, è stata realizzata una pagina web dedicata alla 
+visualizzazione delle statistiche principali del sistema, come l'andamento delle vendite, la 
+partecipazione agli eventi e la presenza del personale. Questa pagina presenta grafici e tabelle 
+riepilogative, arricchite da immagini illustrative per una migliore comprensione dei dati.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/admin/DjangoAdmin.png}
+    \caption{Statistiche}
+    \label{fig:statistiche}
+\end{figure}
+\newpage
+
 \appendix
 \chapter{Guida Utente}
 
