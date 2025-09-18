@@ -98,6 +98,94 @@
 
 \tableofcontents
 
+\chapter{Analisi dei requisiti}
+\section{Intervista}
+
+L'agriturismo intende dotarsi di una piattaforma digitale che razionalizzi le attività quotidiane 
+e migliori l'esperienza dei clienti, integrando in un unico ambiente la gestione del personale, 
+la vendita di prodotti e la promozione di eventi. Il titolare desidera uno strumento accessibile 
+via web, utilizzabile da utenti registrati e dal personale autorizzato, in grado di offrire una 
+visione chiara e centralizzata delle informazioni operative, riducendo errori e tempi di 
+coordinamento.
+
+Il cuore dell'applicativo è costituito da un catalogo di prodotti e da un calendario di
+eventi, visibili ai visitatori e consultabili dagli utenti registrati. I prodotti, identificati 
+da un codice univoco, sono descritti da un nome e da un prezzo, con la garanzia che i valori 
+economici rimangano sempre positivi. Gli eventi, invece, sono presentati con titolo, 
+descrizione, data di svolgimento e un numero di posti disponibili; la loro pubblicazione è 
+effettuata da dipendenti autorizzati, così da mantenere controllo e coerenza dell'offerta.
+
+Gli utenti potranno creare un account fornendo un nome utente, un indirizzo email e una 
+password; ogni profilo sarà associato a una persona identificata tramite codice fiscale, 
+così da assicurare un'anagrafica pulita e non ridondante. Una volta autenticati, gli utenti 
+potranno consultare il catalogo, comporre ordini di acquisto di prodotti e completarne la 
+registrazione: ogni ordine sarà tracciato con data e ora, e conterrà le righe di dettaglio con 
+quantità e prezzo unitario, in modo da consentire il calcolo del totale e la successiva 
+rendicontazione. Gli acquisti rimarranno associati in modo permanente all'account dell'utente, 
+così da poterli rivedere e analizzare nel tempo.
+
+Per la dimensione esperienziale dell'agriturismo, la piattaforma offrirà una sezione dedicata 
+agli eventi: gli utenti interessati potranno iscriversi indicando il numero di partecipanti; il 
+sistema dovrà garantire che le prenotazioni non superino i posti disponibili e registrerà 
+automaticamente data e ora di ciascuna iscrizione. In questo modo, il titolare potrà monitorare 
+in tempo reale l'andamento delle adesioni e prevedere l'affluenza, ottimizzando l'organizzazione 
+delle serate e delle attività tematiche.
+
+La gestione del personale rappresenta un altro pilastro del sistema. Ciascun dipendente sarà un 
+utente abilitato a funzioni specifiche e caratterizzato da un ruolo (ad esempio sala, cucina, 
+reception), con la possibilità di tracciarne lo storico delle variazioni nel tempo. La 
+pianificazione dei turni avverrà attraverso la definizione di modelli di turno (per giorno della 
+settimana, con orari di inizio e fine) e la loro assegnazione a calendario per una data 
+specifica. Ogni assegnazione prevede uno stato — programmato, completato o assente — così da 
+fotografare l'effettiva presenza; inoltre, il sistema eviterà conflitti, impedendo che uno 
+stesso dipendente risulti assegnato a più turni nella medesima giornata.
+
+Dal punto di vista direzionale, il titolare richiede una reportistica essenziale ma 
+affidabile: l'andamento delle vendite per periodo, la partecipazione agli eventi e un quadro 
+della presenza/assenza del personale sui turni. La piattaforma dovrà salvaguardare la sicurezza 
+dei dati, conservando le password in forma sicura e applicando vincoli di integrità su prezzi e 
+quantità; le operazioni frequenti — come consultare il catalogo, registrare un ordine o 
+iscriversi a un evento — dovranno risultare rapide e semplici, privilegiando chiarezza e 
+immediatezza d'uso.
+
+\section{Estrazione dei concetti principali}
+
+L'agriturismo intende realizzare una piattaforma digitale che unisca in un unico ecosistema la 
+vendita di prodotti, la promozione e gestione degli eventi e l'organizzazione del personale. Il 
+sistema sarà accessibile via web agli utenti registrati e al personale autorizzato, con 
+l'obiettivo di offrire una vista centralizzata e coerente delle attività quotidiane, riducendo 
+errori operativi e tempi di coordinamento. Il cuore dell'applicazione è rappresentato da un 
+\textbf{catalogo di \underline{prodotti}} e da un calendario \underline{eventi}: i \underline{prodotti}, identificati in modo univoco (\textbf{codice}), e 
+descritti da \textbf{nome} e \textbf{prezzo}, saranno acquistabili dagli \underline{utenti} autenticati; gli \underline{eventi}, 
+caratterizzati da \textbf{titolo}, \textbf{descrizione}, \textbf{data} e \textbf{posti disponibili}, saranno visibili e prenotabili 
+secondo regole di capienza stabilite dall'azienda.
+
+Gli \underline{utenti} potranno creare un account fornendo \textbf{nome utente}, \textbf{email} e \textbf{password}; ogni account sarà 
+associato a una \underline{persona} identificata da \textbf{codice fiscale}, in modo da mantenere un'anagrafica solida 
+e priva di duplicati. Una volta autenticati, gli \underline{utenti} potranno consultare il catalogo e 
+comporre \underline{ordini}, che verranno registrati con \textbf{data} e \textbf{ora} e articolati in \underline{righe d'ordine} di dettaglio con 
+\textbf{quantità} e \textbf{prezzo unitario}, garantendo la correttezza dei totali e la tracciabilità nel 
+tempo. Gli \underline{acquisti} resteranno permanentemente associati al profilo dell'\underline{utente}, consentendo 
+storicizzazione e successive analisi gestionali.
+
+La dimensione esperienziale sarà supportata da un modulo \underline{eventi}: la creazione degli \underline{eventi} è 
+affidata a \underline{dipendenti} autorizzati e prevede l'indicazione dei \textbf{posti disponibili}. Gli \underline{utenti} 
+potranno iscriversi (\underline{iscrizione evento}) specificando il \textbf{numero di partecipanti}, mentre il sistema dovrà prevenire 
+il superamento della capienza e registrare automaticamente \textbf{data} e \textbf{ora} di ogni iscrizione. In 
+parallelo, la gestione interna del \underline{personale} è fondata su \underline{ruoli} e \underline{turni}: ogni \underline{dipendente} possiede 
+un \textbf{ruolo} corrente, con storico delle variazioni per fini di audit, e partecipa a una 
+pianificazione che combina \underline{modelli di turno} (\textbf{giorno della settimana}, \textbf{nome}, \textbf{orari}) con 
+\underline{assegnazioni di turno} a calendario per \textbf{date} specifiche. Ogni assegnazione registra lo \textbf{stato} 
+effettivo (\textbf{programmato}, \textbf{completato}, \textbf{assente}) e impedisce conflitti, evitando che un \underline{dipendente} 
+risulti pianificato su più turni nello stesso giorno.
+
+A livello trasversale, la piattaforma tutela integrità e sicurezza dei dati: \textbf{prezzi} e \textbf{quantità} 
+devono essere sempre positivi, le relazioni fra \underline{utenti}, \underline{dipendenti}, \underline{ordini} ed \underline{eventi} rispettano 
+vincoli referenziali, e le informazioni sensibili come le \textbf{password} sono gestite in modo 
+sicuro. Il \underline{titolare} dispone di una visione complessiva tramite report essenziali su \underline{vendite}, 
+\underline{adesioni agli eventi} e \underline{presenza del personale}, mentre l'interfaccia privilegia semplicità e 
+rapidità nelle operazioni più frequenti.
+
 \appendix
 \chapter{Guida Utente}
 
