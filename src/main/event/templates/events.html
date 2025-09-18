@@ -3,22 +3,22 @@
 
 {% block content %}
 <main class="hero">
-    <div class="container py-3">
-
-        <form method="get" class="events-header mb-3">
-            <div class="row align-items-center">
-                <div class="col-md-3">
-                    <h1 class="mb-0 products-title">Events</h1>
+    <div class="container py-4 py-md-5">
+        <!-- Header + Search -->
+        <form method="get" class="mb-3 mb-md-4">
+            <div class="row g-2 g-md-3 align-items-center">
+                <div class="col-12 col-md-4 col-lg-3">
+                    <h1 class="mb-0 display-6 fw-semibold">Events</h1>
+                    <div class="text-muted small">Discover our upcoming events</div>
                 </div>
-
-                <div class="col-md-9">
-                    <div class="input-group">
+                <div class="col-12 col-md-8 col-lg-9">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white">🔎</span>
                         <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search events...">
                         <button type="submit" class="btn btn-primary">Search</button>
                         {% if q %}
                         <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
                         {% endif %}
-
                     </div>
                 </div>
             </div>
@@ -26,28 +26,43 @@
 
         <p class="text-muted small mb-3">
             {% with events|length as count %}
-            {{ count }} event{{ count|pluralize:"s" }} found
+            <span class="chip chip-muted">{{ count }} event{{ count|pluralize:"s" }} found</span>
+            {% if q %}<span class="chip chip-info">Query: “{{ q }}”</span>{% endif %}
             {% endwith %}
         </p>
 
         {% if events %}
-        <div class="row g-3">
+        <div class="row g-3 g-md-4">
             {% for e in events %}
-            <div class="col-12 col-md-6 col-lg-6 col-xl-6">
-                <div class="card h-100 shadow-sm">
+            <div class="col-12">
+                <div class=" card h-100 border-0 shadow-sm rounded-4 card-hover">
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title mb-0" title="{{ e.title }}">{{ e.title }}</h5>
+                            <h5 class="card-title mb-0" title="{{ e.title }}">
+                                🎫 <span class="fw-semibold">{{ e.title }}</span>
+                            </h5>
                             <span class="badge text-bg-light">{{ e.event_date|date:"d/m/Y" }}</span>
                         </div>
-                        <p class="text-muted small mb-2">Created by: {{ e.created_by.username.username }}</p>
-                        <p class="mb-3 flex-grow-0">{{ e.description }}</p>
 
-                        <div class="booking-bar d-flex flex-wrap align-items-center gap-2 mt-auto pt-2 border-top">
-                            <span class="badge bg-success">Seats left: {{ e.remaining }}</span>
-                            <span class="badge bg-secondary">Total: {{ e.seats }}</span>
+                        <p class="text-muted small mb-2">Created by: {{ e.created_by.username.username }}</p>
+                        <p class="mb-2">{{ e.description }}</p>
+
+                        <!-- Capacity bar -->
+                        <div class="capacity my-2" data-seats="{{ e.seats }}" data-remaining="{{ e.remaining }}">
+                            <div class="capacity-track">
+                                <div class="capacity-fill"></div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mt-1">
+                                <span>{{ e.seats|default:0|add:"-0" }} total</span>
+                                <span>{{ e.remaining|default:0|add:"-0" }} left</span>
+                            </div>
+                        </div>
+
+                        <div class="booking-bar d-flex flex-wrap align-items-center gap-2 mt-auto pt-3 border-top">
+                            <span class="chip chip-success">Seats left: {{ e.remaining }}</span>
+                            <span class="chip chip-primary">Total: {{ e.seats }}</span>
                             {% if e.my_participants %}
-                            <span class="badge bg-primary">You: {{ e.my_participants }}</span>
+                            <span class="chip chip-info">You: {{ e.my_participants }}</span>
                             {% endif %}
 
                             {% if request.user.is_authenticated %}
@@ -56,7 +71,7 @@
                                 class="d-flex align-items-center gap-2 ms-auto booking-form">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <div class="input-group input-group-sm qty-group">
+                                <div class="input-group input-group-sm qty-group" style="width: 130px;">
                                     <span class="input-group-text">#</span>
                                     <input type="number" name="participants" min="1" max="{{ e.remaining }}" value="1"
                                         class="form-control text-center">
@@ -94,14 +109,76 @@
 </main>
 
 <style>
-    .hero {
-        background: #f8f9fa;
+    .card-hover {
+        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
+        border: 1px solid rgba(0, 0, 0, .06);
     }
 
-    @media (max-width: 576px) {
-        form h1 {
-            width: 100%;
-        }
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
+        border-color: rgba(13, 110, 253, .2);
+    }
+
+    .chip {
+        --bg: rgba(0, 0, 0, .06);
+        --fg: #212529;
+        background: var(--bg);
+        color: var(--fg);
+        border-radius: 999px;
+        padding: .25rem .6rem;
+        font-size: .8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .chip-primary {
+        --bg: rgba(13, 110, 253, .12);
+        --fg: #0d6efd;
+    }
+
+    .chip-success {
+        --bg: rgba(25, 135, 84, .14);
+        --fg: #198754;
+    }
+
+    .chip-info {
+        --bg: rgba(13, 202, 240, .18);
+        --fg: #087990;
+    }
+
+    .chip-muted {
+        --bg: rgba(108, 117, 125, .15);
+        --fg: #495057;
+    }
+
+    .capacity-track {
+        height: 8px;
+        background: rgba(0, 0, 0, .08);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .capacity-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #0d6efd, #6ea8fe);
+        transition: width .3s ease;
     }
 </style>
+
+<script>
+    // Render capacity progress based on seats/remaining
+    (function () {
+        document.querySelectorAll('.capacity').forEach(el => {
+            const seats = Number(el.dataset.seats || 0);
+            const remaining = Number(el.dataset.remaining || 0);
+            const taken = Math.max(0, seats - remaining);
+            const pct = seats > 0 ? Math.min(100, Math.round((taken / seats) * 100)) : 0;
+            const bar = el.querySelector('.capacity-fill');
+            if (bar) bar.style.width = pct + '%';
+        });
+    })();
+</script>
 {% endblock %}

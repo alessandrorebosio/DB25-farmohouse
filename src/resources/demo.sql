@@ -62,19 +62,18 @@ INSERT INTO EMPLOYEE_SHIFT (employee_username, shift_id, shift_date, status) VAL
 ('fbianchi', 9, '2023-09-15', 'SCHEDULED');
 
 -- Insert some history records
-INSERT INTO EMPLOYEE_HISTORY (username, role, change_date) VALUES
-('mrossi', 'ADMIN', '2023-01-01 09:00:00'),
-('lverdi', 'STAFF', '2023-01-01 09:00:00'),
-('mbianchi', 'RECEPTIONIST', '2023-01-01 09:00:00');
+INSERT INTO EMPLOYEE_HISTORY (username, fired_at) VALUES
+('lverdi', '2023-01-01 09:00:00'),
+('mbianchi', '2023-01-01 09:00:00');
 
 -- Example products
-INSERT INTO PRODUCT (name, price) VALUES
-('Farm Eggs (12 pcs)', 3.50),
-('Organic Milk (1L)', 1.80),
-('Fresh Bread', 2.20),
-('Cheese Wheel (kg)', 12.00),
-('Honey Jar (500g)', 6.50),
-('Apple Jam (300g)', 4.20);
+INSERT INTO PRODUCT (name, description, price) VALUES
+('Farm Eggs (12 pcs)', 'Free-range eggs collected daily from our hens.', 3.50),
+('Organic Milk (1L)', 'Fresh whole milk from grass-fed cows.', 1.80),
+('Fresh Bread', 'Baked this morning with stone-milled flour.', 2.20),
+('Cheese Wheel (kg)', 'Aged farmhouse cheese with a rich, nutty flavor.', 12.00),
+('Honey Jar (500g)', 'Raw wildflower honey, unfiltered and unpasteurized.', 6.50),
+('Apple Jam (300g)', 'Handmade jam from orchard apples, low sugar.', 4.20);
 
 -- Example orders
 INSERT INTO ORDERS (date, username) VALUES
@@ -121,18 +120,18 @@ SELECT @o4, @p_eggs, 1, price FROM PRODUCT WHERE id = @p_eggs;
 INSERT INTO EVENT (seats, title, description, event_date, created_by) VALUES
 (12, 'Cheese Making Workshop', 'Hands-on class led by our head cheesemaker.', DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'aneri'),
 (20, 'Kids Animal Feeding', 'Guided feeding time with goats, chickens, and rabbits.', DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'prossi'),
-(40, 'Farm-to-Table Dinner', 'Seasonal 4-course dinner with farm-fresh ingredients.', DATE_ADD(CURDATE(), INTERVAL 14 DAY), 'mrossi'),
+(40, 'Farm to Table Dinner', 'Seasonal 4-course dinner with farm-fresh ingredients.', DATE_ADD(CURDATE(), INTERVAL 14 DAY), 'mrossi'),
 (25, 'Wine Tasting at Sunset', 'Local wines paired with farmhouse tapas.', DATE_ADD(CURDATE(), INTERVAL 21 DAY), 'gverdi'),
 (100, 'Harvest Festival', 'Live music, food stalls, and family activities.', DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'mbianchi');
 
 -- Optional demo subscriptions
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
-SELECT e.id, 'mrossi', 2 FROM EVENT e WHERE e.title = 'Farm-to-Table Dinner';
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
+SELECT e.id, 'mrossi', 2 FROM EVENT e WHERE e.title = 'Farm to Table Dinner';
 
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
 SELECT e.id, 'lverdi', 3 FROM EVENT e WHERE e.title = 'Harvest Festival';
 
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, participants)
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
 SELECT e.id, 'aneri', 1 FROM EVENT e WHERE e.title = 'Wine Tasting at Sunset';
 
 -- Past event
@@ -140,7 +139,143 @@ INSERT INTO EVENT (seats, title, description, event_date, created_by) VALUES
 (50, 'Farm Open Day', 'Open day.', DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'mrossi');
 
 -- Mario Rossi subscribed to a past event
-INSERT INTO EVENT_SUBSCRIPTION (event, user_username, subscription_date, participants)
+INSERT INTO EVENT_SUBSCRIPTION (event, user, subscription_date, participants)
 SELECT e.id, 'mrossi', '2025-08-30 00:00:00', 2
 FROM EVENT e
 WHERE e.title = 'Farm Open Day';
+
+
+-- Insert demo services
+INSERT INTO SERVICE (price, type) VALUES
+(0, 'RESTAURANT'),
+(0, 'RESTAURANT'),
+(60.00, 'ROOM'),
+(80.00, 'ROOM'),
+(45.00, 'ROOM');
+
+-- Link restaurant services
+INSERT INTO RESTAURANT (service, code, max_capacity)
+SELECT id, 'T01', 4 FROM SERVICE WHERE type = 'RESTAURANT' LIMIT 1;
+
+INSERT INTO RESTAURANT (service, code, max_capacity)
+SELECT id, 'T02', 6 FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id DESC LIMIT 1;
+
+-- Link room services
+INSERT INTO ROOM (service, code, max_capacity)
+SELECT id, 'R01', 2 FROM SERVICE WHERE type = 'ROOM' LIMIT 1;
+
+INSERT INTO ROOM (service, code, max_capacity)
+SELECT id, 'R02', 4 FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1;
+
+INSERT INTO ROOM (service, code, max_capacity)
+SELECT id, 'R03', 3
+FROM SERVICE
+WHERE type = 'ROOM'
+  AND id NOT IN (SELECT service FROM ROOM)
+LIMIT 1;
+
+-- Insert demo reservations
+INSERT INTO RESERVATION (username, reservation_date) VALUES
+('mrossi', '2025-09-15 10:00:00'),
+('lverdi', '2025-09-16 12:30:00'),
+('mbianchi', '2025-09-17 14:00:00'),
+('aneri', '2025-09-18 09:15:00');
+
+-- Store reservation IDs
+SET @r1 = (SELECT id FROM RESERVATION WHERE username = 'mrossi' AND reservation_date = '2025-09-15 10:00:00');
+SET @r2 = (SELECT id FROM RESERVATION WHERE username = 'lverdi' AND reservation_date = '2025-09-16 12:30:00');
+SET @r3 = (SELECT id FROM RESERVATION WHERE username = 'mbianchi' AND reservation_date = '2025-09-17 14:00:00');
+SET @r4 = (SELECT id FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-18 09:15:00');
+
+-- Store some service IDs
+SET @s_table1 = (SELECT id FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id ASC LIMIT 1);
+SET @s_table2 = (SELECT id FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id DESC LIMIT 1);
+SET @s_room1 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id ASC LIMIT 1);
+SET @s_room2 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1);
+
+-- Reservation details
+INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+VALUES
+(@r1, @s_table1, '2025-09-15 12:00:00', '2025-09-15 14:00:00', 3), -- Table T01 (cap 4)
+(@r2, @s_room1,  '2025-09-16 15:00:00', '2025-09-18 10:00:00', 2), -- Room R01 (cap 2)
+(@r3, @s_room2,  '2025-09-17 18:00:00', '2025-09-19 10:00:00', 3), -- Room R02 (cap 4)
+(@r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00', 5); -- Table T02 (cap 6)
+
+-- Alias for event IDs
+SET @e_workshop  = (SELECT id FROM EVENT WHERE title = 'Cheese Making Workshop');
+SET @e_festival  = (SELECT id FROM EVENT WHERE title = 'Harvest Festival');
+SET @e_open_day  = (SELECT id FROM EVENT WHERE title = 'Farm Open Day');
+
+-- Ensure extra eligibility for demo reviews
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
+SELECT @e_open_day, 'lverdi', 1
+WHERE NOT EXISTS (
+  SELECT 1 FROM EVENT_SUBSCRIPTION WHERE event = @e_open_day AND user = 'lverdi'
+);
+
+INSERT INTO RESERVATION (username, reservation_date)
+SELECT 'aneri', '2025-09-10 19:00:00'
+WHERE NOT EXISTS (
+  SELECT 1 FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-10 19:00:00'
+);
+SET @r5 = (SELECT id FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-10 19:00:00');
+
+INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+SELECT @r5, @s_table2, '2025-09-10 20:00:00', '2025-09-10 22:00:00', 2
+WHERE NOT EXISTS (
+  SELECT 1 FROM RESERVATION_DETAIL WHERE reservation = @r5 AND service = @s_table2
+);
+
+-- Demo reviews (conditional, safe to re-run)
+-- Service review: mrossi used @s_table1 (ended in the past)
+INSERT INTO REVIEW (`user`, service, rating, comment)
+SELECT 'mrossi', @s_table1, 5, 'Great table and service.'
+WHERE EXISTS (
+  SELECT 1
+  FROM RESERVATION r
+  JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
+  WHERE r.username = 'mrossi'
+    AND rd.service = @s_table1
+    AND rd.end_date < NOW()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
+-- Service review: aneri used @s_table2 (ended in the past)
+INSERT INTO REVIEW (`user`, service, rating, comment)
+SELECT 'aneri', @s_table2, 4, 'Nice dinner experience.'
+WHERE EXISTS (
+  SELECT 1
+  FROM RESERVATION r
+  JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
+  WHERE r.username = 'aneri'
+    AND rd.service = @s_table2
+    AND rd.end_date < NOW()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
+-- Event review: mrossi subscribed to past event @e_open_day
+INSERT INTO REVIEW (`user`, event, rating, comment)
+SELECT 'mrossi', @e_open_day, 5, 'Memorable day!'
+WHERE EXISTS (
+  SELECT 1
+  FROM EVENT_SUBSCRIPTION es
+  JOIN EVENT e ON e.id = es.event
+  WHERE es.user = 'mrossi'
+    AND es.event = @e_open_day
+    AND e.event_date < CURDATE()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+
+-- Event review: lverdi subscribed to past event @e_open_day
+INSERT INTO REVIEW (`user`, event, rating, comment)
+SELECT 'lverdi', @e_open_day, 4, 'Well organized.'
+WHERE EXISTS (
+  SELECT 1
+  FROM EVENT_SUBSCRIPTION es
+  JOIN EVENT e ON e.id = es.event
+  WHERE es.user = 'lverdi'
+    AND es.event = @e_open_day
+    AND e.event_date < CURDATE()
+)
+ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+

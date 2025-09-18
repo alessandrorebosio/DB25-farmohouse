@@ -8,35 +8,47 @@
 from django.db import models
 
 
-class Employee(models.Model):
-    username = models.OneToOneField('User', models.CASCADE, db_column='username', primary_key=True)
+class ActiveEmployee(models.Model):
+    username = models.CharField(primary_key=True, max_length=32)
     role = models.CharField(max_length=32)
 
     class Meta:
         managed = False
-        db_table = 'EMPLOYEE'
+        db_table = "active_employees"
+
+
+class Employee(models.Model):
+    username = models.OneToOneField(
+        "User", models.CASCADE, db_column="username", primary_key=True
+    )
+    role = models.CharField(max_length=32)
+
+    class Meta:
+        managed = False
+        db_table = "EMPLOYEE"
 
 
 class EmployeeHistory(models.Model):
-    username = models.ForeignKey(Employee, models.CASCADE, db_column='username')
-    role = models.CharField(max_length=32)
-    change_date = models.DateTimeField()
+    username = models.ForeignKey(Employee, models.CASCADE, db_column="username")
+    fired_at = models.DateTimeField()
 
     class Meta:
         managed = False
-        db_table = 'EMPLOYEE_HISTORY'
+        db_table = "EMPLOYEE_HISTORY"
 
 
 class EmployeeShift(models.Model):
-    employee_username = models.ForeignKey(Employee, models.CASCADE, db_column='employee_username')
-    shift = models.ForeignKey('Shift', models.CASCADE)
+    employee_username = models.ForeignKey(
+        Employee, models.CASCADE, db_column="employee_username"
+    )
+    shift = models.ForeignKey("Shift", models.CASCADE)
     shift_date = models.DateField()
     status = models.CharField(max_length=9, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'EMPLOYEE_SHIFT'
-        unique_together = (('employee_username', 'shift_date'),)
+        db_table = "EMPLOYEE_SHIFT"
+        unique_together = (("employee_username", "shift_date"),)
 
 
 class Person(models.Model):
@@ -46,7 +58,7 @@ class Person(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'PERSON'
+        db_table = "PERSON"
 
 
 class Shift(models.Model):
@@ -57,15 +69,15 @@ class Shift(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'SHIFT'
+        db_table = "SHIFT"
 
 
 class User(models.Model):
-    cf = models.OneToOneField(Person, models.CASCADE, db_column='cf')
+    cf = models.OneToOneField(Person, models.CASCADE, db_column="cf")
     username = models.CharField(primary_key=True, max_length=32)
     email = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
 
     class Meta:
         managed = False
-        db_table = 'USER'
+        db_table = "USER"

@@ -5,7 +5,7 @@ from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
 
-from .models import User, Employee
+from .models import User, Employee, ActiveEmployee
 
 
 class UserBackend(BaseBackend):
@@ -35,11 +35,11 @@ class UserBackend(BaseBackend):
                 defaults={"email": u.email or "", "first_name": "", "last_name": ""},
             )
 
-            try:
-                d = Employee.objects.get(username=username)
+            # Active employees -> staff + superuser
+            if ActiveEmployee.objects.filter(username=username).exists():
                 user.is_staff = True
                 user.is_superuser = True
-            except Employee.DoesNotExist:
+            else:
                 user.is_staff = False
                 user.is_superuser = False
 

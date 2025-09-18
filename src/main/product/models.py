@@ -15,7 +15,7 @@ class Orders(models.Model):
         "users.User",
         on_delete=models.CASCADE,
         db_column="username",
-        to_field="username", 
+        to_field="username",
         related_name="orders",
     )
 
@@ -38,6 +38,7 @@ class OrderDetail(models.Model):
 
 class Product(models.Model):
     name = models.CharField(max_length=100)
+    description = models.TextField()  # added
     price = models.DecimalField(max_digits=8, decimal_places=2)
 
     class Meta:

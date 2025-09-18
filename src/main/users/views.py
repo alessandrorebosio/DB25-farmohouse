@@ -3,17 +3,24 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
-from django.db.models import F, Sum, DecimalField, Prefetch, ExpressionWrapper
+from django.db.models import (
+    F,
+    Sum,
+    DecimalField,
+    Prefetch,
+    ExpressionWrapper,
+)
+from decimal import Decimal
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, time,timedelta
 
 from .forms import RegisterForm
 from . import models
 from product.models import Orders, OrderDetail
 from event.models import EventSubscription
+from service.models import Reservation, ReservationDetail, Service
 
 
-# Create your views here.
 def register_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -38,16 +45,34 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
     return render(request, "login.html", {"form": form, "next": next_url})
 
+def _ensure_datetime(value):
+    """Return a timezone-aware datetime from a date or datetime, or None."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        # if naive, makes aware
+        if timezone.is_naive(value):
+            return timezone.make_aware(value, timezone.get_current_timezone())
+        return value
+    # instance of date (but not datetime)
+    dt = datetime.combine(value, time.min)
+    return timezone.make_aware(dt, timezone.get_current_timezone())
+
 
 @login_required(login_url="login")
 def profile_view(request: HttpRequest) -> HttpResponse:
+    now = timezone.now()
+    today = timezone.localdate()
+
     try:
         ut = models.User.objects.select_related("cf", "employee").get(
             username=request.user.username
         )
     except models.User.DoesNotExist:
         return render(
-            request, "profile.html", {"query": None, "orders": [], "shifts": []}
+            request,
+            "profile.html",
+            {"query": None, "orders": [], "shifts": [], "reservations": []},
         )
 
     query = {
@@ -55,7 +80,6 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         "person": getattr(ut, "cf", None),
     }
 
-    # Ordini dell’utente con righe e totali
     line_qs = (
         OrderDetail.objects.select_related("product")
         .annotate(
@@ -83,7 +107,6 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         .order_by("-date", "-id")
     )
 
-    # Upcoming shifts (30 days) with fallback to recent
     shifts = []
     shifts_label = "Next 30 days"
     if query["employee"]:
@@ -111,10 +134,61 @@ def profile_view(request: HttpRequest) -> HttpResponse:
 
     subscriptions = (
         EventSubscription.objects.select_related("event")
-        .filter(username_id=request.user.username)
+        .filter(user_id=request.user.username)
         .order_by("event__event_date", "event__title")
     )
-    today = timezone.localdate()
+    for s in subscriptions:
+        ev_date = getattr(s.event, "event_date", None)
+        if isinstance(ev_date, datetime):
+            s.can_review = _ensure_datetime(ev_date) <= now
+        else:
+            s.can_review = (ev_date is not None) and (ev_date < today)
+
+
+    reservations = (
+        Reservation.objects.filter(username_id=request.user.username)
+        .prefetch_related(
+            Prefetch(
+                "details",
+                queryset=ReservationDetail.objects.select_related(
+                    "service", "service__room", "service__restaurant"
+                ).order_by("start_date"),
+                to_attr="reservation_details",
+            )
+        )
+        .order_by("-reservation_date")
+    )
+
+    for r in reservations:
+        total = Decimal("0.00")
+        for d in r.reservation_details:
+            svc = d.service
+            d.is_room = svc.type == "ROOM"
+            
+            
+            start_dt = _ensure_datetime(d.start_date)
+            end_dt = _ensure_datetime(d.end_date)
+            # can_review: fine prenotazione passata
+            d.can_review = (end_dt is not None) and (end_dt <= now)
+
+            # can_cancel: start > now + 7 giorni
+            d.can_cancel = (start_dt is not None) and ((start_dt - now) > timedelta(days=7))
+
+            # in_no_action_window: tra 0 e 7 giorni
+            d.in_no_action_window = (start_dt is not None) and (timedelta(0) <= (start_dt - now) <= timedelta(days=7))
+            
+            # Notti: (end.date - start.date).days, niente +1; minimo 1 solo per camere
+            start_d = d.start_date.date()
+            end_d = d.end_date.date()
+            nights = (end_d - start_d).days if d.is_room else 1
+            if d.is_room and nights <= 0:
+                nights = 1
+
+            d.nights = nights
+            d.total_price = (svc.price or Decimal("0.00")) * nights
+            total += d.total_price
+
+        r.total_price = total
 
     return render(
         request,
@@ -125,7 +199,8 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             "shifts": shifts,
             "shifts_label": shifts_label,
             "subscriptions": subscriptions,
-            "today": today,
+            "reservations": reservations,
+            "today": timezone.localdate(),
         },
     )
 

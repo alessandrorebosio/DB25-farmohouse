@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "product",
     "event",
     "service",
+    "review",
 ]
 
 MIDDLEWARE = [

@@ -9,8 +9,8 @@ class EmployeeHistoryInline(admin.TabularInline):
     model = models.EmployeeHistory
     extra = 0
     can_delete = False
-    readonly_fields = ("role", "change_date")
-    fields = ("role", "change_date")
+    readonly_fields = ("fired_at",)
+    fields = ("fired_at",)
     show_change_link = False
 
 
@@ -78,11 +78,11 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(models.EmployeeHistory)
 class EmployeeHistoryAdmin(admin.ModelAdmin):
-    list_display = ("username", "role", "change_date")
-    search_fields = ("username__username", "role")
-    list_filter = ("role", "change_date")
-    date_hierarchy = "change_date"
-    ordering = ("-change_date",)
+    list_display = ("username", "fired_at")
+    search_fields = ("username__username",)
+    list_filter = ("fired_at",)
+    date_hierarchy = "fired_at"
+    ordering = ("-fired_at",)
     list_select_related = ("username",)
 
 
@@ -102,3 +102,20 @@ class ShiftAdmin(admin.ModelAdmin):
     search_fields = ("shift_name", "day")
     list_filter = ("day",)
     ordering = ("day", "start_time")
+
+
+@admin.register(models.ActiveEmployee)
+class ActiveEmployeeAdmin(admin.ModelAdmin):
+    list_display = ("username", "role")
+    search_fields = ("username", "role")
+    ordering = ("username",)
+    readonly_fields = ("username", "role")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

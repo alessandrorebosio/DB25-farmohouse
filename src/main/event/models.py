@@ -28,17 +28,17 @@ class Event(models.Model):
 
 
 class EventSubscription(models.Model):
-    pk = models.CompositePrimaryKey("event", "username")
+    pk = models.CompositePrimaryKey("event", "user")
     event = models.ForeignKey(
         Event,
         on_delete=models.CASCADE,
         db_column="event",
         related_name="subscriptions",
     )
-    username = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        db_column="user_username",
+        db_column="user",
         to_field="username",
         related_name="event_subscriptions",
     )

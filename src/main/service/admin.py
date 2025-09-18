@@ -1,3 +1,108 @@
 from django.contrib import admin
+from .models import Reservation, Service, Restaurant, Room
 
-# Register your models here.
+
+class RestaurantInline(admin.StackedInline):
+    model = Restaurant
+    extra = 0
+    can_delete = True
+    fields = ("code", "max_capacity")
+    show_change_link = False
+
+
+class RoomInline(admin.StackedInline):
+    model = Room
+    extra = 0
+    can_delete = True
+    fields = ("code", "max_capacity")
+    show_change_link = False
+
+
+@admin.register(Reservation)
+class ReservationAdmin(admin.ModelAdmin):
+    list_display = ("id", "username_display", "reservation_date")
+    search_fields = ("username__username",)
+    list_filter = ("reservation_date",)
+    date_hierarchy = "reservation_date"
+    list_select_related = ("username",)
+    autocomplete_fields = ("username",)
+    readonly_fields = ("reservation_date",)
+
+    def username_display(self, obj):
+        return getattr(obj.username, "username", "") or ""
+
+    username_display.short_description = "User"
+    username_display.admin_order_field = "username"
+
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ("id", "type", "price", "code_display", "capacity_display")
+    list_filter = ("type", )
+    search_fields = ("id", "restaurant__code", "room__code")
+    ordering = ("id",)
+    list_select_related = ("restaurant", "room")
+    actions = ("mark_available", "mark_occupied", "mark_maintenance")
+    inlines = [RestaurantInline, RoomInline]
+
+    def get_inline_instances(self, request, obj=None):
+        instances = super().get_inline_instances(request, obj)
+        if obj is None:
+            return instances
+        filtered = []
+        for inline in instances:
+            if isinstance(inline, RestaurantInline) and obj.type == "RESTAURANT":
+                filtered.append(inline)
+            elif isinstance(inline, RoomInline) and obj.type == "ROOM":
+                filtered.append(inline)
+        return filtered
+
+    def code_display(self, obj):
+        return (
+            getattr(getattr(obj, "room", None), "code", None)
+            or getattr(getattr(obj, "restaurant", None), "code", None)
+            or ""
+        )
+
+    code_display.short_description = "Code"
+
+    def capacity_display(self, obj):
+        return (
+            getattr(getattr(obj, "room", None), "max_capacity", None)
+            or getattr(getattr(obj, "restaurant", None), "max_capacity", None)
+            or ""
+        )
+
+    capacity_display.short_description = "Capacity"
+
+    def mark_available(self, request, queryset):
+        updated = queryset.update(status="AVAILABLE")
+        self.message_user(request, f"{updated} servizi impostati come disponibili.")
+
+    mark_available.short_description = "Imposta come AVAILABLE"
+
+    def mark_occupied(self, request, queryset):
+        updated = queryset.update(status="OCCUPIED")
+        self.message_user(request, f"{updated} servizi impostati come occupati.")
+
+    mark_occupied.short_description = "Imposta come OCCUPIED"
+
+    def mark_maintenance(self, request, queryset):
+        updated = queryset.update(status="MAINTENANCE")
+        self.message_user(request, f"{updated} servizi impostati in manutenzione.")
+
+    mark_maintenance.short_description = "Imposta come MAINTENANCE"
+
+
+@admin.register(Restaurant)
+class RestaurantAdmin(admin.ModelAdmin):
+    list_display = ("service", "code", "max_capacity")
+    search_fields = ("code",)
+    list_select_related = ("service",)
+
+
+@admin.register(Room)
+class RoomAdmin(admin.ModelAdmin):
+    list_display = ("service", "code", "max_capacity")
+    search_fields = ("code",)
+    list_select_related = ("service",)
