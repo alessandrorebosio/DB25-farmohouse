@@ -25,6 +25,8 @@ class Event(models.Model):
     class Meta:
         managed = False
         db_table = "EVENT"
+        verbose_name = "Event"
+        verbose_name_plural = "Events"
 
 
 class EventSubscription(models.Model):
@@ -48,3 +50,5 @@ class EventSubscription(models.Model):
     class Meta:
         managed = False
         db_table = "EVENT_SUBSCRIPTION"
+        verbose_name = "Event subscription"
+        verbose_name_plural = "Event subscriptions"

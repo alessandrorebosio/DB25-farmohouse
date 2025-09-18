@@ -4,6 +4,7 @@ from users.models import User
 from service.models import Service
 from event.models import Event
 
+
 # Create your models here.
 class Review(models.Model):
     id = models.AutoField(primary_key=True)
@@ -43,3 +44,5 @@ class Review(models.Model):
             ("user", "service"),
             ("user", "event"),
         )
+        verbose_name = "Review"
+        verbose_name_plural = "Reviews"

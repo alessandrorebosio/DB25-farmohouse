@@ -15,6 +15,8 @@ class ActiveEmployee(models.Model):
     class Meta:
         managed = False
         db_table = "active_employees"
+        verbose_name = "Active employee"
+        verbose_name_plural = "Active employees"
 
 
 class Employee(models.Model):
@@ -26,6 +28,8 @@ class Employee(models.Model):
     class Meta:
         managed = False
         db_table = "EMPLOYEE"
+        verbose_name = "Employee"
+        verbose_name_plural = "Employees"
 
 
 class EmployeeHistory(models.Model):
@@ -35,6 +39,8 @@ class EmployeeHistory(models.Model):
     class Meta:
         managed = False
         db_table = "EMPLOYEE_HISTORY"
+        verbose_name = "Employee history"
+        verbose_name_plural = "Employee histories"
 
 
 class EmployeeShift(models.Model):
@@ -49,6 +55,8 @@ class EmployeeShift(models.Model):
         managed = False
         db_table = "EMPLOYEE_SHIFT"
         unique_together = (("employee_username", "shift_date"),)
+        verbose_name = "Employee shift"
+        verbose_name_plural = "Employee shifts"
 
 
 class Person(models.Model):
@@ -59,6 +67,8 @@ class Person(models.Model):
     class Meta:
         managed = False
         db_table = "PERSON"
+        verbose_name = "Person"
+        verbose_name_plural = "People"
 
 
 class Shift(models.Model):
@@ -70,6 +80,8 @@ class Shift(models.Model):
     class Meta:
         managed = False
         db_table = "SHIFT"
+        verbose_name = "Shift"
+        verbose_name_plural = "Shifts"
 
 
 class User(models.Model):
@@ -81,3 +93,5 @@ class User(models.Model):
     class Meta:
         managed = False
         db_table = "USER"
+        verbose_name = "User"
+        verbose_name_plural = "Users"
