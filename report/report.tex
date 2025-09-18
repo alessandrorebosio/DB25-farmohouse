@@ -295,6 +295,103 @@ Qui di seguito, è presente lo schema concettuale finale con tutti i raffinament
 \end{figure}
 \newpage
 
+\chapter{Progettazione Logica}
+
+\chapter{Progettazione della Base di Dati}
+Una volta creato il nostro database, riportiamo di seguito una parte del codice relazionale 
+utilizzato per la sua implementazione.
+
+\section{Check}
+Sono stati utilizzati vincoli di tipo \texttt{CHECK} per definire alcuni domini e assicurare 
+semplici proprietà degli attributi. Di seguito un esempio di vincolo \texttt{CHECK} utilizzato 
+per assicurare che il prezzo di ogni prodotto sia maggiore zero:
+\begin{sqlcode}[caption={},label={lst:check}]
+CREATE TABLE PRODUCT (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    price DECIMAL(8,2) NOT NULL CHECK (price > 0)
+);
+\end{sqlcode}
+
+\section{Viste}
+La seguente vista \texttt{active\_employees} restituisce l'elenco dei dipendenti attivi, 
+mostrando per ciascuno username, email, nome, cognome e ruolo. Un dipendente è considerato 
+attivo se il suo username non compare nella tabella \texttt{EMPLOYEE\_HISTORY}, che traccia 
+lo storico delle variazioni di stato.
+
+\begin{sqlcode}[caption={},label={lst:view}]
+CREATE VIEW active_employees AS
+SELECT 
+    e.username,
+    u.email,
+    p.name,
+    p.surname,
+    e.role
+FROM EMPLOYEE e
+JOIN USER u ON e.username = u.username
+JOIN PERSON p ON u.cf = p.cf
+WHERE e.username NOT IN (
+    SELECT username FROM EMPLOYEE_HISTORY
+);
+\end{sqlcode}
+
+\section{Trigger}
+Esempio di trigger per vincolare le recensioni: impedisce di recensire sia evento che servizio 
+insieme, e consente la recensione solo se l'utente ha partecipato all'evento (già svolto) o ha 
+usufruito del servizio.
+
+\begin{sqlcode}[caption={},label={lst:trigger}]
+DROP TRIGGER IF EXISTS trg_review_before_insert;
+DELIMITER $$
+CREATE TRIGGER trg_review_before_insert
+BEFORE INSERT ON REVIEW
+FOR EACH ROW
+BEGIN
+    DECLARE cnt INT DEFAULT 0;
+
+    IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
+    END IF;
+
+    IF NEW.event IS NOT NULL THEN
+        SELECT COUNT(*)
+            INTO cnt
+            FROM EVENT e
+            JOIN EVENT_SUBSCRIPTION es
+                ON es.event = e.id
+             AND es.`user` = NEW.`user`
+         WHERE e.id = NEW.event
+             AND e.event_date < CURDATE();
+
+        IF cnt = 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
+        END IF;
+    END IF;
+
+    IF NEW.service IS NOT NULL THEN
+        SELECT COUNT(*)
+            INTO cnt
+            FROM RESERVATION r
+            JOIN RESERVATION_DETAIL rd
+                ON rd.reservation = r.id
+             AND rd.service = NEW.service
+         WHERE r.username = NEW.`user`
+             AND rd.end_date < NOW();
+
+        IF cnt = 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+\end{sqlcode}
+
+\section{Traduzione delle operazioni}
+
 \appendix
 \chapter{Guida Utente}
 
