@@ -9,6 +9,7 @@ from django.db.models import (
     DecimalField,
     Prefetch,
     ExpressionWrapper,
+    Count,
 )
 from decimal import Decimal
 from django.utils import timezone
@@ -208,3 +209,95 @@ def profile_view(request: HttpRequest) -> HttpResponse:
 def logout_view(request: HttpRequest) -> HttpResponse:
     logout(request)
     return render(request, "index.html")
+
+
+def statistic_view(request: HttpRequest) -> HttpResponse:
+    # Simple KPI counts
+    users_count = models.User.objects.count()
+    employees_count = models.Employee.objects.count()
+    orders_count = Orders.objects.count()
+
+    # Total revenue from order details (quantity * unit_price)
+    revenue = OrderDetail.objects.annotate(
+        line_total=ExpressionWrapper(
+            F("quantity") * F("unit_price"),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        )
+    ).aggregate(total=Sum("line_total")).get("total") or Decimal("0.00")
+
+    # Reservations count
+    reservations_count = Reservation.objects.count()
+
+    # Top services by number of reservation details (bookings)
+    top_services_qs = (
+        ReservationDetail.objects.values(
+            "service",
+            "service__type",
+            "service__room__code",
+            "service__restaurant__code",
+        )
+        .annotate(bookings=Count("service"))
+        .order_by("-bookings")[:10]
+    )
+
+    # Build display name for each service (ROOM/RESTAURANT may have a code)
+    top_services = []
+    for s in top_services_qs:
+        code = s.get("service__room__code") or s.get("service__restaurant__code")
+        svc_type = s.get("service__type")
+        display = f"{svc_type.title()}"
+        if code:
+            display += f" · {code}"
+        else:
+            display += f" · ID {s.get('service')}"
+        top_services.append(
+            {
+                "service_id": s.get("service"),
+                "type": svc_type,
+                "name": display,
+                "bookings": s.get("bookings", 0),
+            }
+        )
+
+    # Top products by quantity and by revenue
+    top_products_qty = (
+        OrderDetail.objects.values("product", "product__name")
+        .annotate(total_qty=Sum("quantity"))
+        .order_by("-total_qty")[:10]
+    )
+
+    top_products_rev = (
+        OrderDetail.objects.annotate(
+            line_total=ExpressionWrapper(
+                F("quantity") * F("unit_price"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
+        )
+        .values("product", "product__name")
+        .annotate(total_revenue=Sum("line_total"))
+        .order_by("-total_revenue")[:10]
+    )
+
+    # Top events by total participants
+    top_events = (
+        EventSubscription.objects.values("event", "event__title", "event__event_date")
+        .annotate(total_participants=Sum("participants"))
+        .order_by("-total_participants", "event__event_date")[:10]
+    )
+
+    context = {
+        "kpis": {
+            "users": users_count,
+            "employees": employees_count,
+            "orders": orders_count,
+            "revenue": revenue,
+            "reservations": reservations_count,
+        },
+        "top_services": top_services,
+        "top_products_qty": top_products_qty,
+        "top_products_rev": top_products_rev,
+        "top_events": top_events,
+        "today": timezone.localdate(),
+    }
+
+    return render(request, "statistic.html", context)

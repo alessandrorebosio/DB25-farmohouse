@@ -38,7 +38,12 @@ class UserBackend(BaseBackend):
             # Active employees -> staff + superuser
             if ActiveEmployee.objects.filter(username=username).exists():
                 user.is_staff = True
-                user.is_superuser = True
+
+                employee = Employee.objects.filter(username=username).first()
+                user.is_superuser = (
+                    employee is not None
+                    and getattr(employee, "role", None).lower() == "admin"
+                )
             else:
                 user.is_staff = False
                 user.is_superuser = False
