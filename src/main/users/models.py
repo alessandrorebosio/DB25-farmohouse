@@ -49,7 +49,6 @@ class EmployeeShift(models.Model):
     )
     shift = models.ForeignKey("Shift", models.CASCADE)
     shift_date = models.DateField()
-    status = models.CharField(max_length=9, blank=True, null=True)
 
     class Meta:
         managed = False
