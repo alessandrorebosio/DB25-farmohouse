@@ -50,16 +50,16 @@ INSERT INTO SHIFT (day, shift_name, start_time, end_time) VALUES
 ('FRI', 'Evening', '16:00', '00:00');
 
 -- Insert some employee shifts for next week
-INSERT INTO EMPLOYEE_SHIFT (employee_username, shift_id, shift_date, status) VALUES
-('mrossi', 1, '2023-09-11', 'SCHEDULED'),
-('lverdi', 2, '2023-09-11', 'SCHEDULED'),
-('mbianchi', 3, '2023-09-12', 'SCHEDULED'),
-('aneri', 4, '2023-09-12', 'SCHEDULED'),
-('pgialli', 5, '2023-09-13', 'SCHEDULED'),
-('lblu', 6, '2023-09-13', 'SCHEDULED'),
-('prossi', 7, '2023-09-14', 'SCHEDULED'),
-('gverdi', 8, '2023-09-14', 'SCHEDULED'),
-('fbianchi', 9, '2023-09-15', 'SCHEDULED');
+INSERT INTO EMPLOYEE_SHIFT (employee_username, shift_id, shift_date) VALUES
+('mrossi', 1, '2023-09-11'),
+('lverdi', 2, '2023-09-11'),
+('mbianchi', 3, '2023-09-12'),
+('aneri', 4, '2023-09-12'),
+('pgialli', 5, '2023-09-13'),
+('lblu', 6, '2023-09-13'),
+('prossi', 7, '2023-09-14'),
+('gverdi', 8, '2023-09-14'),
+('fbianchi', 9, '2023-09-15');
 
 -- Insert some history records
 INSERT INTO EMPLOYEE_HISTORY (username, fired_at) VALUES
