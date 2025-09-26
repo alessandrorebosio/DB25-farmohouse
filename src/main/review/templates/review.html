@@ -21,18 +21,18 @@
                     <div class="row g-2">
                         <div class="col-md-3">
                             <select name="target" id="filter-target" class="form-select">
-                                <option value="all" {% if filters.target=="all" %}selected{% endif %}>All</option>
-                                <option value="service" {% if filters.target=="service" %}selected{% endif %}>Services
+                                <option value="all" {% if filters.target == "all" %}selected{% endif %}>All</option>
+                                <option value="service" {% if filters.target == "service" %}selected{% endif %}>Services
                                 </option>
-                                <option value="event" {% if filters.target=="event" %}selected{% endif %}>Events
+                                <option value="event" {% if filters.target == "event" %}selected{% endif %}>Events
                                 </option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <select name="service_type" id="filter-service-type" class="form-select">
-                                <option value="">-- all types --</option>
+                                <option value="">All</option>
                                 {% for st in service_types %}
-                                <option value="{{ st }}" {% if filters.service_type==st %}selected{% endif %}>
+                                <option value="{{ st }}" {% if filters.service_type == st %}selected{% endif %}>
                                     {{ st|title }}
                                 </option>
                                 {% endfor %}
@@ -52,13 +52,13 @@
                         </div>
                         <div class="col-md-3">
                             <select name="order" class="form-select">
-                                <option value="newest" {% if filters.order=="newest" %}selected{% endif %}>Newest
+                                <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest
                                 </option>
-                                <option value="oldest" {% if filters.order=="oldest" %}selected{% endif %}>Oldest
+                                <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest
                                 </option>
-                                <option value="rating_desc" {% if filters.order=="rating_desc" %}selected{% endif %}>
+                                <option value="rating_desc" {% if filters.order == "rating_desc" %}selected{% endif %}>
                                     Rating ↓</option>
-                                <option value="rating_asc" {% if filters.order=="rating_asc" %}selected{% endif %}>
+                                <option value="rating_asc" {% if filters.order == "rating_asc" %}selected{% endif %}>
                                     Rating ↑</option>
                             </select>
                         </div>
@@ -69,8 +69,7 @@
                         <div class="col-md-2 d-grid">
                             <button type="submit" class="btn btn-primary">Apply</button>
                         </div>
-                        {% if filters.q or filters.service_type or filters.rating_min or filters.rating_max or
-                        filters.username or filters.target != "all" %}
+                        {% if filters.q or filters.service_type or filters.rating_min or filters.rating_max or filters.username or filters.target != "all" %}
                         <div class="col-md-2 d-grid">
                             <a href="{{ request.path }}" class="btn btn-outline-secondary">Reset</a>
                         </div>
