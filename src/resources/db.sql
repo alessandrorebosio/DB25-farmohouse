@@ -294,3 +294,53 @@ JOIN PERSON p ON u.cf = p.cf
 WHERE e.username NOT IN (
     SELECT username FROM EMPLOYEE_HISTORY
 );
+
+-- View: events fully booked (no available seats)
+DROP VIEW IF EXISTS fully_booked_events;
+CREATE VIEW fully_booked_events AS
+SELECT
+  e.id,
+  e.title,
+  e.event_date,
+  e.seats,
+  IFNULL(COUNT(es.user), 0) AS booked_count
+FROM EVENT e
+LEFT JOIN EVENT_SUBSCRIPTION es ON es.event = e.id
+GROUP BY e.id
+HAVING IFNULL(COUNT(es.user), 0) >= e.seats;
+
+--View: Services avaiable right now
+DROP VIEW IF EXISTS free_services_now;
+CREATE VIEW free_services_now AS
+SELECT 
+  s.id AS service_id,
+  s.type,
+  r.code AS restaurant_code,
+  ro.code AS room_code,
+  r.max_capacity AS restaurant_max_capacity,
+  ro.max_capacity AS room_max_capacity,
+  IFNULL(b.people_now, 0) AS people_booked_now,
+  IFNULL(b.reservations_now, 0) AS reservations_now,
+  CASE
+    WHEN s.type = 'ROOM' THEN (IFNULL(b.reservations_now,0) = 0)
+    WHEN s.type = 'RESTAURANT' THEN (IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0))
+    ELSE (IFNULL(b.reservations_now,0) = 0)
+  END AS available,
+  CASE
+    WHEN s.type = 'RESTAURANT' THEN GREATEST(IFNULL(r.max_capacity,0) - IFNULL(b.people_now,0), 0)
+    ELSE NULL
+  END AS available_seats
+FROM SERVICE s
+LEFT JOIN RESTAURANT r ON r.service = s.id
+LEFT JOIN ROOM ro ON ro.service = s.id
+LEFT JOIN (
+  --active reservations (now between start_date and end_date)
+  SELECT rd.service,
+         SUM(rd.people) AS people_now,
+         COUNT(*) AS reservations_now
+  FROM RESERVATION_DETAIL rd
+  JOIN RESERVATION r2 ON rd.reservation = r2.id
+  WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()
+  GROUP BY rd.service
+) b ON b.service = s.id;
+
