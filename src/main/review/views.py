@@ -72,7 +72,7 @@ def review_view(request: HttpRequest) -> HttpResponse:
             "order": order,
             "base_qs": base_qs,
         },
-        "service_types": ["RESTAURANT", "POOL", "PLAYGROUND", "ROOM"],
+        "service_types": ["RESTAURANT", "ROOM"],
     }
     return render(request, "review.html", context)
 
