@@ -249,6 +249,37 @@ BEGIN
 END$$
 DELIMITER ;
 
+-- 1) BEFORE INSERT: decrements seats; if there are not enough seats, raises an error
+DROP TRIGGER IF EXISTS trg_decrementa_posti_evento;
+DELIMITER $$
+CREATE TRIGGER trg_decrementa_posti_evento
+BEFORE INSERT ON EVENT_SUBSCRIPTION
+FOR EACH ROW
+BEGIN
+  UPDATE EVENT
+    SET seats = seats - NEW.participants
+  WHERE id = NEW.event
+    AND seats >= NEW.participants;
+  IF ROW_COUNT() = 0 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Posti insufficienti per questo evento';
+  END IF;
+END$$
+DELIMITER ;
+
+-- 2) AFTER DELETE: when a subscription is deleted, increments seats
+DROP TRIGGER IF EXISTS trg_event_subscription_after_delete;
+DELIMITER $$
+CREATE TRIGGER trg_event_subscription_after_delete
+AFTER DELETE ON EVENT_SUBSCRIPTION
+FOR EACH ROW
+BEGIN
+  UPDATE EVENT
+    SET seats = seats + OLD.participants
+  WHERE id = OLD.event;
+END$$
+DELIMITER ;
+
 -- View: active employees (present in EMPLOYEE) with personal info and last role change date
 CREATE VIEW active_employees AS
 SELECT 
