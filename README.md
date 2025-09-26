@@ -37,16 +37,15 @@ pip install -r requirements.txt
 ### 4. Database Setup
 **Create MySQL Database:**
 ```bash
-mysql -u root -p < app/sql/db.sql
-mysql -u root -p < app/sql/demo.sql
+mysql -u root -p < src/main/resources/db.sql
+mysql -u root -p < src/main/resources/demo.sql
 ```
 
 ## 🚀 Running the Application
 
 ### Start Development Server
 ```bash
-cd app
-python manage.py runserver
+python src/main/manage.py runserver
 ```
 
 The application will be available at: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
