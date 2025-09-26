@@ -248,37 +248,6 @@ BEGIN
 END$$
 DELIMITER ;
 
--- 1) BEFORE INSERT: decrements seats; if there are not enough seats, raises an error
-DROP TRIGGER IF EXISTS trg_decrementa_posti_evento;
-DELIMITER $$
-CREATE TRIGGER trg_decrementa_posti_evento
-BEFORE INSERT ON EVENT_SUBSCRIPTION
-FOR EACH ROW
-BEGIN
-  UPDATE EVENT
-    SET seats = seats - NEW.participants
-  WHERE id = NEW.event
-    AND seats >= NEW.participants;
-  IF ROW_COUNT() = 0 THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Posti insufficienti per questo evento';
-  END IF;
-END$$
-DELIMITER ;
-
--- 2) AFTER DELETE: when a subscription is deleted, increments seats
-DROP TRIGGER IF EXISTS trg_event_subscription_after_delete;
-DELIMITER $$
-CREATE TRIGGER trg_event_subscription_after_delete
-AFTER DELETE ON EVENT_SUBSCRIPTION
-FOR EACH ROW
-BEGIN
-  UPDATE EVENT
-    SET seats = seats + OLD.participants
-  WHERE id = OLD.event;
-END$$
-DELIMITER ;
-
 -- View: active employees (present in EMPLOYEE) with personal info and last role change date
 CREATE VIEW active_employees AS
 SELECT 
@@ -295,7 +264,6 @@ WHERE e.username NOT IN (
 );
 
 -- View: events fully booked (no available seats)
-DROP VIEW IF EXISTS fully_booked_events;
 CREATE VIEW fully_booked_events AS
 SELECT
   e.id,
@@ -308,7 +276,6 @@ LEFT JOIN EVENT_SUBSCRIPTION es ON es.event = e.id
 GROUP BY e.id
 HAVING IFNULL(COUNT(es.user), 0) >= e.seats;
 
---View: Services avaiable right now
 DROP VIEW IF EXISTS free_services_now;
 CREATE VIEW free_services_now AS
 SELECT 
@@ -333,10 +300,10 @@ FROM SERVICE s
 LEFT JOIN RESTAURANT r ON r.service = s.id
 LEFT JOIN ROOM ro ON ro.service = s.id
 LEFT JOIN (
-  --active reservations (now between start_date and end_date)
+  /* active reservations (now between start_date and end_date) */
   SELECT rd.service,
-        SUM(rd.people) AS people_now,
-        COUNT(*) AS reservations_now
+         SUM(rd.people) AS people_now,
+         COUNT(*) AS reservations_now
   FROM RESERVATION_DETAIL rd
   JOIN RESERVATION r2 ON rd.reservation = r2.id
   WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()
