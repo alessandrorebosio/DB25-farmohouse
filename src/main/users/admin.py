@@ -17,8 +17,8 @@ class EmployeeHistoryInline(admin.TabularInline):
 class EmployeeShiftInline(admin.TabularInline):
     model = models.EmployeeShift
     extra = 0
-    readonly_fields = ("shift_date", "shift", "status")
-    fields = ("shift_date", "shift", "status")
+    readonly_fields = ("shift_date", "shift")
+    fields = ("shift_date", "shift")
     show_change_link = True
     autocomplete_fields = ("shift",)
 
@@ -88,9 +88,9 @@ class EmployeeHistoryAdmin(admin.ModelAdmin):
 
 @admin.register(models.EmployeeShift)
 class EmployeeShiftAdmin(admin.ModelAdmin):
-    list_display = ("employee_username", "shift_date", "shift", "status")
+    list_display = ("employee_username", "shift_date", "shift")
     search_fields = ("employee_username__username", "shift__shift_name")
-    list_filter = ("status", "shift_date", "shift__shift_name")
+    list_filter = ("shift_date", "shift__shift_name")
     ordering = ("-shift_date",)
     list_select_related = ("employee_username", "shift")
     autocomplete_fields = ("employee_username", "shift")
