@@ -336,8 +336,8 @@ LEFT JOIN ROOM ro ON ro.service = s.id
 LEFT JOIN (
   --active reservations (now between start_date and end_date)
   SELECT rd.service,
-         SUM(rd.people) AS people_now,
-         COUNT(*) AS reservations_now
+        SUM(rd.people) AS people_now,
+        COUNT(*) AS reservations_now
   FROM RESERVATION_DETAIL rd
   JOIN RESERVATION r2 ON rd.reservation = r2.id
   WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()

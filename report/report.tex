@@ -227,6 +227,10 @@ In questo modo i clienti gestiscono attività come acquisti, recensioni, ordini 
 eventi, mentre i dipendenti si occupano della creazione degli eventi e della gestione dei 
 servizi. Tale raffinamento migliora la chiarezza semantica del modello, riduce le ambiguità e 
 riflette meglio la separazione dei ruoli reali all'interno del dominio applicativo.
+
+\vspace{\baselineskip}
+Il raffinamento mette in evidenza anche le dipendenze temporali (come la gestione dei turni \textbf{Shift} o la cronologia del personale \textbf{Employee History}) e garantisce che ogni operazione rispetti vincoli di consistenza e cardinalità, rendendo il modello complessivo coerente, sicuro e facilmente estendibile.
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth, trim=0 200pt 300pt 0, clip]{./schemas/refinements/user.pdf}
