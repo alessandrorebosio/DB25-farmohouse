@@ -42,7 +42,6 @@ CREATE TABLE EMPLOYEE_SHIFT (
     employee_username VARCHAR(32) NOT NULL,
     shift_id INT NOT NULL,
     shift_date DATE NOT NULL,
-    status ENUM('SCHEDULED', 'COMPLETED', 'ABSENT') DEFAULT 'SCHEDULED',
     FOREIGN KEY (employee_username) REFERENCES EMPLOYEE(username),
     FOREIGN KEY (shift_id) REFERENCES SHIFT(id),
     UNIQUE KEY unique_employee_shift (employee_username, shift_date)
