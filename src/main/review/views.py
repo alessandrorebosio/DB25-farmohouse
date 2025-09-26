@@ -5,19 +5,18 @@ from django.db.models import Q
 from .models import Review
 
 
-# /reviews/
 def review_view(request: HttpRequest) -> HttpResponse:
     target = request.GET.get("target", "all")
     service_type = request.GET.get(
         "service_type", ""
-    )  # RESTAURANT | ROOM
+    )
     rating_min = request.GET.get("rating_min") or None
     rating_max = request.GET.get("rating_max") or None
     username = request.GET.get("username", "").strip()
     q = request.GET.get("q", "").strip()
     order = request.GET.get(
         "order", "newest"
-    )  # newest | oldest | rating_desc | rating_asc
+    )
     page = int(request.GET.get("page", "1"))
 
     qs = Review.objects.select_related("user", "service", "event")
@@ -41,7 +40,6 @@ def review_view(request: HttpRequest) -> HttpResponse:
     if q:
         qs = qs.filter(Q(comment__icontains=q) | Q(event__title__icontains=q))
 
-    # Ordinamento
     ordering_map = {
         "newest": "-created_at",
         "oldest": "created_at",
