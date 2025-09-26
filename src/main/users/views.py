@@ -20,6 +20,7 @@ from . import models
 from product.models import Orders, OrderDetail
 from event.models import EventSubscription
 from service.models import Reservation, ReservationDetail, Service
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 def register_view(request: HttpRequest) -> HttpResponse:
@@ -211,13 +212,12 @@ def logout_view(request: HttpRequest) -> HttpResponse:
     return render(request, "index.html")
 
 
+@staff_member_required(login_url="/login")
 def statistic_view(request: HttpRequest) -> HttpResponse:
-    # Simple KPI counts
     users_count = models.User.objects.count()
     employees_count = models.Employee.objects.count()
     orders_count = Orders.objects.count()
 
-    # Total revenue from order details (quantity * unit_price)
     revenue = OrderDetail.objects.annotate(
         line_total=ExpressionWrapper(
             F("quantity") * F("unit_price"),
@@ -225,10 +225,8 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
         )
     ).aggregate(total=Sum("line_total")).get("total") or Decimal("0.00")
 
-    # Reservations count
     reservations_count = Reservation.objects.count()
 
-    # Top services by number of reservation details (bookings)
     top_services_qs = (
         ReservationDetail.objects.values(
             "service",
@@ -240,7 +238,6 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
         .order_by("-bookings")[:10]
     )
 
-    # Build display name for each service (ROOM/RESTAURANT may have a code)
     top_services = []
     for s in top_services_qs:
         code = s.get("service__room__code") or s.get("service__restaurant__code")
@@ -259,7 +256,6 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
             }
         )
 
-    # Top products by quantity and by revenue
     top_products_qty = (
         OrderDetail.objects.values("product", "product__name")
         .annotate(total_qty=Sum("quantity"))
@@ -278,7 +274,6 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
         .order_by("-total_revenue")[:10]
     )
 
-    # Top events by total participants
     top_events = (
         EventSubscription.objects.values("event", "event__title", "event__event_date")
         .annotate(total_participants=Sum("participants"))

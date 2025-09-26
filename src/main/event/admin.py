@@ -46,7 +46,6 @@ class EventAdmin(admin.ModelAdmin):
     remaining.short_description = "Remaining"
 
     def created_by_display(self, obj):
-        # Employee.username -> User (to_field username)
         return getattr(getattr(obj.created_by, "username", None), "username", "") or ""
 
     created_by_display.short_description = "Created by"

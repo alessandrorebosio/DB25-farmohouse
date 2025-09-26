@@ -9,7 +9,6 @@ from .models import Service, Reservation, ReservationDetail
 from datetime import datetime, time, timedelta
 from django.urls import reverse
 
-# Slot di 2 ore per pasto
 MEAL_START_TIMES = {
     "breakfast": time(8, 0),
     "lunch": time(12, 30),
@@ -89,14 +88,14 @@ def service_list(request):
                 s.total_price = s.price * room_nights
             available_rooms = list(qs_rooms)
 
-    # Restaurant availability (2-hour slot per meal)
+
     if table_date and table_people and table_meal:
         start_dt, end_dt = get_meal_slot(table_date, table_meal)
 
         reserved_table_ids = (
             ReservationDetail.objects.filter(
                 service__type="RESTAURANT",
-                # sovrapposizione su slot da 2 ore (consenti back-to-back)
+
                 start_date__lt=end_dt,
                 end_date__gt=start_dt,
             )
@@ -187,12 +186,11 @@ def quick_book(request, service_id):
         end_dt = datetime.combine(end_base_date, time(10, 0))
         total_price = service.price * nights
         redirect_url = f"{reverse('service:service_list')}?room_start={start_date}&room_end={end_date}&room_people={people}"
-        # Verifica overlap camere (includi sovrapposizioni)
+
         overlap_exists = ReservationDetail.objects.filter(
             service=service, start_date__lte=end_dt, end_date__gte=start_dt
         ).exists()
     else:
-        # Ristorante: slot di 2 ore per il pasto
         if meal_param not in MEAL_START_TIMES:
             return redirect(
                 f"{reverse('service:service_list')}?table_date={start_date}&table_people={people}"
