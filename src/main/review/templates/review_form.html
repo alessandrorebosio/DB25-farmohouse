@@ -14,7 +14,7 @@ Review
 {% if event %}
 Review: {{ event.title }}
 {% elif detail %}
-Review: {{ detail.service }}
+Review: {{ detail.service.type.lower }}
 {% else %}
 Review
 {% endif %}
