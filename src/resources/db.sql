@@ -3,148 +3,148 @@ CREATE DATABASE farmhouse;
 USE farmhouse;
 
 CREATE TABLE PERSON (
-    cf VARCHAR(16) PRIMARY KEY,
-    name VARCHAR(32) NOT NULL,
-    surname VARCHAR(32) NOT NULL
+	cf VARCHAR(16) PRIMARY KEY,
+	name VARCHAR(32) NOT NULL,
+	surname VARCHAR(32) NOT NULL
 );
 
 CREATE TABLE USER (
-    username VARCHAR(32) PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    cf VARCHAR(16) UNIQUE NOT NULL,
-    FOREIGN KEY (cf) REFERENCES PERSON(cf)
+	username VARCHAR(32) PRIMARY KEY,
+	email VARCHAR(255) NOT NULL,
+	password VARCHAR(255) NOT NULL,
+	cf VARCHAR(16) UNIQUE NOT NULL,
+	FOREIGN KEY (cf) REFERENCES PERSON(cf)
 );
 
 CREATE TABLE EMPLOYEE (
-    username VARCHAR(32) PRIMARY KEY,
-    role VARCHAR(32) NOT NULL,
-    FOREIGN KEY (username) REFERENCES USER(username)
+	username VARCHAR(32) PRIMARY KEY,
+	role VARCHAR(32) NOT NULL,
+	FOREIGN KEY (username) REFERENCES USER(username)
 );
 
 CREATE TABLE EMPLOYEE_HISTORY (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(32) NOT NULL,
-    fired_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (username) REFERENCES EMPLOYEE(username)
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	username VARCHAR(32) NOT NULL,
+	fired_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (username) REFERENCES EMPLOYEE(username)
 );
 
 CREATE TABLE SHIFT (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    day ENUM('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN') NOT NULL,
-    shift_name VARCHAR(32) NOT NULL,
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	day ENUM('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN') NOT NULL,
+	shift_name VARCHAR(32) NOT NULL,
+	start_time TIME NOT NULL,
+	end_time TIME NOT NULL
 );
 
 CREATE TABLE EMPLOYEE_SHIFT (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_username VARCHAR(32) NOT NULL,
-    shift_id INT NOT NULL,
-    shift_date DATE NOT NULL,
-    FOREIGN KEY (employee_username) REFERENCES EMPLOYEE(username),
-    FOREIGN KEY (shift_id) REFERENCES SHIFT(id),
-    UNIQUE KEY unique_employee_shift (employee_username, shift_date)
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	employee_username VARCHAR(32) NOT NULL,
+	shift_id INT NOT NULL,
+	shift_date DATE NOT NULL,
+	FOREIGN KEY (employee_username) REFERENCES EMPLOYEE(username),
+	FOREIGN KEY (shift_id) REFERENCES SHIFT(id),
+	UNIQUE KEY unique_employee_shift (employee_username, shift_date)
 );
 
 CREATE TABLE ORDERS (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    username VARCHAR(32) NOT NULL,
-    FOREIGN KEY (username) REFERENCES USER(username)
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	date DATETIME DEFAULT CURRENT_TIMESTAMP,
+	username VARCHAR(32) NOT NULL,
+	FOREIGN KEY (username) REFERENCES USER(username)
 );
 
 CREATE TABLE PRODUCT (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
-    price DECIMAL(8,2) NOT NULL CHECK (price > 0)
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(100) NOT NULL,
+	description TEXT NOT NULL,
+	price DECIMAL(8,2) NOT NULL CHECK (price > 0)
 );
 
 CREATE TABLE ORDER_DETAIL (
-    `order` INT NOT NULL,
-    product INT NOT NULL,
-    quantity INT NOT NULL CHECK (quantity > 0),
-    unit_price DECIMAL(8,2) NOT NULL CHECK (unit_price > 0),
-    PRIMARY KEY (`order`, product),
-    FOREIGN KEY (product) REFERENCES PRODUCT(id),
-    FOREIGN KEY (`order`) REFERENCES ORDERS(id)
+	`order` INT NOT NULL,
+	product INT NOT NULL,
+	quantity INT NOT NULL CHECK (quantity > 0),
+	unit_price DECIMAL(8,2) NOT NULL CHECK (unit_price > 0),
+	PRIMARY KEY (`order`, product),
+	FOREIGN KEY (product) REFERENCES PRODUCT(id),
+	FOREIGN KEY (`order`) REFERENCES ORDERS(id)
 );
 
 CREATE TABLE EVENT (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    seats INT NOT NULL CHECK (seats > 0),
-    title VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
-    event_date DATE NOT NULL,
-    created_by VARCHAR(32) NOT NULL,
-    FOREIGN KEY (created_by) REFERENCES EMPLOYEE(username)
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	seats INT NOT NULL CHECK (seats > 0),
+	title VARCHAR(100) NOT NULL,
+	description TEXT NOT NULL,
+	event_date DATE NOT NULL,
+	created_by VARCHAR(32) NOT NULL,
+	FOREIGN KEY (created_by) REFERENCES EMPLOYEE(username)
 );
 
 CREATE TABLE EVENT_SUBSCRIPTION (
-    event INT NOT NULL,
-    user VARCHAR(32) NOT NULL,
-    subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    participants INT NOT NULL CHECK (participants > 0),
-    PRIMARY KEY (event, user),
-    FOREIGN KEY (event) REFERENCES EVENT(id),
-    FOREIGN KEY (user) REFERENCES USER(username)
+	event INT NOT NULL,
+	user VARCHAR(32) NOT NULL,
+	subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	participants INT NOT NULL CHECK (participants > 0),
+	PRIMARY KEY (event, user),
+	FOREIGN KEY (event) REFERENCES EVENT(id),
+	FOREIGN KEY (user) REFERENCES USER(username)
 );
 
 CREATE TABLE RESERVATION (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(32) NOT NULL,
-    reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (username) REFERENCES USER(username)
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	username VARCHAR(32) NOT NULL,
+	reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (username) REFERENCES USER(username)
 );
 
 
 CREATE TABLE SERVICE (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    price DECIMAL(8,2) NOT NULL CHECK (price >= 0),
-    type ENUM('RESTAURANT', 'POOL', 'PLAYGROUND', 'ROOM') NOT NULL
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	price DECIMAL(8,2) NOT NULL CHECK (price >= 0),
+	type ENUM('RESTAURANT', 'POOL', 'PLAYGROUND', 'ROOM') NOT NULL
 );
 
 CREATE TABLE RESERVATION_DETAIL (
-    reservation INT NOT NULL,
-    service INT NOT NULL,
-    start_date DATETIME NOT NULL,
-    end_date DATETIME NOT NULL,
-    people INT NOT NULL CHECK (people > 0),
-    CHECK (start_date <= end_date),
-    PRIMARY KEY (reservation, service),
-    FOREIGN KEY (reservation) REFERENCES RESERVATION(id),
-    FOREIGN KEY (service) REFERENCES SERVICE(id)
+	reservation INT NOT NULL,
+	service INT NOT NULL,
+	start_date DATETIME NOT NULL,
+	end_date DATETIME NOT NULL,
+	people INT NOT NULL CHECK (people > 0),
+	CHECK (start_date <= end_date),
+	PRIMARY KEY (reservation, service),
+	FOREIGN KEY (reservation) REFERENCES RESERVATION(id),
+	FOREIGN KEY (service) REFERENCES SERVICE(id)
 );
 
 CREATE TABLE RESTAURANT (
-    service INT PRIMARY KEY,
-    code VARCHAR(3) UNIQUE NOT NULL,
-    max_capacity INT NOT NULL CHECK (max_capacity > 0),
-    FOREIGN KEY (service) REFERENCES SERVICE(id)
+	service INT PRIMARY KEY,
+	code VARCHAR(3) UNIQUE NOT NULL,
+	max_capacity INT NOT NULL CHECK (max_capacity > 0),
+	FOREIGN KEY (service) REFERENCES SERVICE(id)
 );
 
 CREATE TABLE ROOM (
-    service INT PRIMARY KEY,
-    code VARCHAR(3) UNIQUE NOT NULL,
-    max_capacity INT NOT NULL CHECK (max_capacity > 0),
-    FOREIGN KEY (service) REFERENCES SERVICE(id)
+	service INT PRIMARY KEY,
+	code VARCHAR(3) UNIQUE NOT NULL,
+	max_capacity INT NOT NULL CHECK (max_capacity > 0),
+	FOREIGN KEY (service) REFERENCES SERVICE(id)
 );
 
 CREATE TABLE REVIEW (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    `user` VARCHAR(32) NOT NULL,
-    service INT NULL,
-    event INT NULL,
-    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    comment TEXT,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`user`) REFERENCES USER(username) ON DELETE CASCADE,
-    FOREIGN KEY (service) REFERENCES SERVICE(id) ON DELETE CASCADE,
-    FOREIGN KEY (event) REFERENCES EVENT(id) ON DELETE CASCADE,
-    CHECK ((service IS NULL) + (event IS NULL) = 1),
-    UNIQUE KEY unique_user_service_review (`user`, service),
-    UNIQUE KEY unique_user_event_review (`user`, event)
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	`user` VARCHAR(32) NOT NULL,
+	service INT NULL,
+	event INT NULL,
+	rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+	comment TEXT,
+	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (`user`) REFERENCES USER(username) ON DELETE CASCADE,
+	FOREIGN KEY (service) REFERENCES SERVICE(id) ON DELETE CASCADE,
+	FOREIGN KEY (event) REFERENCES EVENT(id) ON DELETE CASCADE,
+	CHECK ((service IS NULL) + (event IS NULL) = 1),
+	UNIQUE KEY unique_user_service_review (`user`, service),
+	UNIQUE KEY unique_user_event_review (`user`, event)
 );
 
 -- Trigger: allow reviews only after the event/service has been used
@@ -154,47 +154,47 @@ CREATE TRIGGER trg_review_before_insert
 BEFORE INSERT ON REVIEW
 FOR EACH ROW
 BEGIN
-  DECLARE cnt INT DEFAULT 0;
+DECLARE cnt INT DEFAULT 0;
 
-  -- Exactly one between event and service must be set
-  IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
-  END IF;
+-- Exactly one between event and service must be set
+IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
+	SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
+END IF;
 
-  -- Event check: user must be subscribed and the event date must be in the past
-  IF NEW.event IS NOT NULL THEN
-    SELECT COUNT(*)
-      INTO cnt
-      FROM EVENT e
-      JOIN EVENT_SUBSCRIPTION es
-        ON es.event = e.id
-       AND es.`user` = NEW.`user`
-     WHERE e.id = NEW.event
-       AND e.event_date < CURDATE(); -- event already occurred (DATE type)
+-- Event check: user must be subscribed and the event date must be in the past
+IF NEW.event IS NOT NULL THEN
+	SELECT COUNT(*)
+		INTO cnt
+		FROM EVENT e
+		JOIN EVENT_SUBSCRIPTION es
+			ON es.event = e.id
+			AND es.`user` = NEW.`user`
+		WHERE e.id = NEW.event
+			AND e.event_date < CURDATE(); -- event already occurred (DATE type)
 
-    IF cnt = 0 THEN
-      SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
-    END IF;
-  END IF;
+	IF cnt = 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
+	END IF;
+END IF;
 
-  -- Service check: the user must have a reservation for that service that has already ended
-  IF NEW.service IS NOT NULL THEN
-    SELECT COUNT(*)
-      INTO cnt
-      FROM RESERVATION r
-      JOIN RESERVATION_DETAIL rd
-        ON rd.reservation = r.id
-       AND rd.service = NEW.service
-     WHERE r.username = NEW.`user`
-       AND rd.end_date < NOW(); -- reservation already completed
+-- Service check: the user must have a reservation for that service that has already ended
+IF NEW.service IS NOT NULL THEN
+	SELECT COUNT(*)
+		INTO cnt
+		FROM RESERVATION r
+		JOIN RESERVATION_DETAIL rd
+			ON rd.reservation = r.id
+			AND rd.service = NEW.service
+		WHERE r.username = NEW.`user`
+			AND rd.end_date < NOW(); -- reservation already completed
 
-    IF cnt = 0 THEN
-      SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
-    END IF;
-  END IF;
+	IF cnt = 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+	END IF;
+END IF;
 END$$
 DELIMITER ;
 
@@ -204,73 +204,73 @@ CREATE TRIGGER trg_review_before_update
 BEFORE UPDATE ON REVIEW
 FOR EACH ROW
 BEGIN
-  DECLARE cnt INT DEFAULT 0;
+DECLARE cnt INT DEFAULT 0;
 
-  -- Exactly one between event and service must be set
-  IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
-  END IF;
+-- Exactly one between event and service must be set
+IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
+	SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
+END IF;
 
-  -- Event check: user must be subscribed and the event date must be in the past
-  IF NEW.event IS NOT NULL THEN
-    SELECT COUNT(*)
-      INTO cnt
-      FROM EVENT e
-      JOIN EVENT_SUBSCRIPTION es
-        ON es.event = e.id
-       AND es.`user` = NEW.`user`
-     WHERE e.id = NEW.event
-       AND e.event_date < CURDATE();
+-- Event check: user must be subscribed and the event date must be in the past
+IF NEW.event IS NOT NULL THEN
+	SELECT COUNT(*)
+		INTO cnt
+		FROM EVENT e
+		JOIN EVENT_SUBSCRIPTION es
+			ON es.event = e.id
+			AND es.`user` = NEW.`user`
+		WHERE e.id = NEW.event
+			AND e.event_date < CURDATE();
 
-    IF cnt = 0 THEN
-      SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
-    END IF;
-  END IF;
+	IF cnt = 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
+	END IF;
+END IF;
 
-  -- Service check: the user must have a reservation for that service that has already ended
-  IF NEW.service IS NOT NULL THEN
-    SELECT COUNT(*)
-      INTO cnt
-      FROM RESERVATION r
-      JOIN RESERVATION_DETAIL rd
-        ON rd.reservation = r.id
-       AND rd.service = NEW.service
-     WHERE r.username = NEW.`user`
-       AND rd.end_date < NOW();
+-- Service check: the user must have a reservation for that service that has already ended
+IF NEW.service IS NOT NULL THEN
+	SELECT COUNT(*)
+		INTO cnt
+		FROM RESERVATION r
+		JOIN RESERVATION_DETAIL rd
+			ON rd.reservation = r.id
+			AND rd.service = NEW.service
+		WHERE r.username = NEW.`user`
+			AND rd.end_date < NOW();
 
-    IF cnt = 0 THEN
-      SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
-    END IF;
-  END IF;
+	IF cnt = 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+	END IF;
+END IF;
 END$$
 DELIMITER ;
 
 -- View: active employees (present in EMPLOYEE) with personal info and last role change date
 CREATE VIEW active_employees AS
 SELECT 
-    e.username,
-    u.email,
-    p.name,
-    p.surname,
-    e.role
+	e.username,
+	u.email,
+	p.name,
+	p.surname,
+	e.role
 FROM EMPLOYEE e
 JOIN USER u ON e.username = u.username
 JOIN PERSON p ON u.cf = p.cf
 WHERE e.username NOT IN (
-    SELECT username FROM EMPLOYEE_HISTORY
+	SELECT username FROM EMPLOYEE_HISTORY
 );
 
 -- View: events fully booked (no available seats)
 CREATE VIEW fully_booked_events AS
 SELECT
-  e.id,
-  e.title,
-  e.event_date,
-  e.seats,
-  IFNULL(SUM(es.participants), 0) AS total_participants
+	e.id,
+	e.title,
+	e.event_date,
+	e.seats,
+	IFNULL(SUM(es.participants), 0) AS total_participants
 FROM EVENT e
 LEFT JOIN EVENT_SUBSCRIPTION es ON es.event = e.id
 GROUP BY e.id
@@ -280,38 +280,37 @@ HAVING IFNULL(SUM(es.participants), 0) >= e.seats;
 DROP VIEW IF EXISTS free_services_now;
 CREATE VIEW free_services_now AS
 SELECT 
-  s.id AS service_id,
-  s.type,
-  r.code AS restaurant_code,
-  ro.code AS room_code,
-  r.max_capacity AS restaurant_max_capacity,
-  ro.max_capacity AS room_max_capacity,
-  IFNULL(b.people_now, 0) AS people_booked_now,
-  IFNULL(b.reservations_now, 0) AS reservations_now,
-  CASE
-    WHEN s.type = 'ROOM' THEN (IFNULL(b.reservations_now,0) = 0)
-    WHEN s.type = 'RESTAURANT' THEN (IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0))
-    ELSE (IFNULL(b.reservations_now,0) = 0)
-  END AS available,
-  CASE
-    WHEN s.type = 'RESTAURANT' THEN GREATEST(IFNULL(r.max_capacity,0) - IFNULL(b.people_now,0), 0)
-    WHEN s.type = 'ROOM' THEN ro.max_capacity
-    ELSE NULL
-  END AS available_seats
+	s.id AS service_id,
+	s.type,
+	r.code AS restaurant_code,
+	ro.code AS room_code,
+	r.max_capacity AS restaurant_max_capacity,
+	ro.max_capacity AS room_max_capacity,
+IFNULL(b.people_now, 0) AS people_booked_now,
+IFNULL(b.reservations_now, 0) AS reservations_now,
+CASE
+	WHEN s.type = 'ROOM' THEN (IFNULL(b.reservations_now,0) = 0)
+	WHEN s.type = 'RESTAURANT' THEN (IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0))
+	ELSE (IFNULL(b.reservations_now,0) = 0)
+END AS available,
+CASE
+	WHEN s.type = 'RESTAURANT' THEN GREATEST(IFNULL(r.max_capacity,0) - IFNULL(b.people_now,0), 0)
+	WHEN s.type = 'ROOM' THEN ro.max_capacity
+	ELSE NULL
+END AS available_seats
 FROM SERVICE s
 LEFT JOIN RESTAURANT r ON r.service = s.id
 LEFT JOIN ROOM ro ON ro.service = s.id
 LEFT JOIN (
-  /* active reservations (now between start_date and end_date) */
-  SELECT rd.service,
-         SUM(rd.people) AS people_now,
-         COUNT(*) AS reservations_now
-  FROM RESERVATION_DETAIL rd
-  JOIN RESERVATION r2 ON rd.reservation = r2.id
-  WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()
-  GROUP BY rd.service
+	SELECT rd.service,
+				 SUM(rd.people) AS people_now,
+				 COUNT(*) AS reservations_now
+	FROM RESERVATION_DETAIL rd
+	JOIN RESERVATION r2 ON rd.reservation = r2.id
+	WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()
+	GROUP BY rd.service
 ) b ON b.service = s.id
 WHERE 
-  (s.type = 'ROOM' AND IFNULL(b.reservations_now,0) = 0) OR
-  (s.type = 'RESTAURANT' AND IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0)) OR
-  (s.type IN ('POOL', 'PLAYGROUND') AND IFNULL(b.reservations_now,0) = 0);
+	(s.type = 'ROOM' AND IFNULL(b.reservations_now,0) = 0) OR
+	(s.type = 'RESTAURANT' AND IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0)) OR
+	(s.type IN ('POOL', 'PLAYGROUND') AND IFNULL(b.reservations_now,0) = 0);
