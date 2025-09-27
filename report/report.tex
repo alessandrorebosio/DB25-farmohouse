@@ -486,15 +486,23 @@ Gli utenti possono visualizzare tutte le recensioni e filtrarle per evento o ser
     \centering
     \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/reviews.png}
     \vspace{-1em}
-    \label{fig:reviews}
+    \label{fig:recensione}
+\end{figure}
+
+Il form permette agli utenti di lasciare una recensione su eventi o servizi a cui hanno partecipato, 
+inserendo commento e voto. La recensione è consentita solo dopo la partecipazione effettiva.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/give_review.png}
+    \vspace{-1em}
+    \label{fig:lascia recensione}
 \end{figure}
 
 \subsection*{Prodotti}
-
-La sezione prodotti consente agli utenti di consultare il catalogo, visualizzare i dettagli di 
-ciascun prodotto e aggiungerli al carrello per l'acquisto. Il sistema mostra in tempo reale il 
-contenuto del carrello e il totale dell'ordine. Fatto il checkout sarà visibile il riepilogo 
-nella sezione profilo.
+La sezione prodotti consente agli utenti di consultare il catalogo aggiungerli al carrello per 
+l'acquisto. Il sistema mostra in tempo reale il contenuto del carrello e il totale dell'ordine. 
+Fatto il checkout sarà visibile il riepilogo nella sezione profilo.
 
 \begin{figure}[H]
     \centering
@@ -503,6 +511,13 @@ nella sezione profilo.
     \label{fig:products}
 \end{figure}
 
+\subsection*{Carrello}
+Il \textbf{carrello} è una funzionalità applicativa che consente agli utenti di selezionare e 
+gestire i prodotti da acquistare prima di confermare l'ordine. Il carrello non è rappresentato 
+nel database, ma viene gestito lato applicazione: i prodotti selezionati vengono memorizzati 
+temporaneamente fino al checkout, momento in cui viene creato l'ordine definitivo e 
+registrato nel sistema.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth, trim=0 0 0 0]{./img/users/cart.png}
@@ -510,7 +525,7 @@ nella sezione profilo.
     \label{fig:cart}
 \end{figure}
 
-
+\newpage
 \section{Interfaccia Amministratore}
 Per la gestione amministrativa, l'applicazione sfrutta la sezione \textbf{Django Admin}, 
 che consente agli amministratori di accedere rapidamente a tutte le tabelle del database, 
