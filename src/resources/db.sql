@@ -270,13 +270,13 @@ SELECT
   e.title,
   e.event_date,
   e.seats,
-  IFNULL(COUNT(es.user), 0) AS booked_count
+  IFNULL(SUM(es.participants), 0) AS total_participants
 FROM EVENT e
 LEFT JOIN EVENT_SUBSCRIPTION es ON es.event = e.id
 GROUP BY e.id
-HAVING IFNULL(COUNT(es.user), 0) >= e.seats;
+HAVING IFNULL(SUM(es.participants), 0) >= e.seats;
 
-DROP VIEW IF EXISTS free_services_now;
+-- View: services currently free/available (no active reservations now)
 CREATE VIEW free_services_now AS
 SELECT 
   s.id AS service_id,
@@ -308,5 +308,8 @@ LEFT JOIN (
   JOIN RESERVATION r2 ON rd.reservation = r2.id
   WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()
   GROUP BY rd.service
-) b ON b.service = s.id;
-
+) b ON b.service = s.id
+WHERE 
+  (s.type = 'ROOM' AND IFNULL(b.reservations_now,0) = 0) OR
+  (s.type = 'RESTAURANT' AND IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0)) OR
+  (s.type IN ('POOL', 'PLAYGROUND') AND IFNULL(b.reservations_now,0) = 0);
