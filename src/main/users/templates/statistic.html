@@ -147,6 +147,91 @@
                 </div>
             </div>
         </div>
+        <!-- Fully booked events & Free services now -->
+        <div class="row g-3 g-md-4 mt-4">
+            <div class="col-12 col-lg-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Fully booked events</h5>
+                        {% if fully_booked_events %}
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr class="text-muted small">
+                                        <th>Title</th>
+                                        <th>Date</th>
+                                        <th class="text-end">Seats</th>
+                                        <th class="text-end">Booked</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ev in fully_booked_events %}
+                                    <tr>
+                                        <td class="text-truncate" style="max-width:240px;" title="{{ ev.title }}">{{ ev.title }}</td>
+                                        <td class="text-muted small"> {{ ev.event_date|date:"Y-m-d" }} </td>
+                                        <td class="text-end">{{ ev.seats }}</td>
+                                        <td class="text-end">
+                                            <span class="badge bg-danger rounded-pill">{{ ev.total_participants }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small mb-0">Nessun evento completamente prenotato al momento.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-body">
+                    <h5 class="card-title mb-3">Free services now</h5>
+                    {% if free_services_now %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small">
+                            <th>Service</th>
+                            <th>Location</th>
+                            <th class="text-end">Available seats</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in free_services_now %}
+                            <tr>
+                            <td class="fw-semibold small">{{ s.type|title }} (ID {{ s.service_id }})</td>
+                            <td class="small text-muted">
+                                {% if s.restaurant_code %}R: {{ s.restaurant_code }}{% elif s.room_code %}Room: {{ s.room_code }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% with s.available_seats as seats %}
+                                {% if seats is not None %}
+                                    {% if seats > 0 %}
+                                    <span class="badge bg-success rounded-pill">{{ seats }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary rounded-pill">0</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted small mb-0">Nessun servizio disponibile ora.</p>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            
+        </div>
     </div>
 </main>
 

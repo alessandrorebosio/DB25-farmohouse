@@ -18,7 +18,34 @@ class ActiveEmployee(models.Model):
         verbose_name = "Active employee"
         verbose_name_plural = "Active employees"
 
+class FullyBookedEvent(models.Model):
+    id = models.IntegerField(primary_key=True, db_column="id")
+    title = models.CharField(max_length=255, null=True, db_column="title")
+    event_date = models.TimeField(null=True, db_column="event_date")
+    seats = models.IntegerField(null=True, db_column="seats")
+    total_participants = models.IntegerField(null=True, db_column="total_participants")
 
+    class Meta:
+        managed = False
+        db_table = "fully_booked_events"
+        ordering = ["-event_date"]
+        
+class FreeServiceNow(models.Model):
+    service_id = models.IntegerField(primary_key=True, db_column="service_id")
+    type = models.CharField(max_length=50, null=True, db_column="type")
+    restaurant_code = models.CharField(max_length=64, null=True, db_column="restaurant_code")
+    room_code = models.CharField(max_length=64, null=True, db_column="room_code")
+    restaurant_max_capacity = models.IntegerField(null=True, db_column="restaurant_max_capacity")
+    room_max_capacity = models.IntegerField(null=True, db_column="room_max_capacity")
+    people_booked_now = models.IntegerField(null=True, db_column="people_booked_now")
+    reservations_now = models.IntegerField(null=True, db_column="reservations_now")
+    available = models.BooleanField(null=True, db_column="available")
+    available_seats = models.IntegerField(null=True, db_column="available_seats")
+
+    class Meta:
+        managed = False
+        db_table = "free_services_now"
+        
 class Employee(models.Model):
     username = models.OneToOneField(
         "User", models.CASCADE, db_column="username", primary_key=True

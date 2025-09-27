@@ -279,6 +279,10 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
         .annotate(total_participants=Sum("participants"))
         .order_by("-total_participants", "event__event_date")[:10]
     )
+    
+    fully_booked_qs = models.FullyBookedEvent.objects.all().order_by("-event_date")[:50]
+    free_services_qs = models.FreeServiceNow.objects.all().order_by("-available", "type", "service_id")[:200]
+
 
     context = {
         "kpis": {
@@ -292,6 +296,8 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
         "top_products_qty": top_products_qty,
         "top_products_rev": top_products_rev,
         "top_events": top_events,
+        "fully_booked_events": fully_booked_qs,
+        "free_services_now": free_services_qs,
         "today": timezone.localdate(),
     }
 

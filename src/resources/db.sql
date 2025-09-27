@@ -277,6 +277,7 @@ GROUP BY e.id
 HAVING IFNULL(SUM(es.participants), 0) >= e.seats;
 
 -- View: services currently free/available (no active reservations now)
+DROP VIEW IF EXISTS free_services_now;
 CREATE VIEW free_services_now AS
 SELECT 
   s.id AS service_id,
@@ -294,6 +295,7 @@ SELECT
   END AS available,
   CASE
     WHEN s.type = 'RESTAURANT' THEN GREATEST(IFNULL(r.max_capacity,0) - IFNULL(b.people_now,0), 0)
+    WHEN s.type = 'ROOM' THEN ro.max_capacity
     ELSE NULL
   END AS available_seats
 FROM SERVICE s
