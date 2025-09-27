@@ -67,6 +67,10 @@ ORDER BY
   total_revenue DESC
 LIMIT 5;
 
+-- Overall total revenue from all order details
+SELECT ROUND(SUM(od.quantity * od.unit_price), 2) as overall_total_revenue
+FROM ORDER_DETAIL od;
+
 -- Quick KPIs: total customers, employees, orders, revenue, reservations
 -- Note: expects tables USER, EMPLOYEE, ORDERS, ORDER_DETAIL, RESERVATION
 SELECT
@@ -78,63 +82,55 @@ SELECT
 
 -- Room availability for a given period and people
 -- Requires session variables:
---   @n_persone, @data_inizio (DATETIME), @data_fine (DATETIME)
+--   @n_people, @start_date (DATETIME), @end_date (DATETIME)
 SELECT
-  ro.code AS camera,
-  s.price AS prezzo,
+  ro.code AS room,
+  s.price AS price,
   ro.max_capacity
 FROM ROOM AS ro
 JOIN SERVICE AS s
   ON s.id = ro.service
 WHERE
-  ro.max_capacity >= @n_persone
+  ro.max_capacity >= @n_people
   AND ro.service NOT IN (
     SELECT rd.service
     FROM RESERVATION_DETAIL AS rd
-    WHERE NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
+    WHERE NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
   );
 
 -- Restaurant availability with remaining seats in a period
--- Requires session variables: @data_inizio, @data_fine, @n_partecipanti
+-- Requires session variables: @start_date, @end_date, @n_people
 SELECT
-  r.code AS ristorante,
-  s.price AS prezzo,
+  r.code AS restaurant,
+  s.price AS price,
   r.max_capacity,
-  (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS posti_disponibili
+  (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS available_seats
 FROM RESTAURANT AS r
-JOIN SERVICE AS s
-  ON s.id = r.service
-LEFT JOIN RESERVATION_DETAIL AS rd
-  ON rd.service = r.service
-  AND NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
-GROUP BY
-  r.service,
-  r.code,
-  s.price,
-  r.max_capacity
-HAVING
-  posti_disponibili >= @n_partecipanti;
+JOIN SERVICE AS s ON s.id = r.service
+LEFT JOIN RESERVATION_DETAIL AS rd ON rd.service = r.service
+  AND NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
+GROUP BY r.service, r.code, s.price, r.max_capacity
+HAVING available_seats >= @n_people;
 
 -- Insert a REVIEW for an event attended by user 'mrossi'
 -- Guards: only if subscribed, past event, and review does not already exist
 INSERT INTO REVIEW (user, event, rating, comment)
 SELECT
-    'mrossi' AS user,
-    e.id AS event,
-    5 AS rating,
-    'Amazing experience! Will definitely come again.' AS comment
+  'mrossi' AS user,
+  e.id AS event,
+  5 AS rating,
+  'Amazing experience! Will definitely come again.' AS comment
 FROM EVENT AS e
-INNER JOIN EVENT_SUBSCRIPTION AS es
-    ON e.id = es.event
-    AND es.user = 'mrossi'
+INNER JOIN EVENT_SUBSCRIPTION AS es ON e.id = es.event
+  AND es.user = 'mrossi'
 WHERE
-    e.title = 'Farm Open Day'
-    AND e.event_date < CURDATE()
+  e.title = 'Farm Open Day'
+  AND e.event_date < CURDATE()
     AND NOT EXISTS (
-        SELECT 1
-        FROM REVIEW AS r
-        WHERE r.user = 'mrossi' AND r.event = e.id
-    )
+      SELECT 1
+      FROM REVIEW AS r
+      WHERE r.user = 'mrossi' AND r.event = e.id
+  )
 LIMIT 1;
 
 -- Insert a REVIEW for a service used by user 'aneri' (completed reservation)
@@ -170,11 +166,11 @@ SET
   created_at = NOW()
 WHERE
   user = 'mrossi'
-  AND event = (
+    AND event = (
     SELECT id
     FROM EVENT
     WHERE title = 'Farm Open Day'
-  )
+    )
   AND id IS NOT NULL;
 
 -- Upsert-like subscription: insert or update participants for 'lblu' on 'Harvest Festival'
@@ -185,11 +181,8 @@ SELECT
   4
 FROM EVENT AS e
 CROSS JOIN USER AS u
-WHERE
-  e.title = 'Harvest Festival'
-  AND u.username = 'lblu'
-ON DUPLICATE KEY UPDATE
-  participants = 4;
+WHERE e.title = 'Harvest Festival' AND u.username = 'lblu'
+ON DUPLICATE KEY UPDATE participants = 4;
 
 -- Create a reservation today for 'gverdi' only if not already present
 INSERT INTO RESERVATION (username, reservation_date)
@@ -202,37 +195,33 @@ WHERE NOT EXISTS (
   WHERE
     username = 'gverdi'
     AND DATE(reservation_date) = CURDATE()
-);
+  );
 
 -- Capture the last inserted reservation id in @new_reservation_id
 SET @new_reservation_id = LAST_INSERT_ID();
 
 -- Add a RESTAURANT reservation detail (table T01) for the created reservation
+INSERT INTO RESERVATION (username, reservation_date)
+SELECT 'fbianchi', DATE_ADD(NOW(), INTERVAL 1 HOUR)
+WHERE NOT EXISTS (
+  SELECT 1 FROM RESERVATION
+  WHERE username = 'fbianchi'
+  AND DATE(reservation_date) = CURDATE()
+);
+
+SET @room_reservation_id = LAST_INSERT_ID();
+
 INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
 SELECT
-  @new_reservation_id AS reservation,
-  s.id AS service,
-  '2024-01-25 19:00:00' AS start_date,
-  '2024-01-25 21:00:00' AS end_date,
-  2 AS people
-FROM SERVICE AS s
-INNER JOIN RESTAURANT AS r
-  ON s.id = r.service
-WHERE r.code = 'T01'
+  @room_reservation_id as reservation,
+  s.id as service,
+  '2024-01-26 15:00:00' as start_date,
+  '2024-01-28 11:00:00' as end_date,
+  2 as people
+FROM SERVICE s
+INNER JOIN ROOM r ON s.id = r.service
+WHERE r.code = 'R03'
 LIMIT 1;
-
--- Create a second reservation (1 hour later) for 'fbianchi' if not already present
-INSERT INTO RESERVATION (username, reservation_date)
-SELECT
-  'fbianchi',
-  DATE_ADD(NOW(), INTERVAL 1 HOUR)
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM RESERVATION
-  WHERE
-    username = 'fbianchi'
-    AND DATE(reservation_date) = CURDATE()
-);
 
 -- Capture the new reservation id in @room_reservation_id
 SET @room_reservation_id = LAST_INSERT_ID();
@@ -259,55 +248,50 @@ WHERE reservation = @reservation_id;
 -- Then delete the RESERVATION itself for the given user
 -- Requires variables: @reservation_id, @username
 DELETE FROM RESERVATION
-WHERE
-    id = @reservation_id
-    AND username = @username;
+WHERE id = @reservation_id
+AND username = @username;
 
 -- Cancel an event subscription in the future for @username and @event_id
 -- Requires variables: @username, @event_id
 DELETE FROM EVENT_SUBSCRIPTION
 WHERE
-    user = @username
-    AND event = @event_id
-    AND EXISTS (
-        SELECT 1
-        FROM EVENT AS e
-        WHERE
-            e.id = @event_id
-            AND e.event_date > CURDATE()
-    );
+  user = @username
+  AND event = @event_id
+  AND EXISTS (
+    SELECT 1
+    FROM EVENT AS e
+    WHERE
+      e.id = @event_id
+      AND e.event_date > CURDATE()
+  );
 
 -- Delete an empty reservation (no past or current details)
 -- Requires variables: @reservation_id, @username
 DELETE FROM RESERVATION
 WHERE
-    id = @reservation_id
-    AND username = @username
-    AND NOT EXISTS (
-        SELECT 1
-        FROM RESERVATION_DETAIL AS rd
-        WHERE
-            rd.reservation = @reservation_id
-            AND rd.start_date <= NOW()
-    );
+  id = @reservation_id
+  AND username = @username
+  AND NOT EXISTS (
+    SELECT 1
+    FROM RESERVATION_DETAIL AS rd
+    WHERE
+      rd.reservation = @reservation_id
+      AND rd.start_date <= NOW()
+  );
+\end{sqlcode}
 
 -- Get user profile details with role classification (employee/customer)
 SELECT
-  u.username,
-  u.email,
-  u.password,
-  p.name,
-  p.surname,
-  CASE WHEN e.username IS NOT NULL THEN 'employee' ELSE 'customer' END AS user_type,
-  e.role AS employee_role
+	u.username,
+	u.email,
+	p.name,
+	p.surname,
+	CASE WHEN ae.role IS NOT NULL THEN 'employee' ELSE 'customer' END AS user_type,
+	ae.role AS employee_role
 FROM USER AS u
-INNER JOIN PERSON AS p
-  ON u.cf = p.cf
-LEFT JOIN EMPLOYEE AS e
-  ON u.username = e.username
-WHERE
-  u.username = 'mrossi'
-  OR u.email = 'mrossi@farm.com';
+JOIN PERSON AS p ON u.cf = p.cf
+LEFT JOIN active_employees AS ae ON u.username = ae.username
+WHERE u.username = 'mrossi' OR u.email = 'mrossi@farm.com';
 
 -- Create a new order for user 'aneri' today if one doesn't already exist
 INSERT INTO ORDERS (username, date)

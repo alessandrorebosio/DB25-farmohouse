@@ -455,155 +455,126 @@ partizionamento e politiche di archiviazione.
 \section{Riepilogo Operazioni}
 
 \section{Raffinamento dello schema}
-
-In questa sezione descriviamo i passaggi di raffinamento dello schema ER per renderlo adatto all'implementazione nel modello relazionale. Seguiamo un approccio sistematico che include la rimozione degli attributi multivalore, la gestione delle gerarchie, la reificazione delle associazioni molti-a-molti e la scelta degli identificatori principali.
-
-\subsection{Rimozione attributi multivalore}
-
-Nel nostro schema ER non sono presenti attributi multivalore significativi. Tutti gli attributi identificati sono atomici e non richiedono decomposizione. Gli indirizzi, se presenti, sono già stati scomposti in via, civico, comune e CAP nelle entità rilevanti.
+In questa sezione vengono illustrati i passaggi di raffinamento dello
+schema ER necessari per la sua traduzione nel modello relazionale. Il
+processo comprende la rimozione di attributi multivalore, la gestione
+delle gerarchie tramite generalizzazione/specializzazione, la
+reificazione delle associazioni molti-a-molti e la definizione degli
+identificatori principali per ciascuna entità. Questi interventi
+garantiscono la coerenza, la semplicità e l'efficienza dello schema
+relazionale risultante.
 
 \subsection{Rimozione gerarchie}
-
-Lo schema ER presenta alcune gerarchie (generalizzazioni) che devono essere tradotte nel modello relazionale. Analizziamo ciascuna caso specifico.
+Nel nostro schema ER sono presenti alcune gerarchie
+(generalizzazioni) che richiedono una traduzione appropriata nel
+modello relazionale. Di seguito analizziamo ciascun caso specifico e
+le relative scelte implementative.
 
 \subsubsection{Gerarchia di Servizio}
-
-L'entità SERVICE presenta una gerarchia con le sottoclassi ROOM e RESTAURANT. Questa gerarchia è di tipo \textbf{totale ed esclusiva}. 
-
-Abbiamo deciso di \textbf{non collassare} questa gerarchia verso l'alto per mantenere l'espandibilità del catalogo dei servizi. In futuro, potrebbero essere aggiunti nuovi tipi di servizi (ad esempio, piscina, spa, attività ricreative) senza necessità di modificare la struttura esistente. 
-
-La scelta implementativa prevede:
-- Mantenimento dell'entità SERVICE con attributi comuni (id, price, type)
-- Creazione di tabelle separate per ROOM e RESTAURANT con chiave esterna verso SERVICE
-- Il campo \textit{type} in SERVICE funge da selettore per identificare il tipo specifico
-
-Questa soluzione offre massima flessibilità per l'aggiunta di nuovi servizi mantenendo l'integrità referenziale.
+La gerarchia tra SERVICE e le sottoclassi ROOM e RESTAURANT è totale
+ed esclusiva: ogni servizio è o una camera o un ristorante. SERVICE
+contiene gli attributi comuni, mentre ROOM e RESTAURANT sono tabelle
+specializzate collegate tramite chiave esterna. Il campo
+\textit{type} in SERVICE identifica il tipo di servizio. Il modello è
+facilmente estendibile aggiungendo nuove tabelle specializzate per
+altri tipi di servizi.
 
 \subsubsection{Gerarchia di Persona}
-
-La gerarchia PERSONA → USER → EMPLOYEE è stata gestita con un approccio misto:
-
-- \textbf{PERSONA e USER}: Collasso verso l'alto, poiché ogni USER deve essere una PERSONA
-- \textbf{USER e EMPLOYEE}: Sostituzione con associazione, dato che non ogni USER è un EMPLOYEE
-
-Questa scelta permette di mantenere l'anagrafica centralizzata mentre distingue chiaramente i ruoli degli utenti nel sistema.
-
-\subsubsection{Gerarchia di Prenotazione}
-
-L'associazione tra RESERVATION e SERVICE è stata reificata nell'entità RESERVATION\_DETAIL, che permette di gestire le prenotazioni multiple di servizi diversi nella stessa transazione. Questa non è una vera gerarchia ma una reificazione necessaria per la complessità del dominio.
-
-\subsection{Reificazione associazioni molti-a-molti}
-
-Le associazioni molti-a-molti sono state trasformate in entità intermedie con relazioni uno-a-molti.
-
-\subsubsection{Ordini e Prodotti}
-
-L'associazione tra ORDER e PRODUCT è stata reificata nell'entità ORDER\_DETAIL, che registra quantità e prezzo unitario per ogni prodotto ordinato.
-
-\subsubsection{Prenotazioni e Servizi}
-
-L'associazione tra RESERVATION e SERVICE è stata reificata in RESERVATION\_DETAIL, che memorizza date, orari e numero di persone per ogni servizio prenotato.
-
-\subsubsection{Eventi e Utenti}
-
-L'associazione tra EVENT e USER è stata reificata in EVENT\_SUBSCRIPTION, che traccia il numero di partecipanti per ogni iscrizione.
-
-\subsubsection{Dipendenti e Turni}
-
-L'associazione tra EMPLOYEE e SHIFT è stata reificata in EMPLOYEE\_SHIFT, che registra lo stato e la data specifica del turno.
+La gerarchia tra PERSON, USER ed EMPLOYEE è stata gestita con un
+approccio misto. La relazione tra PERSON e USER è stata collassata
+verso l'alto: ogni USER corrisponde necessariamente a una PERSONA,
+consentendo così di mantenere un'anagrafica centralizzata e priva di
+duplicati. Per quanto riguarda il passaggio da USER a EMPLOYEE, si è
+preferito sostituire la specializzazione con un'associazione: non
+tutti gli USER sono EMPLOYEE, ma solo quelli che ricoprono
+effettivamente un ruolo nel personale. Questa soluzione garantisce
+una chiara distinzione tra identità anagrafica e ruolo operativo,
+semplificando la gestione dei dati e delle funzionalità specifiche
+all'interno del sistema.
 
 \subsection{Scelta degli identificatori principali}
-
-Per ogni entità abbiamo scelto identificatori che garantiscano univocità e stabilità:
+Per ogni entità sono stati scelti identificatori che garantiscono
+univocità e stabilità nel tempo. La selezione degli identificatori è
+stata effettuata in modo da facilitare la gestione delle relazioni,
+assicurare la coerenza dei dati e supportare eventuali evoluzioni
+future dello schema.
 
 \subsubsection{Identificatori naturali}
-
-\begin{itemize}
-    \item \textbf{PERSON}: \textit{cf} (codice fiscale) come identificatore naturale
-    \item \textbf{USER}: \textit{username} come identificatore univoco
-    \item \textbf{EMPLOYEE}: \textit{username} (ereditato da USER)
-    \item \textbf{PRODUCT}: \textit{id} auto-incrementale
-    \item \textbf{EVENT}: \textit{id} auto-incrementale
-\end{itemize}
+Gli identificatori naturali vengono utilizzati nelle tabelle in cui
+esiste un attributo intrinsecamente univoco e stabile nel tempo. In
+particolare, nella tabella \texttt{PERSON} si adotta il codice
+fiscale (\texttt{cf}) come chiave primaria naturale, garantendo
+l'unicità dell'anagrafica. Per la tabella \texttt{USER}, lo username
+rappresenta l'identificatore naturale, assicurando che ogni utente
+sia distinto in modo univoco. Analogamente, la tabella
+\texttt{EMPLOYEE} eredita lo username come chiave primaria,
+mantenendo la coerenza tra le entità correlate.
 
 \subsubsection{Identificatori artificiali}
-
-Per alcune entità abbiamo introdotto identificatori artificiali per semplificare le relazioni:
-
-\begin{itemize}
-    \item \textbf{SERVICE}: \textit{id} auto-incrementale
-    \item \textbf{ORDER}: \textit{id} auto-incrementale
-    \item \textbf{RESERVATION}: \textit{id} auto-incrementale
-    \item \textbf{REVIEW}: \textit{id} auto-incrementale
-    \item \textbf{SHIFT}: \textit{id} auto-incrementale
-\end{itemize}
+Gli identificatori artificiali vengono introdotti quando non è
+presente un attributo naturale sufficientemente stabile o univoco,
+oppure per semplificare la gestione delle relazioni e delle chiavi
+esterne. In questi casi si utilizza tipicamente un campo numerico
+auto-incrementale (\texttt{id}) come chiave primaria. Questo
+approccio è adottato per entità come \texttt{SERVICE}, \texttt{ORDER},
+\texttt{RESERVATION}, \texttt{REVIEW}, \texttt{SHIFT}, \texttt{PRODUCT}
+ed \texttt{EVENT}, dove non esiste un attributo intrinseco che garantisca
+l'unicità e la stabilità nel tempo.
 
 \subsubsection{Identificatori composti}
-
-Per le entità derivate da reificazioni, abbiamo utilizzato identificatori composti:
+Per le entità derivate da reificazioni, sono stati adottati
+identificatori composti secondo la notazione dello schema logico:
 
 \begin{itemize}
-    \item \textbf{ORDER\_DETAIL}: (\textit{order}, \textit{product})
-    \item \textbf{RESERVATION\_DETAIL}: (\textit{reservation}, \textit{service})
-    \item \textbf{EVENT\_SUBSCRIPTION}: (\textit{event}, \textit{user})
-    \item \textbf{EMPLOYEE\_SHIFT}: (\textit{employee}, \textit{shift}, \textit{shift\_date})
+  \item ORDER\_DETAIL(order, product)
+  \item RESERVATION\_DETAIL(reservation, service)
+  \item EVENT\_SUBSCRIPTION(event, user)
+  \item EMPLOYEE\_SHIFT(employee, shift, shift\_date)
 \end{itemize}
 
 \subsection{Scelte progettuali significative}
 
 \subsubsection{Flessibilità del catalogo servizi}
-
-La decisione di non collassare la gerarchia di SERVICE rappresenta una scelta progettuale importante. Questo approccio permette:
-
-1. \textbf{Espandibilità}: Nuovi tipi di servizi possono essere aggiunti creando semplicemente nuove tabelle specializzate
-2. \textbf{Separazione delle concerns}: Ogni tipo di servizio mantiene i propri attributi specifici
-3. \textbf{Query efficienti}: Il campo \textit{type} in SERVICE permette filtri rapidi senza JOIN non necessari
-4. \textbf{Integrità referenziale}: Le prenotazioni referenziano SERVICE, non i servizi specifici
-
-\subsubsection{Gestione storica del personale}
-
-L'entità EMPLOYEE\_HISTORY permette di tracciare le variazioni di ruolo nel tempo, soddisfacendo il requisito di audit trail per il personale.
-
-\subsubsection{Separazione identità e autenticazione}
-
-La separazione tra PERSON e USER garantisce che i dati anagrafici siano mantenuti separatamente dalle credenziali di accesso, migliorando la sicurezza e la gestione dei dati.
-
-\section{Schema relazionale finale}
-
-Dopo aver applicato tutti i raffinamenti, lo schema relazionale finale è rappresentato dalle seguenti tabelle:
+La scelta di non collassare la gerarchia di \texttt{SERVICE} è
+significativa dal punto di vista progettuale. Questo approccio consente:
 
 \begin{itemize}
-    \item \textbf{PERSON} (\underline{cf}, name, surname)
-    \item \textbf{USER} (\underline{username}, email, password, cf: PERSON)
-    \item \textbf{EMPLOYEE} (\underline{username}, role)
-    \item \textbf{EMPLOYEE\_HISTORY} (\underline{username}, fixed\_at, role)
-    \item \textbf{PRODUCT} (\underline{id}, name, description, price)
-    \item \textbf{EVENT} (\underline{id}, title, description, event\_date, seats)
-    \item \textbf{SERVICE} (\underline{id}, price, type)
-    \item \textbf{ROOM} (\underline{code}, max\_capacity, service: SERVICE)
-    \item \textbf{RESTAURANT} (\underline{code}, max\_capacity, service: SERVICE)
-    \item \textbf{ORDER} (\underline{id}, date, username: USER)
-    \item \textbf{ORDER\_DETAIL} (\underline{order: ORDER, product: PRODUCT}, quantity, unit\_price)
-    \item \textbf{RESERVATION} (\underline{id}, reservation\_date, username: USER)
-    \item \textbf{RESERVATION\_DETAIL} (\underline{reservation: RESERVATION, service: SERVICE}, start\_date, end\_date, people)
-    \item \textbf{EVENT\_SUBSCRIPTION} (\underline{event: EVENT, user: USER}, participants, subscription\_date)
-    \item \textbf{REVIEW} (\underline{id}, rating, comment, created\_at, user: USER, event: EVENT, service: SERVICE)
-    \item \textbf{SHIFT} (\underline{id}, shift\_name, day\_of\_week, start\_time, end\_time)
-    \item \textbf{EMPLOYEE\_SHIFT} (\underline{employee: EMPLOYEE, shift: SHIFT, shift\_date}, status)
+  \item \textbf{Espandibilità}: nuovi tipi di servizi possono essere
+    aggiunti semplicemente creando nuove tabelle specializzate.
+  \item \textbf{Separazione delle responsabilità}: ogni tipologia di
+    servizio mantiene i propri attributi specifici.
+  \item \textbf{Efficienza delle query}: il campo \texttt{type} in
+    \texttt{SERVICE} permette filtri rapidi senza necessità di join aggiuntivi.
+  \item \textbf{Integrità referenziale}: le prenotazioni referenziano
+    sempre la tabella \texttt{SERVICE}, garantendo coerenza anche in
+    presenza di nuovi servizi.
 \end{itemize}
 
-La fase di riorganizzazione è ora conclusa e lo schema ottenuto è
-immediatamente traducibile in relazioni relazionali. Di seguito
-presentiamo lo schema logico.
+\subsubsection{Gestione storica del personale}
+La tabella \texttt{EMPLOYEE\_HISTORY} consente di verificare se un
+utente è un ex dipendente: se lo username è presente in
+\texttt{EMPLOYEE} l'utente è dipendente attivo, se compare anche in
+\texttt{EMPLOYEE\_HISTORY} significa che non lavora più nell'azienda.
+L'intreccio tra le due tabelle permette di distinguere tra dipendenti
+attuali ed ex dipendenti, soddisfacendo il requisito di audit trail.
+
+\subsubsection{Separazione identità e autenticazione}
+La separazione tra \texttt{PERSON} e \texttt{USER} garantisce che i
+dati anagrafici siano gestiti indipendentemente dalle credenziali di
+accesso. Questo approccio migliora la sicurezza, evita duplicazioni e
+semplifica la manutenzione delle informazioni personali e di autenticazione.
+
+\section{Schema relazionale finale}
+Dopo aver applicato tutti i raffinamenti, lo schema relazionale
+finale è rappresentato dalle seguenti tabelle.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth, trim=0 0 0 0]{./schemas/logic.pdf}
-  \caption{Schema relazione finale}
+  \caption{Schema relazionale finale}
   \label{fig:schema-relazione}
 \end{figure}
 \newpage
-
 
 \chapter{Progettazione della Base di Dati}
 Una volta creato il nostro database, riportiamo di seguito una parte
@@ -713,354 +684,517 @@ DELIMITER ;
 \end{sqlcode}
 % tex-fmt: on
 
-\section{Traduzione delle operazioni} 
-In questa sezione vengono presentate le query SQL che implementano le principali operazioni del sistema agriturismo. Le query sono state progettate per essere efficienti e sfruttare gli indici e i vincoli definiti nello schema. 
+\section{Traduzione delle operazioni}
+Vengono presentate le query SQL che implementano le
+principali operazioni del sistema agriturismo. Le query sono state
+progettate per essere efficienti e sfruttare gli indici e i vincoli
+definiti nello schema. Di seguito sono riportate le principali operazioni
+raggruppate per area funzionale: statistiche, prenotazioni, recensioni,
+iscrizioni eventi, autenticazione e gestione ordini.
 
-\subsection{Visualizzazione statistiche dashboard} 
-Le seguenti query sono utilizzate per popolare la dashboard amministrativa con le metriche principali del sistema. 
+\subsection{Visualizzazione statistiche dashboard}
+Le seguenti query sono utilizzate per popolare la dashboard
+amministrativa con le metriche principali del sistema.
 
-\subsubsection{Top servizi per prenotazioni} 
-Questa operazione analizza le prenotazioni per identificare i servizi più richiesti, distinguendo tra ristoranti e camere attraverso un'articolata procedura di join e raggruppamento.
+\subsubsection{Top servizi per prenotazioni}
+Analizza le prenotazioni per identificare i servizi più richiesti,
+distinguendo tra ristoranti e camere attraverso un'articolata
+procedura di join e raggruppamento.
 
-\begin{sqlcode}[caption={Query per i servizi più prenotati}]
-SELECT CASE WHEN s.type = 'RESTAURANT' THEN CONCAT('Restaurant - ', r.code) 
-            WHEN s.type = 'ROOM' THEN CONCAT('Room - ', ro.code) 
-            ELSE s.type END as service_name,
-       COUNT(rd.service) as booking_count 
-FROM SERVICE s 
-LEFT JOIN RESTAURANT r ON s.id = r.service 
-LEFT JOIN ROOM ro ON s.id = ro.service 
-JOIN RESERVATION_DETAIL rd ON s.id = rd.service 
-GROUP BY s.id, s.type, r.code, ro.code 
-ORDER BY booking_count DESC 
-LIMIT 4;
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT CASE
+    WHEN s.type = 'RESTAURANT' THEN CONCAT('Restaurant - ', r.code)
+    WHEN s.type = 'ROOM' THEN CONCAT('Room - ', ro.code)
+    ELSE s.type
+  END AS service_name,
+  COUNT(rd.service) AS booking_count
+FROM SERVICE AS s
+LEFT JOIN RESTAURANT AS r ON s.id = r.service
+LEFT JOIN ROOM AS ro ON s.id = ro.service
+JOIN RESERVATION_DETAIL AS rd ON s.id = rd.service
+GROUP BY s.id, s.type, r.code, ro.code
+ORDER BY booking_count DESC
+LIMIT 5;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Top prodotti per quantità venduta} 
-Questa operazione calcola i prodotti più venduti in base alla quantità totale ordinata.
+\subsubsection{Top prodotti per quantità venduta}
+Prodotti più venduti in base alla quantità totale ordinata.
 
-\begin{sqlcode}[caption={Query per i prodotti più venduti}]
-SELECT p.name as product_name, SUM(od.quantity) as total_quantity 
-FROM PRODUCT p 
-JOIN ORDER_DETAIL od ON p.id = od.product 
-GROUP BY p.id, p.name 
-ORDER BY total_quantity DESC 
-LIMIT 6;
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT
+  p.name AS product_name,
+  SUM(od.quantity) AS total_quantity
+FROM PRODUCT AS p
+JOIN ORDER_DETAIL AS od ON p.id = od.product
+GROUP BY p.id, p.name
+ORDER BY total_quantity DESC
+LIMIT 5;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Top eventi per partecipanti} 
-Questa operazione determina gli eventi con il maggior numero di partecipanti totali.
+\newpage
+\subsubsection{Top eventi per partecipanti}
+Determina gli eventi con il maggior numero di partecipanti totali.
 
-\begin{sqlcode}[caption={Query per gli eventi più partecipati}]
-SELECT e.title as event_title, e.event_date, SUM(es.participants) as total_participants 
-FROM EVENT e 
-JOIN EVENT_SUBSCRIPTION es ON e.id = es.event 
-GROUP BY e.id, e.title, e.event_date 
-ORDER BY total_participants DESC 
-LIMIT 4;
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT
+  e.title AS event_title,
+  e.event_date,
+  SUM(es.participants) AS total_participants
+FROM EVENT AS e
+JOIN EVENT_SUBSCRIPTION AS es ON e.id = es.event
+GROUP BY e.id, e.title, e.event_date
+ORDER BY total_participants DESC
+LIMIT 5;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Top prodotti per fatturato} 
-Questa operazione calcola i prodotti che generano il maggior fatturato.
+\subsubsection{Top prodotti per fatturato}
+Calcola i 5 prodotti che generano il maggior fatturato.
 
-\begin{sqlcode}[caption={Query per i prodotti per fatturato}]
-SELECT p.name as product_name, SUM(od.quantity * od.unit_price) as total_revenue 
-FROM PRODUCT p 
-JOIN ORDER_DETAIL od ON p.id = od.product 
-GROUP BY p.id, p.name 
-ORDER BY total_revenue DESC 
-LIMIT 6;
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT
+  p.name AS product_name,
+  SUM(od.quantity * od.unit_price) AS total_revenue
+FROM PRODUCT AS p
+JOIN ORDER_DETAIL AS od ON p.id = od.product
+GROUP BY p.id, p.name
+ORDER BY total_revenue DESC
+LIMIT 5;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Fatturato totale} 
-Questa operazione calcola il ricavo complessivo generato dalle vendite dei prodotti.
+\subsubsection{Fatturato totale}
+Calcolo del ricavo complessivo generato dalle vendite dei prodotti.
 
-\begin{sqlcode}[caption={Query per il fatturato totale}]
-SELECT ROUND(SUM(od.quantity * od.unit_price), 2) as overall_total_revenue 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT ROUND(SUM(od.quantity * od.unit_price), 2) as overall_total_revenue
 FROM ORDER_DETAIL od;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Statistiche generali del sistema} 
-Questa query composita fornisce un riepilogo completo delle metriche di sistema attraverso sottoselezioni multiple, aggregando dati da diverse tabelle per offrire una visione d'insieme immediata.
+\subsubsection{Statistiche generali del sistema}
+Query composita che fornisce un riepilogo completo delle metriche di
+sistema tramite sottoselezioni multiple, aggregando dati da diverse
+tabelle per offrire una visione d'insieme immediata.
 
-\begin{sqlcode}[caption={Query per le statistiche generali}]
-SELECT (SELECT COUNT(*) FROM USER) as total_customers,
-       (SELECT COUNT(*) FROM EMPLOYEE) as total_employees,
-       (SELECT COUNT(*) FROM ORDERS) as total_orders,
-       (SELECT ROUND(SUM(od.quantity * od.unit_price), 2) FROM ORDER_DETAIL od) as total_revenue,
-       (SELECT COUNT(*) FROM RESERVATION) as total_reservations;
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT
+  (SELECT COUNT(*) FROM USER) AS total_customers,
+  (SELECT COUNT(*) FROM EMPLOYEE) AS total_employees,
+  (SELECT COUNT(*) FROM ORDERS) AS total_orders,
+  (SELECT ROUND(SUM(od.quantity * od.unit_price), 2) FROM ORDER_DETAIL AS od) AS total_revenue,
+  (SELECT COUNT(*) FROM RESERVATION) AS total_reservations;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsection{Prenotazione servizi} 
+\newpage
+\subsection{Prenotazione servizi}
+Le principali query per la prenotazione di servizi, come camere e
+tavoli al ristorante, includono la verifica della disponibilità, la
+creazione della prenotazione e la gestione dei dettagli associati,
+garantendo il rispetto dei vincoli di capacità e delle regole
+temporali definite dal sistema.
 
-\subsubsection{Verifica disponibilità camere} 
-La query verifica la disponibilità camere analizzando le prenotazioni esistenti attraverso una condizione di non sovrapposizione temporale, garantendo che vengano selezionate solo le camere con capacità sufficiente e libere nel periodo richiesto.
+\subsubsection{Verifica disponibilità camere}
+La disponibilità delle camere viene verificata analizzando le
+prenotazioni esistenti e selezionando solo quelle con capacità
+sufficiente e libere nel periodo richiesto. Il controllo si basa
+sulla non sovrapposizione temporale tra le prenotazioni già
+registrate e l'intervallo desiderato, così da garantire che la camera
+sia effettivamente disponibile.
 
-\begin{sqlcode}[caption={Query per la disponibilità camere}]
-SELECT ro.code AS camera, s.price AS prezzo, ro.max_capacity 
-FROM ROOM ro 
-JOIN SERVICE s ON s.id = ro.service 
-WHERE ro.max_capacity >= @n_persone 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT
+  ro.code AS room,
+  s.price AS price,
+  ro.max_capacity
+FROM ROOM AS ro
+JOIN SERVICE AS s
+  ON s.id = ro.service
+WHERE
+  ro.max_capacity >= @n_people
   AND ro.service NOT IN (
-    SELECT rd.service 
-    FROM RESERVATION_DETAIL rd 
-    WHERE NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
+    SELECT rd.service
+    FROM RESERVATION_DETAIL AS rd
+    WHERE NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
   );
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Verifica disponibilità tavoli} 
-Questa complessa query calcola i posti disponibili considerando le prenotazioni esistenti che si sovrappongono all'intervallo richiesto, utilizzando un left join condizionato e una clausola having per filtrare i ristoranti con posti sufficienti.
+\subsubsection{Verifica disponibilità tavoli}
+Calcola i posti disponibili considerando le prenotazioni esistenti
+che si sovrappongono all'intervallo richiesto, utilizzando un left
+join condizionato e una clausola HAVING per filtrare i ristoranti con
+posti sufficienti.
 
-\begin{sqlcode}[caption={Query per la disponibilità tavoli}]
-SELECT r.code AS ristorante, s.price AS prezzo, r.max_capacity,
-       (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS posti_disponibili 
-FROM RESTAURANT r 
-JOIN SERVICE s ON s.id = r.service 
-LEFT JOIN RESERVATION_DETAIL rd ON rd.service = r.service 
-  AND NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine) 
-GROUP BY r.service, r.code, s.price, r.max_capacity 
-HAVING posti_disponibili >= @n_partecipanti;
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT
+  r.code AS restaurant,
+  s.price AS price,
+  r.max_capacity,
+  (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS available_seats
+FROM RESTAURANT AS r
+JOIN SERVICE AS s ON s.id = r.service
+LEFT JOIN RESERVATION_DETAIL AS rd ON rd.service = r.service
+  AND NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
+GROUP BY r.service, r.code, s.price, r.max_capacity
+HAVING available_seats >= @n_people;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsection{Gestione recensioni} 
+\newpage
+\subsection{Gestione recensioni}
+Gli utenti possono recensire solo eventi conclusi a cui hanno
+partecipato o servizi già prenotati e utilizzati, garantendo
+valutazioni autentiche.
 
-\subsubsection{Inserimento recensione evento} 
-L'operazione verifica tramite multiple condizioni che l'utente sia iscritto all'evento, che questo sia concluso, e che non esista già una recensione da parte dell'user riguardante quell'evento, implementando così un controllo di integrità complesso prima dell'inserimento.
+\subsubsection{Inserimento recensione evento}
+Questa query consente di inserire una recensione per un evento solo
+se l'utente è iscritto, l'evento si è concluso e non esiste già una
+recensione per quell'evento da parte dello stesso utente. In questo
+modo si garantisce la correttezza e l'integrità dei dati.
 
-\begin{sqlcode}[caption={Query per inserimento recensione evento}]
-INSERT INTO REVIEW (user, event, rating, comment) 
-SELECT 'mrossi' as user, e.id as event, 5 as rating, 
-       'Amazing experience! Will definitely come again.' as comment 
-FROM EVENT e 
-INNER JOIN EVENT_SUBSCRIPTION es ON e.id = es.event AND es.user = 'mrossi' 
-WHERE e.title = 'Farm Open Day' 
-  AND e.event_date < CURDATE() 
-  AND NOT EXISTS (
-    SELECT 1 
-    FROM REVIEW r 
-    WHERE r.user = 'mrossi' AND r.event = e.id
-  ) 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+INSERT INTO REVIEW (user, event, rating, comment)
+SELECT
+  'mrossi' AS user,
+  e.id AS event,
+  5 AS rating,
+  'Amazing experience! Will definitely come again.' AS comment
+FROM EVENT AS e
+INNER JOIN EVENT_SUBSCRIPTION AS es ON e.id = es.event
+  AND es.user = 'mrossi'
+WHERE
+  e.title = 'Farm Open Day'
+  AND e.event_date < CURDATE()
+    AND NOT EXISTS (
+      SELECT 1
+      FROM REVIEW AS r
+      WHERE r.user = 'mrossi' AND r.event = e.id
+  )
 LIMIT 1;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Inserimento recensione servizio} 
-La query implementa un meccanismo di controllo articolato che verifica l'esistenza di una prenotazione completata e l'assenza di recensioni duplicate, garantendo la correttezza referenziale dell'inserimento.
+\subsubsection{Inserimento recensione servizio}
+Consente di inserire una recensione su un servizio solo se l'utente
+ha completato una prenotazione per quel servizio e non esiste già una
+recensione associata, garantendo così la correttezza referenziale ed
+evitando duplicati.
 
-\begin{sqlcode}[caption={Query per inserimento recensione servizio}]
-INSERT INTO REVIEW (user, service, rating, comment) 
-SELECT 'aneri' as user, s.id as service, 4 as rating, 
-       'Good service and friendly staff.' as comment 
-FROM SERVICE s 
-INNER JOIN RESERVATION_DETAIL rd ON s.id = rd.service 
-INNER JOIN RESERVATION r ON rd.reservation = r.id 
-WHERE r.username = 'aneri' 
-  AND rd.end_date < NOW() 
-  AND s.type = 'RESTAURANT' 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+INSERT INTO REVIEW (user, service, rating, comment)
+SELECT
+  'aneri' AS user,
+  s.id AS service,
+  4 AS rating,
+  'Good service and friendly staff.' AS comment
+FROM SERVICE AS s
+INNER JOIN RESERVATION_DETAIL AS rd ON s.id = rd.service
+INNER JOIN RESERVATION AS r ON rd.reservation = r.id
+WHERE
+  r.username = 'aneri'
+  AND rd.end_date < NOW()
+  AND s.type = 'RESTAURANT'
   AND NOT EXISTS (
-    SELECT 1 
-    FROM REVIEW rev 
+    SELECT 1
+    FROM REVIEW AS rev
     WHERE rev.user = 'aneri' AND rev.service = s.id
-  ) 
+  )
 LIMIT 1;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Aggiornamento recensione} 
-Questa operazione modifica il voto e il commento di una recensione esistente.
+\subsubsection{Aggiornamento recensione}
+Modifica il voto e il commento di una recensione esistente.
 
-\begin{sqlcode}[caption={Query per aggiornamento recensione}]
-UPDATE REVIEW 
-SET rating = 4, 
-    comment = 'Very good event, but could use more activities. Overall enjoyed it!',
-    created_at = NOW() 
-WHERE user = 'mrossi' 
-  AND event = (SELECT id FROM EVENT WHERE title = 'Farm Open Day') 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+UPDATE REVIEW
+SET
+  rating = 4,
+  comment = 'Very good event, but could use more activities. Overall enjoyed it!',
+  created_at = NOW()
+WHERE
+  user = 'mrossi'
+    AND event = (
+    SELECT id
+    FROM EVENT
+    WHERE title = 'Farm Open Day'
+    )
   AND id IS NOT NULL;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsection{Gestione iscrizioni eventi} 
+\subsection{Gestione iscrizioni eventi}
+Le operazioni sulle iscrizioni agli eventi includono la registrazione
+di nuovi partecipanti, l'aggiornamento del numero di iscritti e la
+cancellazione delle iscrizioni. Il sistema garantisce che il numero
+totale di partecipanti non superi la capienza dell'evento e consente
+agli utenti di modificare o annullare la propria iscrizione fino
+all'inizio dell'evento.
 
-\subsubsection{Update e Iscrizione utente a evento} 
-Questa operazione permette a un utente di iscriversi a un evento specificando il numero di partecipanti, con un meccanismo di controllo "ON DUPLICATE KEY UPDATE" siamo in grado di trasformare questa insert in un update che modifica solo il numero di partecipanti, nel caso in cui l'utente avesse gia effettuato un'iscrizione al dato evento.
+\subsubsection{Update e Iscrizione utente a evento}
+Permette a un utente di iscriversi a un evento specificando il numero
+di partecipanti. Il meccanismo "ON DUPLICATE KEY UPDATE" trasforma
+l'insert in un update che modifica solo il numero di partecipanti,
+nel caso in cui l'utente abbia già effettuato un'iscrizione al dato evento.
 
-\begin{sqlcode}[caption={Query per iscrizione evento}]
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
 INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
-SELECT 
-    e.id,
-    u.username,
-    4
-FROM EVENT e
-CROSS JOIN USER u
-WHERE e.title = 'Harvest Festival' 
-    AND u.username = 'lblu'
+SELECT
+  e.id,
+  u.username,
+  4
+FROM EVENT AS e
+CROSS JOIN USER AS u
+WHERE e.title = 'Harvest Festival' AND u.username = 'lblu'
 ON DUPLICATE KEY UPDATE participants = 4;
 \end{sqlcode}
+% tex-fmt: on
 
+\newpage
+\subsection{Esecuzione prenotazioni confermate}
+Le prenotazioni di servizi (camere e ristoranti) vengono gestite
+tramite query che verificano la disponibilità, creano la prenotazione
+principale e aggiungono i dettagli relativi al servizio scelto. Il
+sistema assicura che non vi siano sovrapposizioni e che la capacità
+sia rispettata, garantendo integrità e correttezza dei dati.
 
+\subsubsection{Creazione prenotazione principale}
+Crea il record principale di prenotazione per un utente, con un
+controllo che evita la creazione di prenotazioni duplicate nella
+stessa giornata.
 
-\subsection{Gestione prenotazioni servizi} 
-
-\subsubsection{Creazione prenotazione principale} 
-Questa operazione crea il record principale di prenotazione per un utente, con un controllo che evita la creazione di prenotazioni duplicate nella stessa giornata.
-
-\begin{sqlcode}[caption={Query per creazione prenotazione principale}]
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
 INSERT INTO RESERVATION (username, reservation_date)
-SELECT 'gverdi', NOW()
+SELECT
+  'gverdi',
+  NOW()
 WHERE NOT EXISTS (
-    SELECT 1 FROM RESERVATION 
-    WHERE username = 'gverdi' 
+  SELECT 1
+  FROM RESERVATION
+  WHERE
+    username = 'gverdi'
     AND DATE(reservation_date) = CURDATE()
-);
+  );
 \end{sqlcode}
+% tex-fmt: on
 
-
-\subsubsection{Prenotazione tavolo ristorante} 
-Query specializzata per la prenotazione di tavoli al ristorante, con join sulla tabella RESTAURANT per identificare il servizio corretto.
-
-\begin{sqlcode}[caption={Query per prenotazione tavolo ristorante}]
+\subsubsection{Prenotazione tavolo ristorante}
+Prenotazione di tavoli al ristorante, con join sulla tabella
+RESTAURANT per identificare correttamente il servizio.
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
 SET @new_reservation_id = LAST_INSERT_ID();
 
 INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
-SELECT 
-    @new_reservation_id as reservation,
-    s.id as service,
-    '2024-01-25 19:00:00' as start_date,
-    '2024-01-25 21:00:00' as end_date,
-    2 as people
-FROM SERVICE s
-INNER JOIN RESTAURANT r ON s.id = r.service
+SELECT
+  @new_reservation_id AS reservation,
+  s.id AS service,
+  '2024-01-25 19:00:00' AS start_date,
+  '2024-01-25 21:00:00' AS end_date,
+  2 AS people
+FROM SERVICE AS s
+INNER JOIN RESTAURANT AS r ON s.id = r.service
 WHERE r.code = 'T01'
 LIMIT 1;
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Prenotazione camera con controllo duplicati} 
-Operazione completa per la prenotazione di camere che include sia la creazione della prenotazione principale che dei dettagli, con controlli anti-duplicato e gestione degli ID generati.
+\newpage
+\subsubsection{Prenotazione camera con controllo duplicati}
+Gestione della prenotazione di una camera, con creazione della
+prenotazione principale e dei dettagli. Sono previsti controlli per
+evitare duplicati e viene gestito correttamente l'ID generato per la
+prenotazione.
 
-\begin{sqlcode}[caption={Query per prenotazione camera}]
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
 INSERT INTO RESERVATION (username, reservation_date)
 SELECT 'fbianchi', DATE_ADD(NOW(), INTERVAL 1 HOUR)
 WHERE NOT EXISTS (
-    SELECT 1 FROM RESERVATION 
-    WHERE username = 'fbianchi' 
-    AND DATE(reservation_date) = CURDATE()
+  SELECT 1 FROM RESERVATION
+  WHERE username = 'fbianchi'
+  AND DATE(reservation_date) = CURDATE()
 );
 
 SET @room_reservation_id = LAST_INSERT_ID();
 
 INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
-SELECT 
-    @room_reservation_id as reservation,
-    s.id as service,
-    '2024-01-26 15:00:00' as start_date,
-    '2024-01-28 11:00:00' as end_date,
-    2 as people
+SELECT
+  @room_reservation_id as reservation,
+  s.id as service,
+  '2024-01-26 15:00:00' as start_date,
+  '2024-01-28 11:00:00' as end_date,
+  2 as people
 FROM SERVICE s
 INNER JOIN ROOM r ON s.id = r.service
 WHERE r.code = 'R03'
 LIMIT 1;
 \end{sqlcode}
+% tex-fmt: on
 
+\newpage
 \subsection{Eliminazione prenotazioni e iscrizioni}
+Le operazioni di eliminazione permettono agli utenti e agli
+amministratori di rimuovere prenotazioni di servizi e iscrizioni agli
+eventi, garantendo il rispetto dei vincoli temporali e di integrità
+referenziale. È possibile cancellare una prenotazione solo se non è
+già iniziata, mentre le iscrizioni agli eventi possono essere
+annullate fino all'inizio dell'evento. Queste funzionalità assicurano
+una gestione sicura e corretta delle risorse e delle partecipazioni.
 
 \subsubsection{Eliminazione prenotazione servizio}
-Questa operazione permette di cancellare una prenotazione di servizio esistente, rimuovendo prima i dettagli della prenotazione per rispettare i vincoli di integrità referenziale e successivamente il record principale della prenotazione.
+Permette di cancellare una prenotazione di servizio esistente,
+rimuovendo prima i dettagli della prenotazione per rispettare i
+vincoli di integrità referenziale e successivamente il record
+principale della prenotazione.
 
-\begin{sqlcode}[caption={Query per eliminazione prenotazione servizio}]
--- Prima eliminiamo i dettagli della prenotazione per evitare violazioni dei vincoli
-DELETE FROM RESERVATION_DETAIL 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+DELETE FROM RESERVATION_DETAIL
 WHERE reservation = @reservation_id;
 
--- Poi eliminiamo la prenotazione principale
-DELETE FROM RESERVATION 
-WHERE id = @reservation_id 
-  AND username = @username;
+DELETE FROM RESERVATION
+WHERE id = @reservation_id
+AND username = @username;
 \end{sqlcode}
+% tex-fmt: on
 
 \subsubsection{Eliminazione iscrizione evento}
-Questa operazione rimuove l'iscrizione di un utente a un evento specifico, verificando che l'iscrizione esista e che l'evento non sia già iniziato per consentire solo cancellazioni di eventi futuri.
+Rimuove l'iscrizione di un utente a un evento specifico, verificando
+che l'iscrizione esista e che l'evento non sia già iniziato; in
+questo modo è consentita la cancellazione solo per eventi futuri.
 
-\begin{sqlcode}[caption={Query per eliminazione iscrizione evento}]
-DELETE FROM EVENT_SUBSCRIPTION 
-WHERE user = @username 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+DELETE FROM EVENT_SUBSCRIPTION
+WHERE
+  user = @username
   AND event = @event_id
   AND EXISTS (
-    SELECT 1 FROM EVENT e 
-    WHERE e.id = @event_id 
-    AND e.event_date > CURDATE()
+    SELECT 1
+    FROM EVENT AS e
+    WHERE
+      e.id = @event_id
+      AND e.event_date > CURDATE()
   );
 \end{sqlcode}
+% tex-fmt: on
 
 \subsubsection{Eliminazione prenotazione con controllo temporale}
-Questa query più sofisticata elimina una prenotazione solo se non è già iniziata, implementando un controllo temporale che previene la cancellazione di prenotazioni in corso o concluse.
+L'eliminazione di una prenotazione è consentita solo se non è già
+iniziata; viene implementato un controllo temporale che previene la
+cancellazione di prenotazioni in corso o concluse.
 
-\begin{sqlcode}[caption={Query per eliminazione prenotazione con controllo temporale}]
--- Eliminazione condizionata: solo se la prenotazione non e' iniziata
-DELETE FROM RESERVATION 
-WHERE id = @reservation_id 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+DELETE FROM RESERVATION
+WHERE
+  id = @reservation_id
   AND username = @username
   AND NOT EXISTS (
-    SELECT 1 FROM RESERVATION_DETAIL rd 
-    WHERE rd.reservation = @reservation_id 
-    AND rd.start_date <= NOW()
+    SELECT 1
+    FROM RESERVATION_DETAIL AS rd
+    WHERE
+      rd.reservation = @reservation_id
+      AND rd.start_date <= NOW()
   );
 \end{sqlcode}
+% tex-fmt: on
 
-\subsubsection{Eliminazione multipla iscrizioni evento}
-Operazione amministrativa che permette di cancellare tutte le iscrizioni a un evento specifico, utile in caso di cancellazione dell'evento da parte degli amministratori del sistema.
+\newpage
+\subsection{Autenticazione utente}
+L'autenticazione utente consente l'accesso sicuro alla piattaforma
+tramite verifica di username e password. Per distinguere tra clienti
+e dipendenti, viene utilizzata la vista \texttt{active\_employees}:
+se il campo \texttt{role} restituito dalla vista è \texttt{NULL},
+l'utente è considerato un cliente normale; se invece è valorizzato,
+l'utente è un dipendente attivo e il ruolo viene mostrato.
 
-\begin{sqlcode}[caption={Query per eliminazione multipla iscrizioni evento}]
-DELETE FROM EVENT_SUBSCRIPTION 
-WHERE event = @event_id;
-\end{sqlcode}
+\subsubsection{Verifica credenziali di login}
+La query seguente verifica le credenziali di login e determina il
+profilo utente, sfruttando la vista \texttt{active\_employees} per
+identificare i dipendenti attivi.
 
-\subsection{Autenticazione utente} 
-
-\subsubsection{Verifica credenziali di login} 
-La query combina informazioni da multiple tabelle per validare le credenziali e determinare il profilo utente completo, distinguendo tra dipendenti e clienti attraverso un left join strategico.
-
-\begin{sqlcode}[caption={Query per verifica login}]
-SELECT u.username, u.email, u.password, p.name, p.surname,
-       CASE WHEN e.username IS NOT NULL THEN 'employee' ELSE 'customer' END as user_type,
-       e.role as employee_role 
-FROM USER u 
-INNER JOIN PERSON p ON u.cf = p.cf 
-LEFT JOIN EMPLOYEE e ON u.username = e.username 
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
+SELECT
+  u.username,
+  u.email,
+  p.name,
+  p.surname,
+  CASE WHEN ae.role IS NOT NULL THEN 'employee' ELSE 'customer' END AS user_type,
+  ae.role AS employee_role
+FROM USER AS u
+JOIN PERSON AS p ON u.cf = p.cf
+LEFT JOIN active_employees AS ae ON u.username = ae.username
 WHERE u.username = 'mrossi' OR u.email = 'mrossi@farm.com';
 \end{sqlcode}
+% tex-fmt: on
 
-\subsection{Gestione ordini prodotti} 
+\newpage
+\subsection{Gestione ordini prodotti}
+Gli ordini prodotti vengono gestiti tramite una transazione che crea
+l'ordine principale e inserisce i dettagli dei prodotti selezionati,
+con quantità e prezzo corrente. Il sistema assicura che ogni ordine
+sia associato all'utente e che i dati siano registrati in modo consistente.
 
-\subsubsection{Creazione nuovo ordine} 
-Questa complessa transazione articolata in multiple operazioni crea un nuovo ordine, recupera automaticamente l'ID generato, e inserisce i prodotti con i prezzi correnti, gestendo così tutta la logica di ordine in un'unica procedura.
+\subsubsection{Creazione nuovo ordine}
+La seguente procedura crea un nuovo ordine, recupera automaticamente
+l'ID generato e inserisce i prodotti con i prezzi correnti, gestendo
+tutta la logica di ordine in un'unica sequenza di operazioni.
 
-\begin{sqlcode}[caption={Query per creazione ordine}]
-INSERT INTO ORDERS (username, date) 
-SELECT 'aneri', NOW() 
-WHERE NOT EXISTS (
-  SELECT 1 
-  FROM ORDERS 
-  WHERE username = 'aneri' AND DATE(date) = CURDATE()
-);
-
+% tex-fmt: off
+\begin{sqlcode}[caption={}]
 SET @new_order_id = LAST_INSERT_ID();
 
-INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price) 
-SELECT @new_order_id as order_id, p.id as product_id, 3 as quantity, p.price as unit_price 
-FROM PRODUCT p 
-WHERE p.name = 'Farm Eggs (12 pcs)' 
+INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price)
+SELECT
+  @new_order_id AS order_id,
+  p.id AS product_id,
+  3 AS quantity,
+  p.price AS unit_price
+FROM PRODUCT AS p
+WHERE p.name = 'Farm Eggs (12 pcs)'
 LIMIT 1;
 
-INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price) 
-SELECT @new_order_id as order_id, p.id as product_id, 2 as quantity, p.price as unit_price 
-FROM PRODUCT p 
-WHERE p.name = 'Fresh Bread' 
+INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price)
+SELECT
+  @new_order_id AS order_id,
+  p.id AS product_id,
+  2 AS quantity,
+  p.price AS unit_price
+FROM PRODUCT AS p
+WHERE p.name = 'Fresh Bread'
 LIMIT 1;
 
-INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price) 
-SELECT @new_order_id as order_id, p.id as product_id, 1 as quantity, p.price as unit_price 
-FROM PRODUCT p 
-WHERE p.name = 'Honey Jar (500g)' 
+INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price)
+SELECT
+  @new_order_id AS order_id,
+  p.id AS product_id,
+  1 AS quantity,
+  p.price AS unit_price
+FROM PRODUCT AS p
+WHERE p.name = 'Honey Jar (500g)'
 LIMIT 1;
 \end{sqlcode}
+% tex-fmt: on
 
 \chapter{Progettazione dell'applicazione}
 L'applicazione è stata sviluppata con il framework \textbf{Django},
