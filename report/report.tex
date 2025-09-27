@@ -456,10 +456,154 @@ partizionamento e politiche di archiviazione.
 
 \section{Raffinamento dello schema}
 
+In questa sezione descriviamo i passaggi di raffinamento dello schema ER per renderlo adatto all'implementazione nel modello relazionale. Seguiamo un approccio sistematico che include la rimozione degli attributi multivalore, la gestione delle gerarchie, la reificazione delle associazioni molti-a-molti e la scelta degli identificatori principali.
+
+\subsection{Rimozione attributi multivalore}
+
+Nel nostro schema ER non sono presenti attributi multivalore significativi. Tutti gli attributi identificati sono atomici e non richiedono decomposizione. Gli indirizzi, se presenti, sono già stati scomposti in via, civico, comune e CAP nelle entità rilevanti.
+
+\subsection{Rimozione gerarchie}
+
+Lo schema ER presenta alcune gerarchie (generalizzazioni) che devono essere tradotte nel modello relazionale. Analizziamo ciascuna caso specifico.
+
+\subsubsection{Gerarchia di Servizio}
+
+L'entità SERVICE presenta una gerarchia con le sottoclassi ROOM e RESTAURANT. Questa gerarchia è di tipo \textbf{totale ed esclusiva}. 
+
+Abbiamo deciso di \textbf{non collassare} questa gerarchia verso l'alto per mantenere l'espandibilità del catalogo dei servizi. In futuro, potrebbero essere aggiunti nuovi tipi di servizi (ad esempio, piscina, spa, attività ricreative) senza necessità di modificare la struttura esistente. 
+
+La scelta implementativa prevede:
+- Mantenimento dell'entità SERVICE con attributi comuni (id, price, type)
+- Creazione di tabelle separate per ROOM e RESTAURANT con chiave esterna verso SERVICE
+- Il campo \textit{type} in SERVICE funge da selettore per identificare il tipo specifico
+
+Questa soluzione offre massima flessibilità per l'aggiunta di nuovi servizi mantenendo l'integrità referenziale.
+
+\subsubsection{Gerarchia di Persona}
+
+La gerarchia PERSONA → USER → EMPLOYEE è stata gestita con un approccio misto:
+
+- \textbf{PERSONA e USER}: Collasso verso l'alto, poiché ogni USER deve essere una PERSONA
+- \textbf{USER e EMPLOYEE}: Sostituzione con associazione, dato che non ogni USER è un EMPLOYEE
+
+Questa scelta permette di mantenere l'anagrafica centralizzata mentre distingue chiaramente i ruoli degli utenti nel sistema.
+
+\subsubsection{Gerarchia di Prenotazione}
+
+L'associazione tra RESERVATION e SERVICE è stata reificata nell'entità RESERVATION\_DETAIL, che permette di gestire le prenotazioni multiple di servizi diversi nella stessa transazione. Questa non è una vera gerarchia ma una reificazione necessaria per la complessità del dominio.
+
+\subsection{Reificazione associazioni molti-a-molti}
+
+Le associazioni molti-a-molti sono state trasformate in entità intermedie con relazioni uno-a-molti.
+
+\subsubsection{Ordini e Prodotti}
+
+L'associazione tra ORDER e PRODUCT è stata reificata nell'entità ORDER\_DETAIL, che registra quantità e prezzo unitario per ogni prodotto ordinato.
+
+\subsubsection{Prenotazioni e Servizi}
+
+L'associazione tra RESERVATION e SERVICE è stata reificata in RESERVATION\_DETAIL, che memorizza date, orari e numero di persone per ogni servizio prenotato.
+
+\subsubsection{Eventi e Utenti}
+
+L'associazione tra EVENT e USER è stata reificata in EVENT\_SUBSCRIPTION, che traccia il numero di partecipanti per ogni iscrizione.
+
+\subsubsection{Dipendenti e Turni}
+
+L'associazione tra EMPLOYEE e SHIFT è stata reificata in EMPLOYEE\_SHIFT, che registra lo stato e la data specifica del turno.
+
+\subsection{Scelta degli identificatori principali}
+
+Per ogni entità abbiamo scelto identificatori che garantiscano univocità e stabilità:
+
+\subsubsection{Identificatori naturali}
+
+\begin{itemize}
+    \item \textbf{PERSON}: \textit{cf} (codice fiscale) come identificatore naturale
+    \item \textbf{USER}: \textit{username} come identificatore univoco
+    \item \textbf{EMPLOYEE}: \textit{username} (ereditato da USER)
+    \item \textbf{PRODUCT}: \textit{id} auto-incrementale
+    \item \textbf{EVENT}: \textit{id} auto-incrementale
+\end{itemize}
+
+\subsubsection{Identificatori artificiali}
+
+Per alcune entità abbiamo introdotto identificatori artificiali per semplificare le relazioni:
+
+\begin{itemize}
+    \item \textbf{SERVICE}: \textit{id} auto-incrementale
+    \item \textbf{ORDER}: \textit{id} auto-incrementale
+    \item \textbf{RESERVATION}: \textit{id} auto-incrementale
+    \item \textbf{REVIEW}: \textit{id} auto-incrementale
+    \item \textbf{SHIFT}: \textit{id} auto-incrementale
+\end{itemize}
+
+\subsubsection{Identificatori composti}
+
+Per le entità derivate da reificazioni, abbiamo utilizzato identificatori composti:
+
+\begin{itemize}
+    \item \textbf{ORDER\_DETAIL}: (\textit{order}, \textit{product})
+    \item \textbf{RESERVATION\_DETAIL}: (\textit{reservation}, \textit{service})
+    \item \textbf{EVENT\_SUBSCRIPTION}: (\textit{event}, \textit{user})
+    \item \textbf{EMPLOYEE\_SHIFT}: (\textit{employee}, \textit{shift}, \textit{shift\_date})
+\end{itemize}
+
+\subsection{Scelte progettuali significative}
+
+\subsubsection{Flessibilità del catalogo servizi}
+
+La decisione di non collassare la gerarchia di SERVICE rappresenta una scelta progettuale importante. Questo approccio permette:
+
+1. \textbf{Espandibilità}: Nuovi tipi di servizi possono essere aggiunti creando semplicemente nuove tabelle specializzate
+2. \textbf{Separazione delle concerns}: Ogni tipo di servizio mantiene i propri attributi specifici
+3. \textbf{Query efficienti}: Il campo \textit{type} in SERVICE permette filtri rapidi senza JOIN non necessari
+4. \textbf{Integrità referenziale}: Le prenotazioni referenziano SERVICE, non i servizi specifici
+
+\subsubsection{Gestione storica del personale}
+
+L'entità EMPLOYEE\_HISTORY permette di tracciare le variazioni di ruolo nel tempo, soddisfacendo il requisito di audit trail per il personale.
+
+\subsubsection{Separazione identità e autenticazione}
+
+La separazione tra PERSON e USER garantisce che i dati anagrafici siano mantenuti separatamente dalle credenziali di accesso, migliorando la sicurezza e la gestione dei dati.
+
 \section{Schema relazionale finale}
+
+Dopo aver applicato tutti i raffinamenti, lo schema relazionale finale è rappresentato dalle seguenti tabelle:
+
+\begin{itemize}
+    \item \textbf{PERSON} (\underline{cf}, name, surname)
+    \item \textbf{USER} (\underline{username}, email, password, cf: PERSON)
+    \item \textbf{EMPLOYEE} (\underline{username}, role)
+    \item \textbf{EMPLOYEE\_HISTORY} (\underline{username}, fixed\_at, role)
+    \item \textbf{PRODUCT} (\underline{id}, name, description, price)
+    \item \textbf{EVENT} (\underline{id}, title, description, event\_date, seats)
+    \item \textbf{SERVICE} (\underline{id}, price, type)
+    \item \textbf{ROOM} (\underline{code}, max\_capacity, service: SERVICE)
+    \item \textbf{RESTAURANT} (\underline{code}, max\_capacity, service: SERVICE)
+    \item \textbf{ORDER} (\underline{id}, date, username: USER)
+    \item \textbf{ORDER\_DETAIL} (\underline{order: ORDER, product: PRODUCT}, quantity, unit\_price)
+    \item \textbf{RESERVATION} (\underline{id}, reservation\_date, username: USER)
+    \item \textbf{RESERVATION\_DETAIL} (\underline{reservation: RESERVATION, service: SERVICE}, start\_date, end\_date, people)
+    \item \textbf{EVENT\_SUBSCRIPTION} (\underline{event: EVENT, user: USER}, participants, subscription\_date)
+    \item \textbf{REVIEW} (\underline{id}, rating, comment, created\_at, user: USER, event: EVENT, service: SERVICE)
+    \item \textbf{SHIFT} (\underline{id}, shift\_name, day\_of\_week, start\_time, end\_time)
+    \item \textbf{EMPLOYEE\_SHIFT} (\underline{employee: EMPLOYEE, shift: SHIFT, shift\_date}, status)
+\end{itemize}
+
 La fase di riorganizzazione è ora conclusa e lo schema ottenuto è
 immediatamente traducibile in relazioni relazionali. Di seguito
 presentiamo lo schema logico.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth, trim=0 0 0 0]{./schemas/logic.pdf}
+  \caption{Schema relazione finale}
+  \label{fig:schema-relazione}
+\end{figure}
+\newpage
+
 
 \begin{figure}[H]
   \centering
