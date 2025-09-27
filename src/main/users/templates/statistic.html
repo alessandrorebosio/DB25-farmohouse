@@ -179,7 +179,7 @@
                             </table>
                         </div>
                         {% else %}
-                        <p class="text-muted small mb-0">Nessun evento completamente prenotato al momento.</p>
+                        <p class="text-muted small mb-0">No Event is fully booked.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -195,7 +195,7 @@
                             <tr class="text-muted small">
                             <th>Service</th>
                             <th>Location</th>
-                            <th class="text-end">Available seats</th>
+                            <th class="text-end">Capacity</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -203,7 +203,7 @@
                             <tr>
                             <td class="fw-semibold small">{{ s.type|title }} (ID {{ s.service_id }})</td>
                             <td class="small text-muted">
-                                {% if s.restaurant_code %}R: {{ s.restaurant_code }}{% elif s.room_code %}Room: {{ s.room_code }}{% else %}-{% endif %}
+                                {% if s.restaurant_code %}Table: {{ s.restaurant_code }}{% elif s.room_code %}Room: {{ s.room_code }}{% else %}-{% endif %}
                             </td>
                             <td class="text-end">
                                 {% with s.available_seats as seats %}
@@ -224,7 +224,7 @@
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-muted small mb-0">Nessun servizio disponibile ora.</p>
+                    <p class="text-muted small mb-0">No service avaiable at the moment.</p>
                     {% endif %}
                     </div>
                 </div>
