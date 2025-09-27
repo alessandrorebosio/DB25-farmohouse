@@ -403,7 +403,356 @@ END$$
 DELIMITER ;
 \end{sqlcode}
 
-\section{Traduzione delle operazioni}
+\section{Traduzione delle operazioni} 
+In questa sezione vengono presentate le query SQL che implementano le principali operazioni del sistema agriturismo. Le query sono state progettate per essere efficienti e sfruttare gli indici e i vincoli definiti nello schema. 
+
+\subsection{Visualizzazione statistiche dashboard} 
+Le seguenti query sono utilizzate per popolare la dashboard amministrativa con le metriche principali del sistema. 
+
+\subsubsection{Top servizi per prenotazioni} 
+Questa operazione analizza le prenotazioni per identificare i servizi più richiesti, distinguendo tra ristoranti e camere attraverso un'articolata procedura di join e raggruppamento.
+
+\begin{sqlcode}[caption={Query per i servizi più prenotati}]
+SELECT CASE WHEN s.type = 'RESTAURANT' THEN CONCAT('Restaurant - ', r.code) 
+            WHEN s.type = 'ROOM' THEN CONCAT('Room - ', ro.code) 
+            ELSE s.type END as service_name,
+       COUNT(rd.service) as booking_count 
+FROM SERVICE s 
+LEFT JOIN RESTAURANT r ON s.id = r.service 
+LEFT JOIN ROOM ro ON s.id = ro.service 
+JOIN RESERVATION_DETAIL rd ON s.id = rd.service 
+GROUP BY s.id, s.type, r.code, ro.code 
+ORDER BY booking_count DESC 
+LIMIT 4;
+\end{sqlcode}
+
+\subsubsection{Top prodotti per quantità venduta} 
+Questa operazione calcola i prodotti più venduti in base alla quantità totale ordinata.
+
+\begin{sqlcode}[caption={Query per i prodotti più venduti}]
+SELECT p.name as product_name, SUM(od.quantity) as total_quantity 
+FROM PRODUCT p 
+JOIN ORDER_DETAIL od ON p.id = od.product 
+GROUP BY p.id, p.name 
+ORDER BY total_quantity DESC 
+LIMIT 6;
+\end{sqlcode}
+
+\subsubsection{Top eventi per partecipanti} 
+Questa operazione determina gli eventi con il maggior numero di partecipanti totali.
+
+\begin{sqlcode}[caption={Query per gli eventi più partecipati}]
+SELECT e.title as event_title, e.event_date, SUM(es.participants) as total_participants 
+FROM EVENT e 
+JOIN EVENT_SUBSCRIPTION es ON e.id = es.event 
+GROUP BY e.id, e.title, e.event_date 
+ORDER BY total_participants DESC 
+LIMIT 4;
+\end{sqlcode}
+
+\subsubsection{Top prodotti per fatturato} 
+Questa operazione calcola i prodotti che generano il maggior fatturato.
+
+\begin{sqlcode}[caption={Query per i prodotti per fatturato}]
+SELECT p.name as product_name, SUM(od.quantity * od.unit_price) as total_revenue 
+FROM PRODUCT p 
+JOIN ORDER_DETAIL od ON p.id = od.product 
+GROUP BY p.id, p.name 
+ORDER BY total_revenue DESC 
+LIMIT 6;
+\end{sqlcode}
+
+\subsubsection{Fatturato totale} 
+Questa operazione calcola il ricavo complessivo generato dalle vendite dei prodotti.
+
+\begin{sqlcode}[caption={Query per il fatturato totale}]
+SELECT ROUND(SUM(od.quantity * od.unit_price), 2) as overall_total_revenue 
+FROM ORDER_DETAIL od;
+\end{sqlcode}
+
+\subsubsection{Statistiche generali del sistema} 
+Questa query composita fornisce un riepilogo completo delle metriche di sistema attraverso sottoselezioni multiple, aggregando dati da diverse tabelle per offrire una visione d'insieme immediata.
+
+\begin{sqlcode}[caption={Query per le statistiche generali}]
+SELECT (SELECT COUNT(*) FROM USER) as total_customers,
+       (SELECT COUNT(*) FROM EMPLOYEE) as total_employees,
+       (SELECT COUNT(*) FROM ORDERS) as total_orders,
+       (SELECT ROUND(SUM(od.quantity * od.unit_price), 2) FROM ORDER_DETAIL od) as total_revenue,
+       (SELECT COUNT(*) FROM RESERVATION) as total_reservations;
+\end{sqlcode}
+
+\subsection{Prenotazione servizi} 
+
+\subsubsection{Verifica disponibilità camere} 
+La query verifica la disponibilità camere analizzando le prenotazioni esistenti attraverso una condizione di non sovrapposizione temporale, garantendo che vengano selezionate solo le camere con capacità sufficiente e libere nel periodo richiesto.
+
+\begin{sqlcode}[caption={Query per la disponibilità camere}]
+SELECT ro.code AS camera, s.price AS prezzo, ro.max_capacity 
+FROM ROOM ro 
+JOIN SERVICE s ON s.id = ro.service 
+WHERE ro.max_capacity >= @n_persone 
+  AND ro.service NOT IN (
+    SELECT rd.service 
+    FROM RESERVATION_DETAIL rd 
+    WHERE NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
+  );
+\end{sqlcode}
+
+\subsubsection{Verifica disponibilità tavoli} 
+Questa complessa query calcola i posti disponibili considerando le prenotazioni esistenti che si sovrappongono all'intervallo richiesto, utilizzando un left join condizionato e una clausola having per filtrare i ristoranti con posti sufficienti.
+
+\begin{sqlcode}[caption={Query per la disponibilità tavoli}]
+SELECT r.code AS ristorante, s.price AS prezzo, r.max_capacity,
+       (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS posti_disponibili 
+FROM RESTAURANT r 
+JOIN SERVICE s ON s.id = r.service 
+LEFT JOIN RESERVATION_DETAIL rd ON rd.service = r.service 
+  AND NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine) 
+GROUP BY r.service, r.code, s.price, r.max_capacity 
+HAVING posti_disponibili >= @n_partecipanti;
+\end{sqlcode}
+
+\subsection{Gestione recensioni} 
+
+\subsubsection{Inserimento recensione evento} 
+L'operazione verifica tramite multiple condizioni che l'utente sia iscritto all'evento, che questo sia concluso, e che non esista già una recensione da parte dell'user riguardante quell'evento, implementando così un controllo di integrità complesso prima dell'inserimento.
+
+\begin{sqlcode}[caption={Query per inserimento recensione evento}]
+INSERT INTO REVIEW (user, event, rating, comment) 
+SELECT 'mrossi' as user, e.id as event, 5 as rating, 
+       'Amazing experience! Will definitely come again.' as comment 
+FROM EVENT e 
+INNER JOIN EVENT_SUBSCRIPTION es ON e.id = es.event AND es.user = 'mrossi' 
+WHERE e.title = 'Farm Open Day' 
+  AND e.event_date < CURDATE() 
+  AND NOT EXISTS (
+    SELECT 1 
+    FROM REVIEW r 
+    WHERE r.user = 'mrossi' AND r.event = e.id
+  ) 
+LIMIT 1;
+\end{sqlcode}
+
+\subsubsection{Inserimento recensione servizio} 
+La query implementa un meccanismo di controllo articolato che verifica l'esistenza di una prenotazione completata e l'assenza di recensioni duplicate, garantendo la correttezza referenziale dell'inserimento.
+
+\begin{sqlcode}[caption={Query per inserimento recensione servizio}]
+INSERT INTO REVIEW (user, service, rating, comment) 
+SELECT 'aneri' as user, s.id as service, 4 as rating, 
+       'Good service and friendly staff.' as comment 
+FROM SERVICE s 
+INNER JOIN RESERVATION_DETAIL rd ON s.id = rd.service 
+INNER JOIN RESERVATION r ON rd.reservation = r.id 
+WHERE r.username = 'aneri' 
+  AND rd.end_date < NOW() 
+  AND s.type = 'RESTAURANT' 
+  AND NOT EXISTS (
+    SELECT 1 
+    FROM REVIEW rev 
+    WHERE rev.user = 'aneri' AND rev.service = s.id
+  ) 
+LIMIT 1;
+\end{sqlcode}
+
+\subsubsection{Aggiornamento recensione} 
+Questa operazione modifica il voto e il commento di una recensione esistente.
+
+\begin{sqlcode}[caption={Query per aggiornamento recensione}]
+UPDATE REVIEW 
+SET rating = 4, 
+    comment = 'Very good event, but could use more activities. Overall enjoyed it!',
+    created_at = NOW() 
+WHERE user = 'mrossi' 
+  AND event = (SELECT id FROM EVENT WHERE title = 'Farm Open Day') 
+  AND id IS NOT NULL;
+\end{sqlcode}
+
+\subsection{Gestione iscrizioni eventi} 
+
+\subsubsection{Update e Iscrizione utente a evento} 
+Questa operazione permette a un utente di iscriversi a un evento specificando il numero di partecipanti, con un meccanismo di controllo "ON DUPLICATE KEY UPDATE" siamo in grado di trasformare questa insert in un update che modifica solo il numero di partecipanti, nel caso in cui l'utente avesse gia effettuato un'iscrizione al dato evento.
+
+\begin{sqlcode}[caption={Query per iscrizione evento}]
+INSERT INTO EVENT_SUBSCRIPTION (event, user, participants)
+SELECT 
+    e.id,
+    u.username,
+    4
+FROM EVENT e
+CROSS JOIN USER u
+WHERE e.title = 'Harvest Festival' 
+    AND u.username = 'lblu'
+ON DUPLICATE KEY UPDATE participants = 4;
+\end{sqlcode}
+
+
+
+\subsection{Gestione prenotazioni servizi} 
+
+\subsubsection{Creazione prenotazione principale} 
+Questa operazione crea il record principale di prenotazione per un utente, con un controllo che evita la creazione di prenotazioni duplicate nella stessa giornata.
+
+\begin{sqlcode}[caption={Query per creazione prenotazione principale}]
+INSERT INTO RESERVATION (username, reservation_date)
+SELECT 'gverdi', NOW()
+WHERE NOT EXISTS (
+    SELECT 1 FROM RESERVATION 
+    WHERE username = 'gverdi' 
+    AND DATE(reservation_date) = CURDATE()
+);
+\end{sqlcode}
+
+
+\subsubsection{Prenotazione tavolo ristorante} 
+Query specializzata per la prenotazione di tavoli al ristorante, con join sulla tabella RESTAURANT per identificare il servizio corretto.
+
+\begin{sqlcode}[caption={Query per prenotazione tavolo ristorante}]
+SET @new_reservation_id = LAST_INSERT_ID();
+
+INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+SELECT 
+    @new_reservation_id as reservation,
+    s.id as service,
+    '2024-01-25 19:00:00' as start_date,
+    '2024-01-25 21:00:00' as end_date,
+    2 as people
+FROM SERVICE s
+INNER JOIN RESTAURANT r ON s.id = r.service
+WHERE r.code = 'T01'
+LIMIT 1;
+\end{sqlcode}
+
+\subsubsection{Prenotazione camera con controllo duplicati} 
+Operazione completa per la prenotazione di camere che include sia la creazione della prenotazione principale che dei dettagli, con controlli anti-duplicato e gestione degli ID generati.
+
+\begin{sqlcode}[caption={Query per prenotazione camera}]
+INSERT INTO RESERVATION (username, reservation_date)
+SELECT 'fbianchi', DATE_ADD(NOW(), INTERVAL 1 HOUR)
+WHERE NOT EXISTS (
+    SELECT 1 FROM RESERVATION 
+    WHERE username = 'fbianchi' 
+    AND DATE(reservation_date) = CURDATE()
+);
+
+SET @room_reservation_id = LAST_INSERT_ID();
+
+INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+SELECT 
+    @room_reservation_id as reservation,
+    s.id as service,
+    '2024-01-26 15:00:00' as start_date,
+    '2024-01-28 11:00:00' as end_date,
+    2 as people
+FROM SERVICE s
+INNER JOIN ROOM r ON s.id = r.service
+WHERE r.code = 'R03'
+LIMIT 1;
+\end{sqlcode}
+
+\subsection{Eliminazione prenotazioni e iscrizioni}
+
+\subsubsection{Eliminazione prenotazione servizio}
+Questa operazione permette di cancellare una prenotazione di servizio esistente, rimuovendo prima i dettagli della prenotazione per rispettare i vincoli di integrità referenziale e successivamente il record principale della prenotazione.
+
+\begin{sqlcode}[caption={Query per eliminazione prenotazione servizio}]
+-- Prima eliminiamo i dettagli della prenotazione per evitare violazioni dei vincoli
+DELETE FROM RESERVATION_DETAIL 
+WHERE reservation = @reservation_id;
+
+-- Poi eliminiamo la prenotazione principale
+DELETE FROM RESERVATION 
+WHERE id = @reservation_id 
+  AND username = @username;
+\end{sqlcode}
+
+\subsubsection{Eliminazione iscrizione evento}
+Questa operazione rimuove l'iscrizione di un utente a un evento specifico, verificando che l'iscrizione esista e che l'evento non sia già iniziato per consentire solo cancellazioni di eventi futuri.
+
+\begin{sqlcode}[caption={Query per eliminazione iscrizione evento}]
+DELETE FROM EVENT_SUBSCRIPTION 
+WHERE user = @username 
+  AND event = @event_id
+  AND EXISTS (
+    SELECT 1 FROM EVENT e 
+    WHERE e.id = @event_id 
+    AND e.event_date > CURDATE()
+  );
+\end{sqlcode}
+
+\subsubsection{Eliminazione prenotazione con controllo temporale}
+Questa query più sofisticata elimina una prenotazione solo se non è già iniziata, implementando un controllo temporale che previene la cancellazione di prenotazioni in corso o concluse.
+
+\begin{sqlcode}[caption={Query per eliminazione prenotazione con controllo temporale}]
+-- Eliminazione condizionata: solo se la prenotazione non e' iniziata
+DELETE FROM RESERVATION 
+WHERE id = @reservation_id 
+  AND username = @username
+  AND NOT EXISTS (
+    SELECT 1 FROM RESERVATION_DETAIL rd 
+    WHERE rd.reservation = @reservation_id 
+    AND rd.start_date <= NOW()
+  );
+\end{sqlcode}
+
+\subsubsection{Eliminazione multipla iscrizioni evento}
+Operazione amministrativa che permette di cancellare tutte le iscrizioni a un evento specifico, utile in caso di cancellazione dell'evento da parte degli amministratori del sistema.
+
+\begin{sqlcode}[caption={Query per eliminazione multipla iscrizioni evento}]
+DELETE FROM EVENT_SUBSCRIPTION 
+WHERE event = @event_id;
+\end{sqlcode}
+
+\subsection{Autenticazione utente} 
+
+\subsubsection{Verifica credenziali di login} 
+La query combina informazioni da multiple tabelle per validare le credenziali e determinare il profilo utente completo, distinguendo tra dipendenti e clienti attraverso un left join strategico.
+
+\begin{sqlcode}[caption={Query per verifica login}]
+SELECT u.username, u.email, u.password, p.name, p.surname,
+       CASE WHEN e.username IS NOT NULL THEN 'employee' ELSE 'customer' END as user_type,
+       e.role as employee_role 
+FROM USER u 
+INNER JOIN PERSON p ON u.cf = p.cf 
+LEFT JOIN EMPLOYEE e ON u.username = e.username 
+WHERE u.username = 'mrossi' OR u.email = 'mrossi@farm.com';
+\end{sqlcode}
+
+\subsection{Gestione ordini prodotti} 
+
+\subsubsection{Creazione nuovo ordine} 
+Questa complessa transazione articolata in multiple operazioni crea un nuovo ordine, recupera automaticamente l'ID generato, e inserisce i prodotti con i prezzi correnti, gestendo così tutta la logica di ordine in un'unica procedura.
+
+\begin{sqlcode}[caption={Query per creazione ordine}]
+INSERT INTO ORDERS (username, date) 
+SELECT 'aneri', NOW() 
+WHERE NOT EXISTS (
+  SELECT 1 
+  FROM ORDERS 
+  WHERE username = 'aneri' AND DATE(date) = CURDATE()
+);
+
+SET @new_order_id = LAST_INSERT_ID();
+
+INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price) 
+SELECT @new_order_id as order_id, p.id as product_id, 3 as quantity, p.price as unit_price 
+FROM PRODUCT p 
+WHERE p.name = 'Farm Eggs (12 pcs)' 
+LIMIT 1;
+
+INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price) 
+SELECT @new_order_id as order_id, p.id as product_id, 2 as quantity, p.price as unit_price 
+FROM PRODUCT p 
+WHERE p.name = 'Fresh Bread' 
+LIMIT 1;
+
+INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price) 
+SELECT @new_order_id as order_id, p.id as product_id, 1 as quantity, p.price as unit_price 
+FROM PRODUCT p 
+WHERE p.name = 'Honey Jar (500g)' 
+LIMIT 1;
+\end{sqlcode}
+
+
 
 \chapter{Progettazione dell'applicazione}
 L'applicazione è stata sviluppata con il framework \textbf{Django}, che gestisce routing, 
