@@ -36,8 +36,13 @@
                         <input type="number" name="participants" min="1" max="{{ e.remaining }}" value="1"
                             class="form-control text-center">
                     </div>
-                    <button type="submit" class="btn btn-outline-primary btn-sm">{% if e.my_participants %}Add{% else
-                        %}Book{% endif %}</button>
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        {% if e.my_participants %}
+                        Add
+                        {% else %}
+                        Book
+                        {% endif %}
+                    </button>
                 </form>
                 {% else %}
                 <div class="ms-auto"><span class="badge bg-warning text-dark">Fully booked</span></div>
