@@ -16,33 +16,33 @@
         </div>
 
         <!-- KPIs -->
-        <div class="row g-3 g-md-4 mb-3 mb-md-4">
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm rounded-4 card-hover">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-5 g-3 g-md-4 mb-3 mb-md-4">
+            <div class="col">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <div class="text-muted small">Registered users</div>
                         <div class="h3 mb-0">{{ kpis.users }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm rounded-4 card-hover">
+            <div class="col">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <div class="text-muted small">Employees</div>
                         <div class="h3 mb-0">{{ kpis.employees }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm rounded-4 card-hover">
+            <div class="col">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <div class="text-muted small">Orders</div>
                         <div class="h3 mb-0">{{ kpis.orders }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm rounded-4 card-hover position-relative">
+            <div class="col">
+                <div class="card h-100 shadow-sm rounded-4 card-hover position-relative">
                     <div class="price-ribbon">€ {{ kpis.revenue|floatformat:2 }}</div>
                     <div class="card-body">
                         <div class="text-muted small">Total revenue</div>
@@ -50,8 +50,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm rounded-4 card-hover">
+            <div class="col">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <div class="text-muted small">Reservations</div>
                         <div class="h3 mb-0">{{ kpis.reservations }}</div>
@@ -63,7 +63,7 @@
         <!-- Leaderboards -->
         <div class="row g-3 g-md-4">
             <div class="col-12 col-lg-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Top services by bookings</h5>
                         {% if top_services %}
@@ -83,7 +83,7 @@
             </div>
 
             <div class="col-12 col-lg-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Top events by participants</h5>
                         {% if top_events %}
@@ -106,7 +106,7 @@
             </div>
 
             <div class="col-12 col-lg-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Top products by quantity</h5>
                         {% if top_products_qty %}
@@ -126,7 +126,7 @@
             </div>
 
             <div class="col-12 col-lg-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Top products by revenue</h5>
                         {% if top_products_rev %}
@@ -238,18 +238,18 @@
 <style>
     .card-hover {
         transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-        border: 1px solid rgba(0, 0, 0, .06);
+        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
     }
 
     .card-hover:hover {
         transform: translateY(-2px);
         box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
-        border-color: rgba(13, 110, 253, .2);
+        border-color: rgba(var(--bs-primary-rgb), .2);
     }
 
     .chip {
-        --bg: rgba(0, 0, 0, .06);
-        --fg: #212529;
+        --bg: var(--bs-secondary-bg);
+        --fg: var(--bs-body-color);
         background: var(--bg);
         color: var(--fg);
         border-radius: 999px;
@@ -261,21 +261,21 @@
     }
 
     .chip-muted {
-        --bg: rgba(108, 117, 125, .15);
-        --fg: #495057;
+        --bg: var(--bs-secondary-bg-subtle);
+        --fg: var(--bs-secondary-color);
     }
 
     .price-ribbon {
         position: absolute;
         top: 10px;
         right: -6px;
-        background: #fff;
-        color: #0d6efd;
-        border: 1px solid rgba(13, 110, 253, .25);
+        background: var(--bs-body-bg);
+        color: var(--bs-primary);
+        border: 1px solid rgba(var(--bs-primary-rgb), .25);
         border-right: none;
         padding: .35rem .6rem .35rem .75rem;
         border-radius: 999px 0 0 999px;
-        box-shadow: 0 .25rem .75rem rgba(13, 110, 253, .08);
+        box-shadow: 0 .25rem .75rem rgba(var(--bs-primary-rgb), .08);
         font-weight: 600;
     }
 </style>

@@ -17,7 +17,7 @@
         {% if items %}
         <div class="row g-3">
             <div class="col-lg-8">
-                <div class="card shadow-sm">
+                <div class="card rounded-4 shadow-sm card-hover">
                     <div class="table-responsive">
                         <table class="table align-middle mb-0">
                             <thead class="table-light">
@@ -38,10 +38,14 @@
                                         <form method="post" action="{% url 'update_cart' %}" class="d-inline-block m-0">
                                             {% csrf_token %}
                                             <input type="hidden" name="product_id" value="{{ it.product.id }}">
-                                            <div class="d-inline-flex align-items-center gap-2">
+                                            <div class="input-group input-group-sm qty-group"
+                                                style="max-width:8rem; margin:0 auto;">
+                                                <button class="btn btn-outline-secondary btn-qty" type="button"
+                                                    data-delta="-1">−</button>
                                                 <input type="number" name="qty" min="0" value="{{ it.qty }}"
-                                                    class="form-control form-control-sm text-center"
-                                                    style="max-width:5rem;" onchange="this.form.requestSubmit()">
+                                                    class="form-control text-center">
+                                                <button class="btn btn-outline-secondary btn-qty" type="button"
+                                                    data-delta="1">+</button>
                                             </div>
                                             <noscript><button type="submit"
                                                     class="btn btn-outline-secondary btn-sm">Update</button></noscript>
@@ -71,7 +75,7 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="card shadow-sm position-sticky" style="top:1rem;">
+                <div class="card rounded-4 shadow-sm card-hover position-sticky" style="top:1rem;">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Order summary</h5>
                         <div class="d-flex justify-content-between mb-2">
@@ -86,6 +90,7 @@
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary w-100">Checkout</button>
                         </form>
+                        <div class="text-muted small mt-2">🔒 Secure checkout</div>
                     </div>
                 </div>
             </div>
@@ -105,24 +110,33 @@
 <script>
     // Debounced auto-submit while typing/spinning the number input
     document.addEventListener('DOMContentLoaded', () => {
-        const debounce = (fn, delay = 400) => {
-            let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
-        };
+        const debounce = (fn, delay = 350) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; };
+        // Auto-submit when typing/spinning the number input
         document.querySelectorAll('input[name="qty"]').forEach(input => {
             const submit = debounce(() => input.form.requestSubmit());
             input.addEventListener('input', submit);
             input.addEventListener('change', () => input.form.requestSubmit());
         });
+        // Plus/Minus buttons
+        document.querySelectorAll('.btn-qty').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const form = btn.closest('form');
+                const input = form && form.querySelector('input[name="qty"]');
+                if (!input) return;
+                const delta = parseInt(btn.dataset.delta, 10) || 0;
+                const min = parseInt(input.min, 10); const minVal = isNaN(min) ? 0 : min;
+                const curr = parseInt(input.value, 10); const currVal = isNaN(curr) ? minVal : curr;
+                const next = Math.max(minVal, currVal + delta);
+                input.value = next;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        });
     });
 </script>
 
 <style>
-    .hero {
-        background-color: #f8f9fa;
-    }
-
     .link-secondary {
-        color: #6c757d;
+        color: var(--bs-secondary-color);
     }
 
     .link-secondary:hover {
@@ -130,8 +144,19 @@
     }
 
     .card {
-        border: 1px solid #dee2e6;
-        border-radius: .375rem;
+        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
+        border-radius: .75rem;
+        overflow: hidden;
+    }
+
+    .card-hover {
+        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
+        border-color: color-mix(in oklab, rgba(var(--bs-primary-rgb), .35) 60%, var(--bs-border-color) 40%);
     }
 
     .card-title {
@@ -142,30 +167,37 @@
     .table {
         width: 100%;
         margin-bottom: 1rem;
-        color: #212529;
+        color: var(--bs-body-color);
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-responsive {
+        border-radius: inherit;
+    }
+
+    .table> :not(caption)>*>* {
+        border-color: var(--bs-border-color);
+        background-clip: padding-box;
+    }
+
+    .table thead th,
+    .table tfoot th {
+        background-color: var(--bs-tertiary-bg);
+        color: var(--bs-secondary-color);
+        font-weight: 500;
     }
 
     .table-light {
-        background-color: #f8f9fa;
-    }
-
-    .table-light th,
-    .table-light td {
-        border: 1px solid #dee2e6;
-    }
-
-    .table-light th {
-        background-color: #e9ecef;
-        font-weight: 500;
-        color: #495057;
-    }
-
-    .table-light tfoot th {
-        background-color: #e9ecef;
+        background-color: transparent;
     }
 
     .fw-500 {
         font-weight: 500;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--bs-secondary-bg);
     }
 
     .fw-semibold {
@@ -180,69 +212,10 @@
         text-align: center;
     }
 
-    .btn-primary {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-        color: #fff;
-        padding: .375rem .75rem;
-        border-radius: .375rem;
-        font-weight: 500;
-    }
-
-    .btn-primary:hover {
-        background-color: #0b5ed7;
-        border-color: #0b5ed7;
-    }
-
-    .btn-secondary {
-        background-color: #f8f9fa;
-        border-color: #ced4da;
-        color: #495057;
-        padding: .375rem .75rem;
-        border-radius: .375rem;
-    }
-
-    .btn-secondary:hover {
-        background-color: #e2e6ea;
-        border-color: #dae0e5;
-    }
-
-    .btn-outline-secondary {
-        color: #6c757d;
-        border-color: #6c757d;
-    }
-
-    .btn-outline-secondary:hover {
-        background-color: #6c757d;
-        color: #fff;
-    }
-
-    .btn-outline-danger {
-        color: #dc3545;
-        border-color: #dc3545;
-    }
-
-    .btn-outline-danger:hover {
-        background-color: #dc3545;
-        color: #fff;
-    }
-
-    .alert {
-        padding: .75rem 1.25rem;
-        border: 1px solid transparent;
-        border-radius: .375rem;
-    }
-
-    .alert-success {
-        background-color: #d1e7dd;
-        color: #0f5132;
-        border-color: #badbcc;
-    }
-
     .empty-state {
         margin-top: 2rem;
         text-align: center;
-        color: #6b7280;
+        color: var(--bs-secondary-color);
     }
 
     .empty-state .icon {
