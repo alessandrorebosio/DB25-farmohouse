@@ -1214,7 +1214,7 @@ Nel nostro schema ER sono presenti alcune gerarchie
 modello relazionale. Di seguito analizziamo ciascun caso specifico e
 le relative scelte implementative.
 
-\subsection*{Gerarchia di Servizio}
+\subsubsection{Gerarchia di Servizio}
 La gerarchia tra \texttt{SERVICE} e le sottoclassi \texttt{ROOM} e
 \texttt{RESTAURANT} è totale
 ed esclusiva: ogni servizio è o una camera o un ristorante. \texttt{SERVICE}
@@ -1225,7 +1225,7 @@ specializzate collegate tramite chiave esterna. Il campo
 facilmente estendibile aggiungendo nuove tabelle specializzate per
 altri tipi di servizi.
 
-\subsection*{Gerarchia di Persona}
+\subsubsection{Gerarchia di Persona}
 La gerarchia tra \texttt{PERSON}, \texttt{USER} ed \texttt{EMPLOYEE}
 è stata gestita in modo semplice: ogni \texttt{USER} corrisponde a
 una \texttt{PERSON}, così l'anagrafica è unica e senza duplicati.
@@ -1241,7 +1241,7 @@ stata effettuata in modo da facilitare la gestione delle relazioni,
 assicurare la coerenza dei dati e supportare eventuali evoluzioni
 future dello schema.
 
-\subsection*{Identificatori naturali}
+\subsubsection{Identificatori naturali}
 Gli identificatori naturali vengono utilizzati nelle tabelle in cui
 esiste un attributo intrinsecamente univoco e stabile nel tempo. In
 particolare, nella tabella \texttt{PERSON} si adotta il codice
@@ -1252,7 +1252,7 @@ sia distinto in modo univoco. Analogamente, la tabella
 \texttt{EMPLOYEE} eredita lo username come chiave primaria,
 mantenendo la coerenza tra le entità correlate.
 
-\subsection*{Identificatori artificiali}
+\subsubsection{Identificatori artificiali}
 Gli identificatori artificiali vengono introdotti quando non è
 presente un attributo naturale sufficientemente stabile o univoco,
 oppure per semplificare la gestione delle relazioni e delle chiavi
@@ -1263,7 +1263,7 @@ approccio è adottato per entità come \texttt{SERVICE}, \texttt{ORDER},
 ed \texttt{EVENT}, dove non esiste un attributo intrinseco che garantisca
 l'unicità e la stabilità nel tempo.
 
-\subsection*{Identificatori composti}
+\subsubsection{Identificatori composti}
 Per le entità derivate da reificazioni, sono stati adottati
 identificatori composti secondo la notazione dello schema logico:
 
@@ -1276,7 +1276,7 @@ identificatori composti secondo la notazione dello schema logico:
 
 \subsection{Scelte progettuali significative}
 
-\subsection*{Flessibilità del catalogo servizi}
+\subsubsection{Flessibilità del catalogo servizi}
 La scelta di non collassare la gerarchia di \texttt{SERVICE} è
 significativa dal punto di vista progettuale. Questo approccio consente:
 
@@ -1292,7 +1292,7 @@ significativa dal punto di vista progettuale. Questo approccio consente:
     presenza di nuovi servizi.
 \end{itemize}
 
-\subsection*{Gestione storica del personale}
+\subsubsection{Gestione storica del personale}
 La tabella \texttt{EMPLOYEE\_HISTORY} consente di verificare se un
 utente è un ex dipendente: se lo username è presente in
 \texttt{EMPLOYEE} l'utente è dipendente attivo, se compare anche in
@@ -1300,7 +1300,7 @@ utente è un ex dipendente: se lo username è presente in
 L'intreccio tra le due tabelle permette di distinguere tra dipendenti
 attuali ed ex dipendenti, soddisfacendo il requisito di audit trail.
 
-\subsection*{Separazione identità e autenticazione}
+\subsubsection{Separazione identità e autenticazione}
 La separazione tra \texttt{PERSON} e \texttt{USER} garantisce che i
 dati anagrafici siano gestiti indipendentemente dalle credenziali di
 accesso. Questo approccio migliora la sicurezza, evita duplicazioni e
