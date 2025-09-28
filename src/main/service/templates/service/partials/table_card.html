@@ -1,0 +1,25 @@
+{# Restaurant table availability card partial. Requires 's' (service table object) and outer context vars table_* #}
+<div class="col-12 col-md-6 col-lg-4">
+    <div class="card h-100 rounded-4 card-hover">
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="card-title mb-0">Table <span class="fw-semibold">{{ s.restaurant.code|default:"—" }}</span>
+                </h5>
+                {% if s.restaurant.max_capacity %}
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">
+                    {{ s.restaurant.max_capacity }} pax
+                </span>
+                {% endif %}
+            </div>
+            <div class="mt-auto d-flex gap-2">
+                {% if request.user.is_authenticated %}
+                <a class="btn btn-outline-primary btn-sm px-3"
+                    href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}&people={{ table_people }}&meal={{ table_meal }}">Book</a>
+                {% else %}
+                <a class="btn btn-outline-primary btn-sm px-3"
+                    href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Login to book</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

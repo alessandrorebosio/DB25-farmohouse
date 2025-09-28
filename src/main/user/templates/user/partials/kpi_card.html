@@ -1,0 +1,26 @@
+{# Reusable KPI card partial #}
+<div class="col">
+    <div class="card h-100 shadow-sm rounded-4 card-hover {{ extra_classes|default:'' }}">
+        {% if show_ribbon %}
+        <div class="price-ribbon">
+            {% if prefix %}{{ prefix }} {% endif %}
+            {% if value_floatformat %}
+            {{ value|floatformat:value_floatformat }}
+            {% else %}
+            {{ value }}
+            {% endif %}
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <div class="text-muted small">{{ label }}</div>
+            <div class="h3 mb-0">
+                {% if prefix %}{{ prefix }} {% endif %}
+                {% if value_floatformat %}
+                {{ value|floatformat:value_floatformat }}
+                {% else %}
+                {{ value }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

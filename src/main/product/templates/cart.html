@@ -1,230 +1,115 @@
 {% extends "core/base.html" %}
+{% load static %}
 {% block title %}Cart{% endblock %}
 
+{% block header %}
+<div class="d-flex justify-content-between align-items-end">
+    <h1 class="mb-0">Your cart</h1>
+    <a class="link-secondary text-decoration-none" href="{% url 'product_list' %}">← Continue shopping</a>
+</div>
+{% endblock %}
+
 {% block content %}
-<main class="hero">
-    <div class="container py-3">
+<div class="py-3">
 
-        <div class="d-flex justify-content-between align-items-end mb-3">
-            <h1 class="mb-0">Your cart</h1>
-            <a class="link-secondary text-decoration-none" href="{% url 'product_list' %}">← Continue shopping</a>
-        </div>
+    {# Success/Errors are shown by base messages; success flag replaced by messages in views if desired #}
 
-        {% if success %}
-        <div class="alert alert-success">Order placed successfully.</div>
-        {% endif %}
-
-        {% if items %}
-        <div class="row g-3">
-            <div class="col-lg-8">
-                <div class="card rounded-4 shadow-sm card-hover">
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Product</th>
-                                    <th class="text-end">Unit price</th>
-                                    <th class="text-center">Qty</th>
-                                    <th class="text-end">Subtotal</th>
-                                    <th style="width:1%;"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for it in items %}
-                                <tr>
-                                    <td class="fw-500">{{ it.product.name }}</td>
-                                    <td class="text-end">€ {{ it.product.price|floatformat:2 }}</td>
-                                    <td class="text-center">
-                                        <form method="post" action="{% url 'update_cart' %}" class="d-inline-block m-0">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="product_id" value="{{ it.product.id }}">
-                                            <div class="input-group input-group-sm qty-group"
-                                                style="max-width:8rem; margin:0 auto;">
-                                                <button class="btn btn-outline-secondary btn-qty" type="button"
-                                                    data-delta="-1">−</button>
-                                                <input type="number" name="qty" min="0" value="{{ it.qty }}"
-                                                    class="form-control text-center">
-                                                <button class="btn btn-outline-secondary btn-qty" type="button"
-                                                    data-delta="1">+</button>
-                                            </div>
-                                            <noscript><button type="submit"
-                                                    class="btn btn-outline-secondary btn-sm">Update</button></noscript>
-                                        </form>
-                                    </td>
-                                    <td class="text-end fw-semibold">€ {{ it.line_total|floatformat:2 }}</td>
-                                    <td class="text-end">
-                                        <form method="post" action="{% url 'remove_from_cart' %}" class="m-0">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="product_id" value="{{ it.product.id }}">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                            <tfoot class="table-light">
-                                <tr>
-                                    <th colspan="3" class="text-end">Total</th>
-                                    <th class="text-end">€ {{ total|floatformat:2 }}</th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="card rounded-4 shadow-sm card-hover position-sticky" style="top:1rem;">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Order summary</h5>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Subtotal</span>
-                            <span class="fw-semibold">€ {{ total|floatformat:2 }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between text-muted small mb-3">
-                            <span>VAT</span>
-                            <span>Included</span>
-                        </div>
-                        <form method="post" action="{% url 'checkout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-primary w-100">Checkout</button>
-                        </form>
-                        <div class="text-muted small mt-2">🔒 Secure checkout</div>
-                    </div>
+    {% if items %}
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card rounded-4 shadow-sm card-hover">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-end">Unit price</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Subtotal</th>
+                                <th style="width:1%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for it in items %}
+                            <tr>
+                                <td class="fw-500">{{ it.product.name }}</td>
+                                <td class="text-end">€ {{ it.product.price|floatformat:2 }}</td>
+                                <td class="text-center">
+                                    <form method="post" action="{% url 'update_cart' %}" class="d-inline-block m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ it.product.id }}">
+                                        <div class="input-group input-group-sm qty-group"
+                                            style="max-width:8rem; margin:0 auto;">
+                                            <button class="btn btn-outline-secondary btn-qty" type="button"
+                                                data-delta="-1">−</button>
+                                            <input type="number" name="qty" min="0" value="{{ it.qty }}"
+                                                class="form-control text-center">
+                                            <button class="btn btn-outline-secondary btn-qty" type="button"
+                                                data-delta="1">+</button>
+                                        </div>
+                                        <noscript><button type="submit"
+                                                class="btn btn-outline-secondary btn-sm">Update</button></noscript>
+                                    </form>
+                                </td>
+                                <td class="text-end fw-semibold">€ {{ it.line_total|floatformat:2 }}</td>
+                                <td class="text-end">
+                                    <form method="post" action="{% url 'remove_from_cart' %}" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ it.product.id }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="3" class="text-end">Total</th>
+                                <th class="text-end">€ {{ total|floatformat:2 }}</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
-        {% else %}
-        <div class="text-center py-5">
-            <div class="display-6 mb-2">🧺</div>
-            <h3>Your cart is empty</h3>
-            <p class="text-muted">Add items from the products page.</p>
-            <a class="btn btn-primary" href="{% url 'product_list' %}">Browse products</a>
-        </div>
-        {% endif %}
 
+        <div class="col-lg-4">
+            <div class="card rounded-4 shadow-sm card-hover position-sticky" style="top:1rem;">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Order summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal</span>
+                        <span class="fw-semibold">€ {{ total|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-3">
+                        <span>VAT</span>
+                        <span>Included</span>
+                    </div>
+                    <form method="post" action="{% url 'checkout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100">Checkout</button>
+                    </form>
+                    <div class="text-muted small mt-2">🔒 Secure checkout</div>
+                </div>
+            </div>
+        </div>
     </div>
-</main>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="display-6 mb-2">🧺</div>
+        <h3>Your cart is empty</h3>
+        <p class="text-muted">Add items from the products page.</p>
+        <a class="btn btn-primary" href="{% url 'product_list' %}">Browse products</a>
+    </div>
+    {% endif %}
 
-<script>
-    // Debounced auto-submit while typing/spinning the number input
-    document.addEventListener('DOMContentLoaded', () => {
-        const debounce = (fn, delay = 350) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; };
-        // Auto-submit when typing/spinning the number input
-        document.querySelectorAll('input[name="qty"]').forEach(input => {
-            const submit = debounce(() => input.form.requestSubmit());
-            input.addEventListener('input', submit);
-            input.addEventListener('change', () => input.form.requestSubmit());
-        });
-        // Plus/Minus buttons
-        document.querySelectorAll('.btn-qty').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const form = btn.closest('form');
-                const input = form && form.querySelector('input[name="qty"]');
-                if (!input) return;
-                const delta = parseInt(btn.dataset.delta, 10) || 0;
-                const min = parseInt(input.min, 10); const minVal = isNaN(min) ? 0 : min;
-                const curr = parseInt(input.value, 10); const currVal = isNaN(curr) ? minVal : curr;
-                const next = Math.max(minVal, currVal + delta);
-                input.value = next;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-            });
-        });
-    });
-</script>
+</div>
 
-<style>
-    .link-secondary {
-        color: var(--bs-secondary-color);
-    }
-
-    .link-secondary:hover {
-        text-decoration: underline;
-    }
-
-    .card {
-        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
-        border-radius: .75rem;
-        overflow: hidden;
-    }
-
-    .card-hover {
-        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-    }
-
-    .card-hover:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
-        border-color: color-mix(in oklab, rgba(var(--bs-primary-rgb), .35) 60%, var(--bs-border-color) 40%);
-    }
-
-    .card-title {
-        font-size: 1.25rem;
-        font-weight: 500;
-    }
-
-    .table {
-        width: 100%;
-        margin-bottom: 1rem;
-        color: var(--bs-body-color);
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .table-responsive {
-        border-radius: inherit;
-    }
-
-    .table> :not(caption)>*>* {
-        border-color: var(--bs-border-color);
-        background-clip: padding-box;
-    }
-
-    .table thead th,
-    .table tfoot th {
-        background-color: var(--bs-tertiary-bg);
-        color: var(--bs-secondary-color);
-        font-weight: 500;
-    }
-
-    .table-light {
-        background-color: transparent;
-    }
-
-    .fw-500 {
-        font-weight: 500;
-    }
-
-    .table tbody tr:hover {
-        background-color: var(--bs-secondary-bg);
-    }
-
-    .fw-semibold {
-        font-weight: 600;
-    }
-
-    .text-end {
-        text-align: end;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
-    .empty-state {
-        margin-top: 2rem;
-        text-align: center;
-        color: var(--bs-secondary-color);
-    }
-
-    .empty-state .icon {
-        font-size: 2rem;
-        margin-bottom: .5rem;
-    }
-
-    .w-100 {
-        width: 100%;
-    }
-</style>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'product/css/cart.css' %}">
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'product/js/cart.js' %}"></script>
+{% endblock %}
 {% endblock %}

@@ -1,0 +1,28 @@
+{# Room availability card partial. Requires 's' (service room object), and request plus room_* vars in outer context #}
+<div class="col-12 col-md-6 col-lg-4">
+    <div class="card h-100 rounded-4 card-hover position-relative">
+        <div class="price-ribbon">€{{ s.price|floatformat:2 }} <span class="small text-muted">/ night</span></div>
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="card-title mb-0">Room <span class="fw-semibold">{{ s.room.code|default:"—" }}</span></h5>
+                {% if s.room.max_capacity %}<span class="badge bg-light border text-body">{{ s.room.max_capacity }}
+                    pax</span>{% endif %}
+            </div>
+            <ul class="list-unstyled small mb-3">
+                <li class="d-flex justify-content-between">
+                    <span class="text-muted">Total</span>
+                    <strong class="text-success">€{{ s.total_price|floatformat:2 }}</strong>
+                </li>
+            </ul>
+            <div class="mt-auto d-flex gap-2">
+                {% if request.user.is_authenticated %}
+                <a class="btn btn-outline-primary btn-sm px-3"
+                    href="{% url 'service:quick_book' s.id %}?start={{ room_start|date:'Y-m-d' }}&end={{ room_end|date:'Y-m-d' }}&people={{ room_people }}">Book</a>
+                {% else %}
+                <a class="btn btn-outline-primary btn-sm px-3"
+                    href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Login to book</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

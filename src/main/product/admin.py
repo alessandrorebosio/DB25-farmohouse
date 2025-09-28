@@ -1,9 +1,18 @@
+"""Admin configuration for the Product app.
+
+Adds computed totals for orders, read-only inline for order details, and
+query optimizations to avoid N+1 problems. Includes English docstrings.
+"""
+
 from django.contrib import admin
 from django.db.models import Sum, F, DecimalField
+from django.db.models.functions import Coalesce
 from . import models
 
 
 class OrderDetailInline(admin.TabularInline):
+    """Read-only inline displaying the order lines for an order."""
+
     model = models.OrderDetail
     extra = 0
     autocomplete_fields = ("product",)
@@ -26,27 +35,26 @@ class OrdersAdmin(admin.ModelAdmin):
     inlines = [OrderDetailInline]
     ordering = ("-date",)
     readonly_fields = ("date", "username")
+    list_select_related = ("username",)
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
+        qs = super().get_queryset(request).select_related("username")
         return qs.annotate(
-            _items=Sum("orderdetail__quantity"),
-            _amount=Sum(
-                F("orderdetail__quantity") * F("orderdetail__unit_price"),
+            _items=Coalesce(Sum("orderdetail__quantity"), 0),
+            _amount=Coalesce(
+                Sum(F("orderdetail__quantity") * F("orderdetail__unit_price")),
+                0,
                 output_field=DecimalField(max_digits=12, decimal_places=2),
             ),
         )
 
+    @admin.display(description="Items", ordering="_items")
     def total_items(self, obj):
-        return obj._items or 0
+        return obj._items
 
-    total_items.short_description = "Items"
-
+    @admin.display(description="Amount", ordering="_amount")
     def total_amount(self, obj):
-        return obj._amount or 0
-
-    total_amount.short_description = "Amount"
-    total_amount.admin_order_field = "_amount"
+        return obj._amount
 
 
 @admin.register(models.Product)
@@ -57,12 +65,11 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.annotate(_ordered=Sum("orderdetail__quantity"))
+        return qs.annotate(_ordered=Coalesce(Sum("orderdetail__quantity"), 0))
 
+    @admin.display(description="Ordered Qty", ordering="_ordered")
     def ordered_qty(self, obj):
-        return obj._ordered or 0
-
-    ordered_qty.short_description = "Ordered Qty"
+        return obj._ordered
 
     def short_description(self, obj):
         if not obj.description:

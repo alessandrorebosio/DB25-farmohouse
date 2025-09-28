@@ -1,9 +1,21 @@
+"""Admin configuration for Review.
+
+This module registers the `Review` model in Django admin with a custom form
+that ensures exactly one between `service` and `event` is set.
+"""
+
 from django.contrib import admin
 from django import forms
 from .models import Review
 
 
 class ReviewAdminForm(forms.ModelForm):
+    """Admin form validating that one and only one target is selected.
+
+    Constraints:
+    - Either `service` or `event` must be provided (exclusively).
+    """
+
     class Meta:
         model = Review
         fields = "__all__"
@@ -12,11 +24,9 @@ class ReviewAdminForm(forms.ModelForm):
         cleaned = super().clean()
         service = cleaned.get("service")
         event = cleaned.get("event")
-        # Esattamente uno tra service ed event
+        # Exactly one between service and event
         if bool(service) == bool(event):
-            raise forms.ValidationError(
-                "Imposta solo service oppure event (uno soltanto)."
-            )
+            raise forms.ValidationError("Set either service or event (exactly one).")
         return cleaned
 
 
@@ -37,6 +47,7 @@ class ReviewAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
     list_select_related = ("user", "service", "event")
+    list_per_page = 50
 
     fieldsets = (
         (None, {"fields": ("user", "rating", "comment")}),
@@ -44,7 +55,7 @@ class ReviewAdmin(admin.ModelAdmin):
             "Target",
             {
                 "fields": ("service", "event"),
-                "description": "Compila uno solo tra service ed event.",
+                "description": "Fill exactly one between service and event.",
             },
         ),
         ("Meta", {"fields": ("created_at",)}),

@@ -1,368 +1,187 @@
 {% extends "core/base.html" %}
 {% block title %}Services{% endblock %}
+{% load static %}
+
+{% block header %}
+<div class="row g-2 g-md-3 align-items-center mb-3 mb-md-4">
+    <div class="col-12 col-md-8 mx-auto text-center">
+        <h1 class="display-6 fw-semibold mb-2">Services</h1>
+        <div class="text-muted">Check availability for rooms and the restaurant</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 {% now 'Y-m-d' as today %}
 
-<main class="hero">
-    <div class="container py-5">
-        <header class="text-center mb-5">
-            <h1 class="display-6 fw-semibold mb-2">Services</h1>
-            <p class="text-muted mb-0">Check availability for rooms and the restaurant</p>
-        </header>
-
-        {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-            <div
-                class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} rounded-3">
-                {{ message }}
-            </div>
-            {% endfor %}
+<!-- Rooms -->
+<section class="mb-5">
+    <div class="card card-elevated rounded-4 overflow-hidden card-hover">
+        <div class="section-header d-flex align-items-center gap-2 px-4 py-3">
+            <div class="icon-circle bg-primary-subtle text-primary">🛏️</div>
+            <h2 class="h5 mb-0">Rooms</h2>
         </div>
-        {% endif %}
 
-        <!-- Rooms -->
-        <section class="mb-5">
-            <div class="card card-elevated rounded-4 overflow-hidden card-hover">
-                <div class="section-header d-flex align-items-center gap-2 px-4 py-3">
-                    <div class="icon-circle bg-primary-subtle text-primary">🛏️</div>
-                    <h2 class="h5 mb-0">Rooms</h2>
+        <div class="card-body px-4 pb-4">
+            <form method="get" class="row gy-3 align-items-end needs-validation" novalidate>
+                <div class="col-12 col-md">
+                    <label for="room_start" class="form-label small text-muted">Start date</label>
+                    <div class="input-group input-group-flat w-100">
+                        <span class="input-group-text">📅</span>
+                        <input type="date" id="room_start" name="room_start" class="form-control"
+                            value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}" required>
+                        <div class="invalid-feedback">Required field.</div>
+                    </div>
                 </div>
-
-                <div class="card-body px-4 pb-4">
-                    <form method="get" class="row gy-3 align-items-end needs-validation" novalidate>
-                        <div class="col-12 col-md">
-                            <label for="room_start" class="form-label small text-muted">Start date</label>
-                            <div class="input-group input-group-flat w-100">
-                                <span class="input-group-text">📅</span>
-                                <input type="date" id="room_start" name="room_start" class="form-control"
-                                    value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md">
-                            <label for="room_end" class="form-label small text-muted">End date</label>
-                            <div class="input-group input-group-flat w-100">
-                                <span class="input-group-text">📅</span>
-                                <input type="date" id="room_end" name="room_end" class="form-control"
-                                    value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md">
-                            <label for="room_people" class="form-label small text-muted">People</label>
-                            <div class="input-group input-group-flat w-100">
-                                <span class="input-group-text">👥</span>
-                                <input type="number" id="room_people" name="room_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 2" value="{{ room_people|default:1 }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
-                            <button type="submit" class="btn btn-primary ms-auto ms-md-0 px-4">Search rooms</button>
-                            <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
-                        </div>
-                    </form>
-
-                    {% if room_start and room_end and room_people %}
-                    <hr class="my-4">
-
-                    {% if room_error %}
-                    <div class="alert alert-warning rounded-3">{{ room_error }}</div>
-                    {% endif %}
-
-                    {% if available_rooms %}
-                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
-                        {% with available_rooms|length as count %}
-                        <span class="chip chip-primary">{{ count }} room{% if count != 1 %}s{% endif %} available</span>
-                        {% endwith %}
-                        <span class="chip chip-info">Nights: {{ room_nights }}</span>
-                        <span class="chip chip-muted">{{ room_people }} pax</span>
-                        <span class="chip chip-muted">{{ room_start|date:"d/m/Y" }} → {{ room_end|date:"d/m/Y" }}</span>
+                <div class="col-12 col-md">
+                    <label for="room_end" class="form-label small text-muted">End date</label>
+                    <div class="input-group input-group-flat w-100">
+                        <span class="input-group-text">📅</span>
+                        <input type="date" id="room_end" name="room_end" class="form-control"
+                            value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}" required>
+                        <div class="invalid-feedback">Required field.</div>
                     </div>
-
-                    <div class="row g-3 g-md-4">
-                        {% for s in available_rooms %}
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="card h-100 rounded-4 card-hover position-relative">
-                                <div class="price-ribbon">
-                                    €{{ s.price|floatformat:2 }} <span class="small text-muted">/ night</span>
-                                </div>
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">Room <span class="fw-semibold">
-                                                {{ s.room.code|default:"—" }}</span></h5>
-                                        {% if s.room.max_capacity %}
-                                        <span class="badge bg-light border text-body">{{ s.room.max_capacity }}
-                                            pax</span>
-                                        {% endif %}
-                                    </div>
-                                    <ul class="list-unstyled small mb-3">
-                                        <li class="d-flex justify-content-between">
-                                            <span class="text-muted">Total</span>
-                                            <strong class="text-success">€{{ s.total_price|floatformat:2 }}</strong>
-                                        </li>
-                                    </ul>
-                                    <div class="mt-auto d-flex gap-2">
-                                        {% if request.user.is_authenticated %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'service:quick_book' s.id %}?start={{ room_start|date:'Y-m-d' }}&end={{ room_end|date:'Y-m-d' }}&people={{ room_people }}">
-                                            Book
-                                        </a>
-                                        {% else %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
-                                            Login to book
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state text-center py-5">
-                        <div class="display-6 mb-2">🛏️</div>
-                        <h5 class="mb-1">No rooms available</h5>
-                        <p class="text-muted mb-0">Try changing dates or number of people.</p>
-                    </div>
-                    {% endif %}
-                    {% endif %}
                 </div>
+                <div class="col-12 col-md">
+                    <label for="room_people" class="form-label small text-muted">People</label>
+                    <div class="input-group input-group-flat w-100">
+                        <span class="input-group-text">👥</span>
+                        <input type="number" id="room_people" name="room_people" class="form-control" min="1" step="1"
+                            placeholder="e.g. 2" value="{{ room_people|default:1 }}" required>
+                        <div class="invalid-feedback">Required field.</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
+                    <button type="submit" class="btn btn-primary ms-auto ms-md-0 px-4">Search rooms</button>
+                    <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+                </div>
+            </form>
+
+            {% if room_start and room_end and room_people %}
+            <hr class="my-4">
+
+            {% if room_error %}
+            <div class="alert alert-warning rounded-3">{{ room_error }}</div>
+            {% endif %}
+
+            {% if available_rooms %}
+            <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
+                {% with available_rooms|length as count %}
+                <span class="chip chip-primary">{{ count }} room{% if count != 1 %}s{% endif %} available</span>
+                {% endwith %}
+                <span class="chip chip-info">Nights: {{ room_nights }}</span>
+                <span class="chip chip-muted">{{ room_people }} pax</span>
+                <span class="chip chip-muted">{{ room_start|date:"d/m/Y" }} → {{ room_end|date:"d/m/Y" }}</span>
             </div>
-        </section>
 
-        <!-- Restaurant -->
-        <section>
-            <div class="card card-elevated rounded-4 overflow-hidden card-hover">
-                <div class="section-header d-flex align-items-center gap-2 px-4 py-3">
-                    <div class="icon-circle bg-secondary-subtle text-secondary">🍽️</div>
-                    <h2 class="h5 mb-0">Restaurant</h2>
-                </div>
-
-                <div class="card-body px-4 pb-4">
-                    <form method="get" class="row gy-3 align-items-end needs-validation" novalidate>
-                        <div class="col-12 col-md">
-                            <label for="table_date" class="form-label small text-muted">Date</label>
-                            <div class="input-group input-group-flat w-100">
-                                <span class="input-group-text">📅</span>
-                                <input type="date" id="table_date" name="table_date" class="form-control"
-                                    value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md">
-                            <label for="table_meal" class="form-label small text-muted">Meal</label>
-                            <div class="input-group input-group-flat w-100">
-                                <span class="input-group-text">🍽️</span>
-                                <select id="table_meal" name="table_meal" class="form-select" required>
-                                    <option value="" {% if not table_meal %}selected{% endif %}>Select…</option>
-                                    <option value="breakfast" {% if table_meal == 'breakfast' %}selected{% endif %}>
-                                        Breakfast</option>
-                                    <option value="lunch" {% if table_meal == 'lunch' %}selected{% endif %}>Lunch</option>
-                                    <option value="dinner" {% if table_meal == 'dinner' %}selected{% endif %}>Dinner
-                                    </option>
-                                </select>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md">
-                            <label for="table_people" class="form-label small text-muted">People</label>
-                            <div class="input-group input-group-flat w-100">
-                                <span class="input-group-text">👥</span>
-                                <input type="number" id="table_people" name="table_people" class="form-control" min="1"
-                                    step="1" placeholder="e.g. 4" value="{{ table_people|default:1 }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
-                            <button type="submit" class="btn btn-primary ms-auto ms-md-0 px-4">Search tables</button>
-                            <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
-                        </div>
-                    </form>
-
-                    {% if table_date and table_people and table_meal %}
-                    <hr class="my-4">
-
-                    {% if table_error %}
-                    <div class="alert alert-warning rounded-3">{{ table_error }}</div>
-                    {% endif %}
-
-                    {% if available_tables %}
-                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
-                        {% with available_tables|length as count %}
-                        <span class="chip chip-primary">{{ count }} table{% if count != 1 %}s{% endif %}
-                            available</span>
-                        {% endwith %}
-                        <span class="chip chip-info">{{ table_date|date:"d/m/Y" }}</span>
-                        <span class="chip chip-muted">{{ table_people }} pax</span>
-                        <span class="chip chip-muted">{{ table_meal_label }}</span>
-                    </div>
-
-                    <div class="row g-3 g-md-4">
-                        {% for s in available_tables %}
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="card h-100 rounded-4 card-hover">
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">Table <span class="fw-semibold">
-                                                {{ s.restaurant.code|default:"—" }}</span></h5>
-                                        {% if s.restaurant.max_capacity %}
-                                        <span class="badge bg-light border text-body">{{ s.restaurant.max_capacity }}
-                                            pax</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mt-auto d-flex gap-2">
-                                        {% if request.user.is_authenticated %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}&people={{ table_people }}&meal={{ table_meal }}">
-                                            Book
-                                        </a>
-                                        {% else %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
-                                            Login to book
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state text-center py-5">
-                        <div class="display-6 mb-2">🍽️</div>
-                        <h5 class="mb-1">No tables available</h5>
-                        <p class="text-muted mb-0">Try changing the date or number of people.</p>
-                    </div>
-                    {% endif %}
-                    {% elif table_date and table_people and not table_meal %}
-                    <hr class="my-4">
-                    <div class="alert alert-warning rounded-3">Seleziona il pasto (Colazione, Pranzo o Cena).</div>
-                    {% endif %}
-                </div>
+            <div class="row g-3 g-md-4">
+                {% for s in available_rooms %}
+                {% include 'service/partials/room_card.html' %}
+                {% endfor %}
             </div>
-        </section>
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <div class="display-6 mb-2">🛏️</div>
+                <h5 class="mb-1">No rooms available</h5>
+                <p class="text-muted mb-0">Try changing dates or number of people.</p>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
     </div>
-</main>
+</section>
 
-<style>
-    .card-elevated {
-        box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.06);
-    }
+<!-- Restaurant -->
+<section>
+    <div class="card card-elevated rounded-4 overflow-hidden card-hover">
+        <div class="section-header d-flex align-items-center gap-2 px-4 py-3">
+            <div class="icon-circle bg-secondary-subtle text-secondary">🍽️</div>
+            <h2 class="h5 mb-0">Restaurant</h2>
+        </div>
 
-    .card-hover {
-        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
-    }
+        <div class="card-body px-4 pb-4">
+            <form method="get" class="row gy-3 align-items-end needs-validation" novalidate>
+                <div class="col-12 col-md">
+                    <label for="table_date" class="form-label small text-muted">Date</label>
+                    <div class="input-group input-group-flat w-100">
+                        <span class="input-group-text">📅</span>
+                        <input type="date" id="table_date" name="table_date" class="form-control"
+                            value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}" required>
+                        <div class="invalid-feedback">Required field.</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md">
+                    <label for="table_meal" class="form-label small text-muted">Meal</label>
+                    <div class="input-group input-group-flat w-100">
+                        <span class="input-group-text">🍽️</span>
+                        <select id="table_meal" name="table_meal" class="form-select" required>
+                            <option value="" {% if not table_meal %}selected{% endif %}>Select…</option>
+                            <option value="breakfast" {% if table_meal == 'breakfast' %}selected{% endif %}>
+                                Breakfast</option>
+                            <option value="lunch" {% if table_meal == 'lunch' %}selected{% endif %}>Lunch</option>
+                            <option value="dinner" {% if table_meal == 'dinner' %}selected{% endif %}>Dinner
+                            </option>
+                        </select>
+                        <div class="invalid-feedback">Required field.</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md">
+                    <label for="table_people" class="form-label small text-muted">People</label>
+                    <div class="input-group input-group-flat w-100">
+                        <span class="input-group-text">👥</span>
+                        <input type="number" id="table_people" name="table_people" class="form-control" min="1" step="1"
+                            placeholder="e.g. 4" value="{{ table_people|default:1 }}" required>
+                        <div class="invalid-feedback">Required field.</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
+                    <button type="submit" class="btn btn-primary ms-auto ms-md-0 px-4">Search tables</button>
+                    <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+                </div>
+            </form>
 
-    .card-hover:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 0.9rem 1.6rem rgba(0, 0, 0, 0.08);
-        border-color: color-mix(in oklab, rgba(var(--bs-primary-rgb), .35) 60%, var(--bs-border-color) 40%);
-    }
+            {% if table_date and table_people and table_meal %}
+            <hr class="my-4">
 
-    .section-header {
-        background-color: var(--bs-secondary-bg);
-        border-bottom: 1px solid var(--bs-border-color);
-    }
+            {% if table_error %}
+            <div class="alert alert-warning rounded-3">{{ table_error }}</div>
+            {% endif %}
 
-    .icon-circle {
-        width: 36px;
-        height: 36px;
-        border-radius: 999px;
-        display: inline-grid;
-        place-items: center;
-        font-size: 18px;
-    }
+            {% if available_tables %}
+            <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
+                {% with available_tables|length as count %}
+                <span class="chip chip-primary">{{ count }} table{% if count != 1 %}s{% endif %} available</span>
+                {% endwith %}
+                <span class="chip chip-info">{{ table_date|date:"d/m/Y" }}</span>
+                <span class="chip chip-muted">{{ table_people }} pax</span>
+                <span class="chip chip-muted">{{ table_meal_label }}</span>
+            </div>
 
-    /* Use Bootstrap's built-in bg-*-subtle utilities instead of overriding them */
+            <div class="row g-3 g-md-4">
+                {% for s in available_tables %}
+                {% include 'service/partials/table_card.html' %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <div class="display-6 mb-2">🍽️</div>
+                <h5 class="mb-1">No tables available</h5>
+                <p class="text-muted mb-0">Try changing the date or number of people.</p>
+            </div>
+            {% endif %}
+            {% elif table_date and table_people and not table_meal %}
+            <hr class="my-4">
+            <div class="alert alert-warning rounded-3">Select the meal (Breakfast, Lunch, or Dinner).</div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
 
-    .input-group-flat .input-group-text {
-        background: var(--bs-tertiary-bg);
-        border-right: 0;
-    }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'service/css/services.css' %}">
+{% endblock %}
 
-    .input-group-flat .form-control {
-        border-left: 0;
-    }
-
-    .form-control:focus {
-        box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .2);
-    }
-
-    .chip {
-        --bg: var(--bs-secondary-bg);
-        --fg: var(--bs-body-color);
-        background: var(--bg);
-        color: var(--fg);
-        border-radius: 999px;
-        padding: .35rem .75rem;
-        font-size: .85rem;
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-    }
-
-    .chip-primary {
-        --bg: var(--bs-primary-bg-subtle);
-        --fg: var(--bs-primary);
-    }
-
-    .chip-info {
-        --bg: var(--bs-info-bg-subtle);
-        --fg: var(--bs-info);
-    }
-
-    .chip-muted {
-        --bg: var(--bs-secondary-bg-subtle);
-        --fg: var(--bs-secondary-color);
-    }
-
-    .price-ribbon {
-        position: absolute;
-        top: 10px;
-        right: -6px;
-        background: var(--bs-body-bg);
-        color: var(--bs-primary);
-        border: 1px solid rgba(var(--bs-primary-rgb), .25);
-        border-right: none;
-        padding: .35rem .6rem .35rem .75rem;
-        border-radius: 999px 0 0 999px;
-        box-shadow: 0 .25rem .75rem rgba(var(--bs-primary-rgb), .08);
-        font-weight: 600;
-    }
-</style>
-
-<script>
-    (function () {
-        const start = document.getElementById('room_start');
-        const end = document.getElementById('room_end');
-        if (start && end) {
-            const sync = () => {
-                if (start.value) end.min = start.value;
-                if (end.value && start.value && end.value < start.value) end.value = start.value;
-            };
-            start.addEventListener('change', sync);
-            window.addEventListener('DOMContentLoaded', sync);
-        }
-    })();
-
-    // Bootstrap client-side validation for required fields
-    (function () {
-        const forms = document.querySelectorAll('form.needs-validation');
-        Array.from(forms).forEach((form) => {
-            form.addEventListener('submit', (event) => {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    })();
-</script>
+{% block extra_js %}
+<script src="{% static 'service/js/services.js' %}"></script>
 {% endblock %}

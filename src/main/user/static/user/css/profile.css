@@ -1,0 +1,100 @@
+/* Profile page tables — stronger rounded corners and subtle borders */
+
+/* Tuning variables for this page */
+:root {
+    --profile-table-radius: 1.1rem;
+    --profile-table-border: rgba(0, 0, 0, 0.06);
+}
+
+.card .table,
+.accordion .table {
+    border-radius: var(--profile-table-radius);
+    border-spacing: 0;
+}
+
+/* The Bootstrap scroll wrapper should handle the clipping */
+.card .table-responsive,
+.accordion .table-responsive {
+    border-radius: var(--profile-table-radius);
+    overflow: hidden;
+    border: 1px solid var(--bs-border-color);
+    mask-image: radial-gradient(circle, #000 99%, transparent 100%);
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+/* If a card has a header, keep the table's/wrapper top corners square to align edges */
+.card>.card-header+.card-body .table,
+.card>.card-header+.card-body .table-responsive {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: var(--profile-table-radius);
+    border-bottom-right-radius: var(--profile-table-radius);
+}
+
+/* Keep top border visible under the card header */
+/* (no override — previously removed) */
+
+/* Rounded corners only at the bottom edge (let top look standard under card header) */
+
+.table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: var(--profile-table-radius);
+}
+
+.table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: var(--profile-table-radius);
+}
+
+/* Softer table borders for a cleaner look */
+.table {
+    --bs-table-border-color: rgba(0, 0, 0, 0.08);
+    width: 100%;
+    margin-bottom: 1rem;
+    color: var(--bs-body-color);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* match cart.css: consistent borders and clipping */
+.table> :not(caption)>*>* {
+    border-color: var(--bs-border-color);
+    background-clip: padding-box;
+}
+
+/* Header cells — use Bootstrap background variable */
+.table thead th,
+.table tfoot th {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+/* neutralize Bootstrap's .table-light so our header color shows */
+.table-light {
+    background-color: transparent;
+}
+
+/* Avoid accidental extra spacing inside accordions */
+.accordion .accordion-body .table {
+    margin-bottom: 0;
+}
+
+/* When inside a scroll wrapper, avoid extra gap */
+.table-responsive>.table {
+    margin-bottom: 0;
+}
+
+/* Small buttons in table cells look balanced */
+.table .btn.btn-sm {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Hover rows, consistent with cart.css */
+.table tbody tr:hover {
+    background-color: var(--bs-secondary-bg);
+}
+
+/* Ensure cards clip content around their headers (Your shifts/orders/etc.) */
+.card.rounded-4 {
+    overflow: hidden;
+}

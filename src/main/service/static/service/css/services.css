@@ -1,0 +1,61 @@
+/* Services page styles (only page-specific rules; shared atoms in ui.css) */
+
+.card-elevated {
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.06);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.card-elevated.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.08);
+}
+
+.section-header {
+    background-color: var(--bs-secondary-bg);
+}
+
+.icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.input-group-flat {
+    border-radius: .5rem;
+    overflow: hidden;
+
+}
+
+.input-group-flat .input-group-text {
+    background: var(--bs-tertiary-bg);
+    border-right: 0;
+}
+
+.input-group-flat .form-control,
+.input-group-flat .form-select {
+    border-left: 0;
+}
+
+/* focus ring provided globally by Bootstrap; custom kept if visually required */
+.form-control:focus {
+    box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .2);
+}
+
+/* Use .chip + .chip-md + variant classes from ui.css */
+/* Use .price-ribbon from ui.css */
+
+.empty-state .display-6 {
+    font-size: 3rem;
+}
+
+@media (min-width: 768px) {
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+}

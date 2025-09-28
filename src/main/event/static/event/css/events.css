@@ -1,0 +1,26 @@
+/* Events page specific styles */
+
+/* Capacity bar */
+.capacity-track {
+    height: 8px;
+    background: var(--bs-secondary-bg);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.capacity-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--bs-primary), var(--bs-primary-bg-subtle));
+    transition: width .3s ease;
+}
+
+/* Inputs inside small qty group: theme-aware background */
+.qty-group .input-group-text {
+    background: var(--bs-tertiary-bg);
+    border-right: 0;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .2);
+}
