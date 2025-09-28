@@ -1,5 +1,6 @@
 {% extends "core/base.html" %}
 {% block title %}Services{% endblock %}
+{% load static %}
 
 {% block content %}
 {% now 'Y-m-d' as today %}
@@ -38,7 +39,7 @@
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_start" name="room_start" class="form-control"
                                     value="{{ room_start|date:'Y-m-d' }}" min="{{ today }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
+                                <div class="invalid-feedback">Required field.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md">
@@ -47,7 +48,7 @@
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="room_end" name="room_end" class="form-control"
                                     value="{{ room_end|date:'Y-m-d' }}" min="{{ room_start|date:'Y-m-d' }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
+                                <div class="invalid-feedback">Required field.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md">
@@ -56,7 +57,7 @@
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="room_people" name="room_people" class="form-control" min="1"
                                     step="1" placeholder="e.g. 2" value="{{ room_people|default:1 }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
+                                <div class="invalid-feedback">Required field.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
@@ -84,42 +85,7 @@
 
                     <div class="row g-3 g-md-4">
                         {% for s in available_rooms %}
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="card h-100 rounded-4 card-hover position-relative">
-                                <div class="price-ribbon">
-                                    €{{ s.price|floatformat:2 }} <span class="small text-muted">/ night</span>
-                                </div>
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">Room <span class="fw-semibold">
-                                                {{ s.room.code|default:"—" }}</span></h5>
-                                        {% if s.room.max_capacity %}
-                                        <span class="badge bg-light border text-body">{{ s.room.max_capacity }}
-                                            pax</span>
-                                        {% endif %}
-                                    </div>
-                                    <ul class="list-unstyled small mb-3">
-                                        <li class="d-flex justify-content-between">
-                                            <span class="text-muted">Total</span>
-                                            <strong class="text-success">€{{ s.total_price|floatformat:2 }}</strong>
-                                        </li>
-                                    </ul>
-                                    <div class="mt-auto d-flex gap-2">
-                                        {% if request.user.is_authenticated %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'service:quick_book' s.id %}?start={{ room_start|date:'Y-m-d' }}&end={{ room_end|date:'Y-m-d' }}&people={{ room_people }}">
-                                            Book
-                                        </a>
-                                        {% else %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
-                                            Login to book
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'service/partials/room_card.html' %}
                         {% endfor %}
                     </div>
                     {% else %}
@@ -150,7 +116,7 @@
                                 <span class="input-group-text">📅</span>
                                 <input type="date" id="table_date" name="table_date" class="form-control"
                                     value="{{ table_date|date:'Y-m-d' }}" min="{{ today }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
+                                <div class="invalid-feedback">Required field.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md">
@@ -165,7 +131,7 @@
                                     <option value="dinner" {% if table_meal == 'dinner' %}selected{% endif %}>Dinner
                                     </option>
                                 </select>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
+                                <div class="invalid-feedback">Required field.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md">
@@ -174,7 +140,7 @@
                                 <span class="input-group-text">👥</span>
                                 <input type="number" id="table_people" name="table_people" class="form-control" min="1"
                                     step="1" placeholder="e.g. 4" value="{{ table_people|default:1 }}" required>
-                                <div class="invalid-feedback">Campo obbligatorio.</div>
+                                <div class="invalid-feedback">Required field.</div>
                             </div>
                         </div>
                         <div class="col-12 col-md-auto d-flex gap-2 justify-content-md-end">
@@ -203,33 +169,7 @@
 
                     <div class="row g-3 g-md-4">
                         {% for s in available_tables %}
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="card h-100 rounded-4 card-hover">
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">Table <span class="fw-semibold">
-                                                {{ s.restaurant.code|default:"—" }}</span></h5>
-                                        {% if s.restaurant.max_capacity %}
-                                        <span class="badge bg-light border text-body">{{ s.restaurant.max_capacity }}
-                                            pax</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="mt-auto d-flex gap-2">
-                                        {% if request.user.is_authenticated %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'service:quick_book' s.id %}?date={{ table_date|date:'Y-m-d' }}&people={{ table_people }}&meal={{ table_meal }}">
-                                            Book
-                                        </a>
-                                        {% else %}
-                                        <a class="btn btn-outline-primary btn-sm px-3"
-                                            href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">
-                                            Login to book
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'service/partials/table_card.html' %}
                         {% endfor %}
                     </div>
                     {% else %}
@@ -241,101 +181,14 @@
                     {% endif %}
                     {% elif table_date and table_people and not table_meal %}
                     <hr class="my-4">
-                    <div class="alert alert-warning rounded-3">Seleziona il pasto (Colazione, Pranzo o Cena).</div>
+                    <div class="alert alert-warning rounded-3">Select the meal (Breakfast, Lunch, or Dinner).</div>
                     {% endif %}
                 </div>
             </div>
         </section>
     </div>
+
 </main>
-
-<style>
-    .card-elevated {
-        box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.06);
-    }
-
-    .card-hover {
-        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
-    }
-
-    .card-hover:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 0.9rem 1.6rem rgba(0, 0, 0, 0.08);
-        border-color: color-mix(in oklab, rgba(var(--bs-primary-rgb), .35) 60%, var(--bs-border-color) 40%);
-    }
-
-    .section-header {
-        background-color: var(--bs-secondary-bg);
-        border-bottom: 1px solid var(--bs-border-color);
-    }
-
-    .icon-circle {
-        width: 36px;
-        height: 36px;
-        border-radius: 999px;
-        display: inline-grid;
-        place-items: center;
-        font-size: 18px;
-    }
-
-    /* Use Bootstrap's built-in bg-*-subtle utilities instead of overriding them */
-
-    .input-group-flat .input-group-text {
-        background: var(--bs-tertiary-bg);
-        border-right: 0;
-    }
-
-    .input-group-flat .form-control {
-        border-left: 0;
-    }
-
-    .form-control:focus {
-        box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .2);
-    }
-
-    .chip {
-        --bg: var(--bs-secondary-bg);
-        --fg: var(--bs-body-color);
-        background: var(--bg);
-        color: var(--fg);
-        border-radius: 999px;
-        padding: .35rem .75rem;
-        font-size: .85rem;
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-    }
-
-    .chip-primary {
-        --bg: var(--bs-primary-bg-subtle);
-        --fg: var(--bs-primary);
-    }
-
-    .chip-info {
-        --bg: var(--bs-info-bg-subtle);
-        --fg: var(--bs-info);
-    }
-
-    .chip-muted {
-        --bg: var(--bs-secondary-bg-subtle);
-        --fg: var(--bs-secondary-color);
-    }
-
-    .price-ribbon {
-        position: absolute;
-        top: 10px;
-        right: -6px;
-        background: var(--bs-body-bg);
-        color: var(--bs-primary);
-        border: 1px solid rgba(var(--bs-primary-rgb), .25);
-        border-right: none;
-        padding: .35rem .6rem .35rem .75rem;
-        border-radius: 999px 0 0 999px;
-        box-shadow: 0 .25rem .75rem rgba(var(--bs-primary-rgb), .08);
-        font-weight: 600;
-    }
-</style>
 
 <script>
     (function () {
@@ -365,4 +218,8 @@
         });
     })();
 </script>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'service/services.css' %}">
 {% endblock %}
