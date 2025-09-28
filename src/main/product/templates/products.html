@@ -21,15 +21,18 @@
         </div>
     </div>
 </form>
+
+<div class="d-flex justify-content-center">
+    <p class="text-muted small mb-3 mb-0">
+        {% with products|length as count %}
+        <span class="chip chip-muted">{{ count }} product{{ count|pluralize:"s" }} found</span>
+        {% if q %}<span class="chip chip-info">Query: “{{ q }}”</span>{% endif %}
+        {% endwith %}
+    </p>
+</div>
 {% endblock %}
 
 {% block content %}
-<p class="text-muted small mb-3">
-    {% with products|length as count %}
-    <span class="chip chip-muted">{{ count }} product{{ count|pluralize:"s" }} found</span>
-    {% if q %}<span class="chip chip-info">Query: “{{ q }}”</span>{% endif %}
-    {% endwith %}
-</p>
 
 {% if products %}
 <div class="row g-3 g-md-4">

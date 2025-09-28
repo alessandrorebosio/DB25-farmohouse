@@ -1,19 +1,40 @@
+"""Views for reading and writing reviews.
+
+All endpoints operate against unmanaged tables. Where helpful, we include
+approximate SQL to document what Django executes under the hood.
+"""
+
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseForbidden
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-
+from django.contrib import messages
 
 from users.views import _ensure_datetime
 from .models import Review
-from service.models import *
-from event.models import *
+from service.models import ReservationDetail
+from event.models import Event, EventSubscription
 from .forms import ReviewForm
 
 
 def review_view(request: HttpRequest) -> HttpResponse:
+    """List and filter reviews for services and events.
+
+    Supported GET filters: target(service|event|all), service_type, rating_min,
+    rating_max, username, q, order(newest|oldest|rating_desc|rating_asc), page.
+
+    Approx SQL (simplified):
+        SELECT r.*
+        FROM REVIEW r
+        LEFT JOIN SERVICE s ON s.id = r.service
+        LEFT JOIN EVENT e ON e.id = r.event
+        LEFT JOIN USERS u ON u.username = r.`user`
+        WHERE ... (based on filters)
+        ORDER BY r.created_at DESC
+        LIMIT 10 OFFSET X;
+    """
     target = request.GET.get("target", "all")
     service_type = request.GET.get("service_type", "")
     rating_min = request.GET.get("rating_min") or None
@@ -79,6 +100,20 @@ def review_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def event_review_view(request, event_id):
+    """Create or update a review for an event the user attended.
+
+    Guards attendance using `EventSubscription`. One review per user-event due to
+    a unique constraint. On success, redirects to `profile` and flashes a message.
+
+    SQL (simplified):
+        SELECT 1 FROM EVENT_SUBSCRIPTION
+        WHERE event = %s AND `user` = %s
+        LIMIT 1;
+
+        INSERT INTO REVIEW (`user`, event, rating, comment, created_at)
+        VALUES (%s, %s, %s, %s, NOW())
+        ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment);
+    """
     event = get_object_or_404(Event, pk=event_id)
 
     if not EventSubscription.objects.filter(
@@ -95,31 +130,39 @@ def event_review_view(request, event_id):
             r.user_id = request.user.username
             r.event = event
             r.save()
+            messages.success(request, "Your review has been saved.")
             return redirect("profile")
     else:
         form = ReviewForm(instance=review)
 
-    # Use unified review form template
     return render(request, "review_form.html", {"form": form, "event": event})
 
 
 @login_required
 def service_review_view(request, service_id):
-    # Ottieni l'ultima ReservationDetail per questo servizio e utente
+    """Create or update a review for a service after reservation end date.
+
+    Checks the user has a past reservation for the service. On success, flashes
+    a message and redirects to `profile`.
+
+    SQL (simplified):
+        SELECT rd.*
+        FROM RESERVATION_DETAIL rd
+        JOIN RESERVATION r ON r.id = rd.reservation
+        WHERE rd.service = %s AND r.username = %s
+        ORDER BY rd.end_date DESC
+        LIMIT 1;
+    """
     detail = get_object_or_404(
         ReservationDetail.objects.filter(
             service_id=service_id, reservation__username_id=request.user.username
-        ).order_by(
-            "-end_date"
-        ),  # Prendi la prenotazione più recente
-        end_date__lte=timezone.now(),  # Solo prenotazioni concluse
+        ).order_by("-end_date"),
+        end_date__lte=timezone.now(),
     )
 
-    # Verifica che l'utente possa recensire (il filtro sopra già fa questo controllo)
     if not (detail.end_date and _ensure_datetime(detail.end_date) <= timezone.now()):
         return HttpResponseForbidden("Cannot review before end date.")
 
-    # Cerca una recensione esistente
     review = Review.objects.filter(
         user_id=request.user.username, service_id=service_id
     ).first()
@@ -131,9 +174,9 @@ def service_review_view(request, service_id):
             r.user_id = request.user.username
             r.service_id = service_id
             r.save()
+            messages.success(request, "Your review has been saved.")
             return redirect("profile")
     else:
         form = ReviewForm(instance=review)
 
-    # Use unified review form template
     return render(request, "review_form.html", {"form": form, "detail": detail})
