@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "users.backends.UserBackend",
+    "user.backends.UserBackend",
 ]
 
 INSTALLED_APPS = [
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "core",
-    "users",
+    "user",
     "product",
     "event",
     "service",

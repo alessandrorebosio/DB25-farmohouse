@@ -1,0 +1,16 @@
+<div class="col">
+    <div class="card h-100 shadow-sm rounded-4 card-hover">
+        <div class="card-body">
+            <h5 class="text-center card-title mb-3">{{ title }}</h5>
+            {% if items %}
+            <ol class="list-group list-group-numbered list-group-flush">
+                {% for item in items %}
+                {% include item_template with item=item only %}
+                {% endfor %}
+            </ol>
+            {% else %}
+            <p class="text-center text-muted small mb-0">{{ empty_text }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>

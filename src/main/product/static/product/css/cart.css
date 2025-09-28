@@ -1,0 +1,84 @@
+/* Styles extracted from cart.html */
+.link-secondary {
+    color: var(--bs-secondary-color);
+}
+
+.link-secondary:hover {
+    text-decoration: underline;
+}
+
+.card {
+    border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
+    border-radius: .75rem;
+    overflow: hidden;
+}
+
+/* Uses shared .card-hover from ui.css; optional stronger variant could use .card-hover--lift */
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: var(--bs-body-color);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-responsive {
+    border-radius: inherit;
+}
+
+.table> :not(caption)>*>* {
+    border-color: var(--bs-border-color);
+    background-clip: padding-box;
+}
+
+.table thead th,
+.table tfoot th {
+    background-color: var(--bs-tertiary-bg);
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+}
+
+.table-light {
+    background-color: transparent;
+}
+
+.fw-500 {
+    font-weight: 500;
+}
+
+.table tbody tr:hover {
+    background-color: var(--bs-secondary-bg);
+}
+
+.fw-semibold {
+    font-weight: 600;
+}
+
+.text-end {
+    text-align: end;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.empty-state {
+    margin-top: 2rem;
+    text-align: center;
+    color: var(--bs-secondary-color);
+}
+
+.empty-state .icon {
+    font-size: 2rem;
+    margin-bottom: .5rem;
+}
+
+.w-100 {
+    width: 100%;
+}

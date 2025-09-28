@@ -1,3 +1,9 @@
+"""Admin configuration for Services and Reservations.
+
+This improves display helpers, pagination, and inline filtering to show only the
+relevant inline (Restaurant or Room) based on Service.type.
+"""
+
 from django.contrib import admin
 from .models import Reservation, Service, Restaurant, Room
 
@@ -27,23 +33,23 @@ class ReservationAdmin(admin.ModelAdmin):
     list_select_related = ("username",)
     autocomplete_fields = ("username",)
     readonly_fields = ("reservation_date",)
+    list_per_page = 50
 
+    @admin.display(description="User", ordering="username")
     def username_display(self, obj):
         return getattr(obj.username, "username", "") or ""
-
-    username_display.short_description = "User"
-    username_display.admin_order_field = "username"
 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ("id", "type", "price", "code_display", "capacity_display")
-    list_filter = ("type", )
+    list_filter = ("type",)
     search_fields = ("id", "restaurant__code", "room__code")
     ordering = ("id",)
     list_select_related = ("restaurant", "room")
     actions = ("mark_available", "mark_occupied", "mark_maintenance")
     inlines = [RestaurantInline, RoomInline]
+    list_per_page = 50
 
     def get_inline_instances(self, request, obj=None):
         instances = super().get_inline_instances(request, obj)
@@ -57,6 +63,7 @@ class ServiceAdmin(admin.ModelAdmin):
                 filtered.append(inline)
         return filtered
 
+    @admin.display(description="Code")
     def code_display(self, obj):
         return (
             getattr(getattr(obj, "room", None), "code", None)
@@ -64,8 +71,7 @@ class ServiceAdmin(admin.ModelAdmin):
             or ""
         )
 
-    code_display.short_description = "Code"
-
+    @admin.display(description="Capacity")
     def capacity_display(self, obj):
         return (
             getattr(getattr(obj, "room", None), "max_capacity", None)
@@ -73,25 +79,23 @@ class ServiceAdmin(admin.ModelAdmin):
             or ""
         )
 
-    capacity_display.short_description = "Capacity"
-
     def mark_available(self, request, queryset):
         updated = queryset.update(status="AVAILABLE")
-        self.message_user(request, f"{updated} servizi impostati come disponibili.")
+        self.message_user(request, f"{updated} services set to AVAILABLE.")
 
-    mark_available.short_description = "Imposta come AVAILABLE"
+    mark_available.short_description = "Set status to AVAILABLE"
 
     def mark_occupied(self, request, queryset):
         updated = queryset.update(status="OCCUPIED")
-        self.message_user(request, f"{updated} servizi impostati come occupati.")
+        self.message_user(request, f"{updated} services set to OCCUPIED.")
 
-    mark_occupied.short_description = "Imposta come OCCUPIED"
+    mark_occupied.short_description = "Set status to OCCUPIED"
 
     def mark_maintenance(self, request, queryset):
         updated = queryset.update(status="MAINTENANCE")
-        self.message_user(request, f"{updated} servizi impostati in manutenzione.")
+        self.message_user(request, f"{updated} services set to MAINTENANCE.")
 
-    mark_maintenance.short_description = "Imposta come MAINTENANCE"
+    mark_maintenance.short_description = "Set status to MAINTENANCE"
 
 
 @admin.register(Restaurant)

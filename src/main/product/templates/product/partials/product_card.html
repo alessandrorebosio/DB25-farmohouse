@@ -1,0 +1,30 @@
+{# Product card partial. Requires 'p' (product) and 'request' in context #}
+<div class="col-12">
+    <div class="card h-100 shadow-sm rounded-4 card-hover position-relative">
+        <div class="price-ribbon">€ {{ p.price|floatformat:2 }}</div>
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title mb-2 text-start" title="{{ p.name }}">{{ p.name }}</h5>
+            {% if p.description %}
+            <p class="text-muted small mb-3 text-start">{{ p.description }}</p>
+            {% endif %}
+            <div class="mt-auto d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <span class="h5 mb-0 text-success">€ {{ p.price|floatformat:2 }}</span>
+                {% if request.user.is_authenticated %}
+                <form method="post" action="{% url 'add_to_cart' %}" class="d-flex align-items-center gap-2 m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ p.id }}">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <div class="input-group input-group-sm" style="max-width: 11rem;">
+                        <span class="input-group-text">Qty</span>
+                        <input type="number" name="qty" min="1" value="1" class="form-control text-center">
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Add to cart</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}?next={{ request.get_full_path }}"
+                    class="btn btn-outline-primary btn-sm">Login to buy</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

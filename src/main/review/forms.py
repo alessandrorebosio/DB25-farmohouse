@@ -1,21 +1,25 @@
-"""
-Forms per il modello Review.
+"""Forms for the Review model.
 
-Uso consigliato nelle view:
+Recommended usage in a view:
     review = Review.objects.filter(user=request.user, event=event).first()
     form = ReviewForm(request.POST or None, instance=review)
     if form.is_valid():
-        form.save(user=request.user, event=event)   # oppure service=service
+        form.save(user=request.user, event=event)  # or service=service
 
-La form gestisce sia create che update. La save accetta parametri opzionali
-(user, event, service) per assegnare i campi mancanti prima del salvataggio.
+This form handles both create and update. The custom save accepts optional
+keywords (user, event, service) to assign missing foreign keys before saving.
 """
+
+from typing import Optional, Any
 
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Review
 
-# Scelte per il rating, mostrate come radio (5..1)
+# Max length for the optional free-text comment
+MAX_COMMENT_LEN: int = 2000
+
+# Rating choices displayed as radio buttons (5..1)
 RATING_CHOICES = [
     (5, "5 — ★★★★★"),
     (4, "4 — ★★★★"),
@@ -26,7 +30,21 @@ RATING_CHOICES = [
 
 
 class ReviewForm(forms.ModelForm):
-    # sovrascriviamo il campo rating per usare RadioSelect e coercizione a int
+    """Form to create or update a Review.
+
+    Fields
+    - rating: integer 1..5, rendered as radio buttons.
+    - comment: optional free text, trimmed and limited to MAX_COMMENT_LEN.
+
+    Validation
+    - clean_rating ensures the value is an int in [1, 5].
+    - clean_comment trims whitespace and enforces the size limit.
+
+    Save contract
+    - save(commit=True, user=None, event=None, service=None) allows attaching
+      foreign keys just-in-time and guarantees mutual exclusivity of event/service.
+    """
+
     rating = forms.TypedChoiceField(
         choices=RATING_CHOICES,
         coerce=int,
@@ -46,33 +64,41 @@ class ReviewForm(forms.ModelForm):
             }
         ),
         label="Commento",
-        help_text="Massimo 2000 caratteri.",
+        help_text=f"Massimo {MAX_COMMENT_LEN} caratteri.",
     )
 
     class Meta:
         model = Review
         fields = ["rating", "comment"]
 
-    def clean_rating(self):
+    def clean_rating(self) -> int:
+        """Validate and coerce rating to an int in range [1, 5]."""
         rating = self.cleaned_data.get("rating")
-        # coerce assicura int, ma facciamo un controllo ulteriore
         if rating is None:
             raise ValidationError("Rating mancante.")
-        if not (1 <= int(rating) <= 5):
+        value = int(rating)
+        if not (1 <= value <= 5):
             raise ValidationError("Il rating deve essere un intero compreso tra 1 e 5.")
-        return int(rating)
+        return value
 
-    def clean_comment(self):
-        c = self.cleaned_data.get("comment") or ""
-        if len(c) > 2000:
+    def clean_comment(self) -> str:
+        """Trim whitespace and enforce MAX_COMMENT_LEN characters."""
+        c = (self.cleaned_data.get("comment") or "").strip()
+        if len(c) > MAX_COMMENT_LEN:
             raise ValidationError("Il commento non può superare i 2000 caratteri.")
-        return c.strip()
+        return c
 
-    def save(self, commit=True, user=None, event=None, service=None):
-        """
-        Save che accetta user/event/service opzionali: utile nelle view per assegnare
-        i FK prima del salvataggio.
-        Esempio:
+    def save(
+        self,
+        commit: bool = True,
+        user: Optional[Any] = None,
+        event: Optional[Any] = None,
+        service: Optional[Any] = None,
+    ) -> Review:
+        """Custom save supporting optional FK assignment.
+
+        Helpful in views to attach the related target just-in-time.
+        Examples:
             form.save(user=request.user, event=event)
             form.save(user=request.user, service=detail.service)
         """
@@ -81,13 +107,12 @@ class ReviewForm(forms.ModelForm):
         if user is not None:
             instance.user = user
 
-        # assegna event/service solo se forniti (e non già presenti)
         if event is not None:
             instance.event = event
-            instance.service = None  # assicurati che sia coerente: review per event
+            instance.service = None
         if service is not None:
             instance.service = service
-            instance.event = None  # assicurati che sia coerente: review per service
+            instance.event = None
 
         if commit:
             instance.save()

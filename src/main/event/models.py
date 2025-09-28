@@ -1,15 +1,17 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
+"""Database models for the Event app.
+
+Note: These models map to existing tables (managed=False). We only add
+docstrings and user-friendly __str__ methods to improve readability and
+admin display without altering the database schema.
+"""
+
 from django.db import models
-from users.models import User, Employee
+from user.models import User, Employee
 
 
 class Event(models.Model):
+    """Represents an event with a title, date, seats and creator."""
+
     seats = models.IntegerField()
     title = models.CharField(max_length=100)
     description = models.TextField()
@@ -28,8 +30,14 @@ class Event(models.Model):
         verbose_name = "Event"
         verbose_name_plural = "Events"
 
+    def __str__(self) -> str:
+        """Human-friendly representation used in admin and logs."""
+        return f"{self.title} ({self.event_date:%Y-%m-%d})"
+
 
 class EventSubscription(models.Model):
+    """A user's subscription to an event, with participant count."""
+
     pk = models.CompositePrimaryKey("event", "user")
     event = models.ForeignKey(
         Event,
@@ -52,3 +60,8 @@ class EventSubscription(models.Model):
         db_table = "EVENT_SUBSCRIPTION"
         verbose_name = "Event subscription"
         verbose_name_plural = "Event subscriptions"
+
+    def __str__(self) -> str:
+        """Readable summary: username -> event (N participants)."""
+        uname = getattr(self.user, "username", "?")
+        return f"{uname} -> {self.event} ({self.participants} participants)"

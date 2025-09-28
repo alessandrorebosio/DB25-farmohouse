@@ -1,141 +1,60 @@
 {% extends "core/base.html" %}
+{% load static %}
 {% block title %}Products{% endblock %}
 
-{% block content %}
-<main class="hero">
-    <div class="container py-4 py-md-5">
-
-        <!-- Header + Search -->
-        <form method="get" class="mb-3 mb-md-4">
-            <div class="row g-2 g-md-3 align-items-center">
-                <div class="col-12 col-md-4 col-lg-3">
-                    <h1 class="mb-0 display-6 fw-semibold">Products</h1>
-                    <div class="text-muted small">Browse our store</div>
-                </div>
-                <div class="col-12 col-md-8 col-lg-9">
-                    <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-body-tertiary">🔎</span>
-                        <input type="text" name="q" value="{{ q }}" class="form-control"
-                            placeholder="Search products...">
-                        <button type="submit" class="btn btn-primary">Search</button>
-                        {% if q %}
-                        <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </form>
-
-        <p class="text-muted small mb-3">
-            {% with products|length as count %}
-            <span class="chip chip-muted">{{ count }} product{{ count|pluralize:"s" }} found</span>
-            {% if q %}<span class="chip chip-info">Query: “{{ q }}”</span>{% endif %}
-            {% endwith %}
-        </p>
-
-        {% if products %}
-        <div class="row g-3 g-md-4">
-            {% for p in products %}
-            <div class="col-12">
-                <div class="card h-100 shadow-sm rounded-4 card-hover position-relative">
-
-                    <!-- Price ribbon -->
-                    <div class="price-ribbon">
-                        € {{ p.price|floatformat:2 }}
-                    </div>
-
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title mb-2 text-start" title="{{ p.name }}">{{ p.name }}</h5>
-
-                        {% if p.description %}
-                        <p class="text-muted small mb-3 text-start">{{ p.description }}</p>
-                        {% endif %}
-
-                        <div class="mt-auto d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <span class="h5 mb-0 text-success">€ {{ p.price|floatformat:2 }}</span>
-
-                            {% if request.user.is_authenticated %}
-                            <form method="post" action="{% url 'add_to_cart' %}"
-                                class="d-flex align-items-center gap-2 m-0">
-                                {% csrf_token %}
-                                <input type="hidden" name="product_id" value="{{ p.id }}">
-                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <div class="input-group input-group-sm" style="max-width: 11rem;">
-                                    <span class="input-group-text">Qty</span>
-                                    <input type="number" name="qty" min="1" value="1" class="form-control text-center">
-                                </div>
-                                <button type="submit" class="btn btn-outline-primary btn-sm">Add to cart</button>
-                            </form>
-                            {% else %}
-                            <a href="{% url 'login' %}?next={{ request.get_full_path }}"
-                                class="btn btn-outline-primary btn-sm">
-                                Login to buy
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+{% block header %}
+<form method="get" class="mb-3 mb-md-4">
+    <div class="row g-2 g-md-3 align-items-center">
+        <div class="col-12 col-md-4 col-lg-3">
+            <h1 class="mb-0 display-6 fw-semibold">Products</h1>
+            <div class="text-muted small">Browse our store</div>
         </div>
-        {% else %}
-        <div class="text-center py-5">
-            <div class="display-6 mb-2">🧺</div>
-            <h3>No products found</h3>
-            <p class="text-muted">Try changing your search terms.</p>
-            {% if q %}<a class="btn btn-outline-secondary" href="{{ request.path }}">Show all</a>{% endif %}
+        <div class="col-12 col-md-8 col-lg-9">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-body-tertiary">🔎</span>
+                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search products...">
+                <button type="submit" class="btn btn-primary">Search</button>
+                {% if q %}
+                <a class="btn btn-outline-secondary" href="{{ request.path }}">Reset</a>
+                {% endif %}
+            </div>
         </div>
-        {% endif %}
     </div>
-</main>
+</form>
 
-<style>
-    .card-hover {
-        transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
-    }
+<div class="d-flex justify-content-center">
+    <p class="text-muted small mb-3 mb-0">
+        {% with products|length as count %}
+        <span class="chip chip-muted">{{ count }} product{{ count|pluralize:"s" }} found</span>
+        {% if q %}<span class="chip chip-info">Query: “{{ q }}”</span>{% endif %}
+        {% endwith %}
+    </p>
+</div>
+{% endblock %}
 
-    .card-hover:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
-        border-color: color-mix(in oklab, rgba(var(--bs-primary-rgb), .35) 60%, var(--bs-border-color) 40%);
-    }
+{% block content %}
 
-    .chip {
-        --bg: var(--bs-secondary-bg);
-        --fg: var(--bs-body-color);
-        background: var(--bg);
-        color: var(--fg);
-        border-radius: 999px;
-        padding: .25rem .6rem;
-        font-size: .8rem;
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-    }
+{% if products %}
+<div class="row g-3 g-md-4">
+    {% for p in products %}
+    {% include 'product/partials/product_card.html' %}
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <div class="display-6 mb-2">🧺</div>
+    <h3>No products found</h3>
+    <p class="text-muted">Try changing your search terms.</p>
+    {% if q %}<a class="btn btn-outline-secondary" href="{{ request.path }}">Show all</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
 
-    .chip-info {
-        --bg: var(--bs-info-bg-subtle);
-        --fg: var(--bs-info);
-    }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'product/css/cart.css' %}">
+{% endblock %}
 
-    .chip-muted {
-        --bg: var(--bs-secondary-bg-subtle);
-        --fg: var(--bs-secondary-color);
-    }
-
-    .price-ribbon {
-        position: absolute;
-        top: 10px;
-        right: -6px;
-        background: var(--bs-body-bg);
-        color: var(--bs-primary);
-        border: 1px solid rgba(var(--bs-primary-rgb), .25);
-        border-right: none;
-        padding: .35rem .6rem .35rem .75rem;
-        border-radius: 999px 0 0 999px;
-        box-shadow: 0 .25rem .75rem rgba(var(--bs-primary-rgb), .08);
-        font-weight: 600;
-    }
-</style>
+{% block extra_js %}
+{# Reuse cart small helpers for qty controls if needed elsewhere later #}
+<script src="{% static 'product/js/cart.js' %}"></script>
 {% endblock %}
