@@ -449,6 +449,7 @@ partizionamento e politiche di archiviazione.
   \label{tab:volume-dati}
 \end{table}
 
+
 \section{Descrizione operazioni}
 \begin{table}[H]
   \centering
@@ -459,51 +460,60 @@ partizionamento e politiche di archiviazione.
     \rowcolor{gray!20}
     \textbf{\#} & \textbf{Operazione} & \textbf{Op / 7gg} & \textbf{Tipo Utente} \\
     \hline
-    1 & \hyperref[op1]{Visualizzazione statistiche dashboard} & 50 & Admin / Staff \\
+    1 & \hyperref[op1]{Top servizi per prenotazioni} & 20 & Admin \\
     \hline
-    2 & \hyperref[op2]{Verifica disponibilità camere} & 300 & Tutti \\
+    2 & \hyperref[op2]{Top prodotti per quantità venduta} & 15 & Admin \\
     \hline
-    3 & \hyperref[op3]{Verifica disponibilità tavoli} & 250 & Tutti \\
+    3 & \hyperref[op3]{Top eventi per partecipanti} & 10 & Admin \\
     \hline
-    4 & \hyperref[op4]{Inserimento recensione evento} & 20 & Cliente \\
+    4 & \hyperref[op4]{Top prodotti per fatturato} & 15 & Admin \\
     \hline
-    5 & \hyperref[op5]{Inserimento recensione servizio} & 30 & Cliente \\
+    5 & \hyperref[op5]{Fatturato totale} & 10 & Admin \\
     \hline
-    6 & \hyperref[op6]{Aggiornamento recensione} & 10 & Cliente \\
+    6 & \hyperref[op6]{Statistiche generali del sistema} & 25 & Admin / Staff \\
     \hline
-    7 & \hyperref[op7]{Update e Iscrizione utente a evento} & 25 & Cliente \\
+    7 & \hyperref[op7]{Verifica disponibilità camere} & 300 & Tutti \\
     \hline
-    8 & \hyperref[op8]{Creazione prenotazione principale} & 100 & Cliente / Staff \\
+    8 & \hyperref[op8]{Verifica disponibilità tavoli} & 250 & Tutti \\
     \hline
-    9 & \hyperref[op9]{Prenotazione tavolo ristorante} & 80 & Cliente / Staff \\
+    9 & \hyperref[op9]{Inserimento recensione evento} & 20 & Cliente \\
     \hline
-    10 & \hyperref[op10]{Prenotazione camera con controllo duplicati} & 70 & Cliente / Staff \\
+    10 & \hyperref[op10]{Inserimento recensione servizio} & 30 & Cliente \\
     \hline
-    11 & \hyperref[op11]{Eliminazione prenotazione servizio} & 20 & Cliente / Staff \\
+    11 & \hyperref[op11]{Aggiornamento recensione} & 10 & Cliente \\
     \hline
-    12 & \hyperref[op12]{Eliminazione iscrizione evento} & 15 & Cliente \\
+    12 & \hyperref[op12]{Update e Iscrizione utente a evento} & 25 & Cliente \\
     \hline
-    13 & \hyperref[op13]{Eliminazione prenotazione con controllo temporale} & 15 & Cliente / Staff \\
+    13 & \hyperref[op13]{Creazione prenotazione principale} & 100 & Cliente / Staff \\
     \hline
-    14 & \hyperref[op14]{Verifica credenziali di login} & 500 & Tutti \\
+    14 & \hyperref[op14]{Prenotazione tavolo ristorante} & 80 & Cliente / Staff \\
     \hline
-    15 & \hyperref[op15]{Creazione nuovo ordine} & 60 & Cliente / Staff \\
+    15 & \hyperref[op15]{Prenotazione camera con controllo duplicati} & 70 & Cliente / Staff \\
+    \hline
+    16 & \hyperref[op16]{Eliminazione prenotazione servizio} & 20 & Cliente / Staff \\
+    \hline
+    17 & \hyperref[op17]{Eliminazione iscrizione evento} & 15 & Cliente \\
+    \hline
+    18 & \hyperref[op18]{Eliminazione prenotazione con controllo temporale} & 15 & Cliente / Staff \\
+    \hline
+    19 & \hyperref[op19]{Verifica credenziali di login} & 500 & Tutti \\
+    \hline
+    20 & \hyperref[op20]{Creazione nuovo ordine} & 60 & Cliente / Staff \\
     \hline
   \end{tabularx}
   \caption{Numero stimato di operazioni per settimana, con tipo di utente che le effettua}
   \label{tab:operazioni-settimanali}
 \end{table}
 
-\section{Analisi delle ridondanze}
 \section{Analisi delle operazioni}
 Di seguito viene riportata un'analisi per le operazioni principali sul database dell'agriturismo.
 
 \begin{enumerate}
-    \item {\large \textbf{Visualizzazione statistiche dashboard}} \label{op1}
+    \item {\large \textbf{Top servizi per prenotazioni}} \label{op1}
     
-    Operazione complessa che recupera multiple statistiche per la dashboard amministrativa.
+    Identifica i servizi più prenotati distinguendo tra ristoranti e camere.
     
-    $$Op_{sett} = 50$$
+    $$Op_{sett} = 20$$
     
     \begin{table}[H]
         \centering
@@ -518,23 +528,136 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
             RESTAURANT & E & 20 & L \\
             ROOM & E & 30 & L \\
             RESERVATION\_DETAIL & A & 12000 & L \\
+            \hline
+        \end{tabularx}
+    \end{table}
+    
+    Totale: $A_{lett} = 100 + 20 + 30 + 12000 = 12150$
+    $$\mathbf{C_{tot}} = 20 \cdot 12150 = \mathbf{243.000}$$
+
+    \item {\large \textbf{Top prodotti per quantità venduta}} \label{op2}
+    
+    Calcola i prodotti più venduti in base alla quantità totale.
+    
+    $$Op_{sett} = 15$$
+    
+    \begin{table}[H]
+        \centering
+        \small
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+            \hline
+            \rowcolor{gray!20}
+            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+            \hline
             PRODUCT & E & 500 & L \\
             ORDER\_DETAIL & A & 45000 & L \\
+            \hline
+        \end{tabularx}
+    \end{table}
+    
+    Totale: $A_{lett} = 500 + 45000 = 45500$
+    $$\mathbf{C_{tot}} = 15 \cdot 45500 = \mathbf{682.500}$$
+
+    \item {\large \textbf{Top eventi per partecipanti}} \label{op3}
+    
+    Determina gli eventi con il maggior numero di partecipanti.
+    
+    $$Op_{sett} = 10$$
+    
+    \begin{table}[H]
+        \centering
+        \small
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+            \hline
+            \rowcolor{gray!20}
+            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+            \hline
             EVENT & E & 150 & L \\
             EVENT\_SUBSCRIPTION & A & 2500 & L \\
+            \hline
+        \end{tabularx}
+    \end{table}
+    
+    Totale: $A_{lett} = 150 + 2500 = 2650$
+    $$\mathbf{C_{tot}} = 10 \cdot 2650 = \mathbf{26.500}$$
+
+    \item {\large \textbf{Top prodotti per fatturato}} \label{op4}
+    
+    Calcola i prodotti che generano il maggior fatturato.
+    
+    $$Op_{sett} = 15$$
+    
+    \begin{table}[H]
+        \centering
+        \small
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+            \hline
+            \rowcolor{gray!20}
+            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+            \hline
+            PRODUCT & E & 500 & L \\
+            ORDER\_DETAIL & A & 45000 & L \\
+            \hline
+        \end{tabularx}
+    \end{table}
+    
+    Totale: $A_{lett} = 500 + 45000 = 45500$
+    $$\mathbf{C_{tot}} = 15 \cdot 45500 = \mathbf{682.500}$$
+
+    \item {\large \textbf{Fatturato totale}} \label{op5}
+    
+    Calcola il ricavo complessivo dalle vendite dei prodotti.
+    
+    $$Op_{sett} = 10$$
+    
+    \begin{table}[H]
+        \centering
+        \small
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+            \hline
+            \rowcolor{gray!20}
+            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+            \hline
+            ORDER\_DETAIL & A & 45000 & L \\
+            \hline
+        \end{tabularx}
+    \end{table}
+    
+    Totale: $A_{lett} = 45000$
+    $$\mathbf{C_{tot}} = 10 \cdot 45000 = \mathbf{450.000}$$
+
+    \item {\large \textbf{Statistiche generali del sistema}} \label{op6}
+    
+    Query composita che fornisce un riepilogo completo delle metriche di sistema.
+    
+    $$Op_{sett} = 25$$
+    
+    \begin{table}[H]
+        \centering
+        \small
+        \renewcommand{\arraystretch}{1.15}
+        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+            \hline
+            \rowcolor{gray!20}
+            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+            \hline
             USER & E & 5000 & L \\
             EMPLOYEE & E & 50 & L \\
             ORDERS & E & 15000 & L \\
+            ORDER\_DETAIL & A & 45000 & L \\
             RESERVATION & E & 8000 & L \\
             \hline
         \end{tabularx}
     \end{table}
     
-    Totale: $A_{lett} = 100 + 20 + 30 + 12000 + 500 + 45000 + 150 + 2500 + 5000 + 50 + 15000 + 8000 = 88350$
-    
-    $$\mathbf{C_{tot}} = 50 \cdot 88350 = \mathbf{4.417.500}$$
+    Totale: $A_{lett} = 5000 + 50 + 15000 + 45000 + 8000 = 73050$
+    $$\mathbf{C_{tot}} = 25 \cdot 73050 = \mathbf{1.826.250}$$
 
-    \item {\large \textbf{Verifica disponibilità camere}} \label{op2}
+    \item {\large \textbf{Verifica disponibilità camere}} \label{op7}
     
     Verifica la disponibilità delle camere in un dato periodo.
     
@@ -556,12 +679,10 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
         \end{tabularx}
     \end{table}
     
-    Si leggono tutte le camere e si verificano le prenotazioni esistenti.
-    
     Totale: $A_{lett} = 30 + 30 + 1200 = 1260$
     $$\mathbf{C_{tot}} = 300 \cdot 1260 = \mathbf{378.000}$$
 
-    \item {\large \textbf{Verifica disponibilità tavoli}} \label{op3}
+    \item {\large \textbf{Verifica disponibilità tavoli}} \label{op8}
     
     Verifica la disponibilità dei tavoli al ristorante.
     
@@ -586,7 +707,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     Totale: $A_{lett} = 20 + 20 + 800 = 840$
     $$\mathbf{C_{tot}} = 250 \cdot 840 = \mathbf{210.000}$$
 
-    \item {\large \textbf{Inserimento recensione evento}} \label{op4}
+    \item {\large \textbf{Inserimento recensione evento}} \label{op9}
     
     Inserisce una recensione per un evento.
     
@@ -611,7 +732,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 2$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 20 \cdot (2 + 2 \cdot 1) = \mathbf{80}$$
 
-    \item {\large \textbf{Inserimento recensione servizio}} \label{op5}
+    \item {\large \textbf{Inserimento recensione servizio}} \label{op10}
     
     Inserisce una recensione per un servizio.
     
@@ -637,7 +758,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 3$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 30 \cdot (3 + 2 \cdot 1) = \mathbf{150}$$
 
-    \item {\large \textbf{Aggiornamento recensione}} \label{op6}
+    \item {\large \textbf{Aggiornamento recensione}} \label{op11}
     
     Aggiorna una recensione esistente.
     
@@ -661,7 +782,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 1$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 10 \cdot (1 + 2 \cdot 1) = \mathbf{30}$$
 
-    \item {\large \textbf{Update e Iscrizione utente a evento}} \label{op7}
+    \item {\large \textbf{Update e Iscrizione utente a evento}} \label{op12}
     
     Iscrive un utente a un evento o aggiorna l'iscrizione esistente.
     
@@ -686,7 +807,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 2$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 25 \cdot (2 + 2 \cdot 1) = \mathbf{100}$$
 
-    \item {\large \textbf{Creazione prenotazione principale}} \label{op8}
+    \item {\large \textbf{Creazione prenotazione principale}} \label{op13}
     
     Crea il record principale di una prenotazione.
     
@@ -710,7 +831,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 1$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 100 \cdot (1 + 2 \cdot 1) = \mathbf{300}$$
 
-    \item {\large \textbf{Prenotazione tavolo ristorante}} \label{op9}
+    \item {\large \textbf{Prenotazione tavolo ristorante}} \label{op14}
     
     Completa la prenotazione di un tavolo al ristorante.
     
@@ -735,7 +856,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 2$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 80 \cdot (2 + 2 \cdot 1) = \mathbf{320}$$
 
-    \item {\large \textbf{Prenotazione camera con controllo duplicati}} \label{op10}
+    \item {\large \textbf{Prenotazione camera con controllo duplicati}} \label{op15}
     
     Prenota una camera con controlli anti-duplicati.
     
@@ -761,7 +882,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 3$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 70 \cdot (3 + 2 \cdot 1) = \mathbf{350}$$
 
-    \item {\large \textbf{Eliminazione prenotazione servizio}} \label{op11}
+    \item {\large \textbf{Eliminazione prenotazione servizio}} \label{op16}
     
     Elimina una prenotazione di servizio.
     
@@ -787,7 +908,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 3$, $A_{scr} = 3$
     $$\mathbf{C_{tot}} = 20 \cdot (3 + 2 \cdot 3) = \mathbf{180}$$
 
-    \item {\large \textbf{Eliminazione iscrizione evento}} \label{op12}
+    \item {\large \textbf{Eliminazione iscrizione evento}} \label{op17}
     
     Elimina l'iscrizione a un evento.
     
@@ -812,7 +933,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 2$, $A_{scr} = 1$
     $$\mathbf{C_{tot}} = 15 \cdot (2 + 2 \cdot 1) = \mathbf{60}$$
 
-    \item {\large \textbf{Eliminazione prenotazione con controllo temporale}} \label{op13}
+    \item {\large \textbf{Eliminazione prenotazione con controllo temporale}} \label{op18}
     
     Elimina una prenotazione con controllo che non sia già iniziata.
     
@@ -838,7 +959,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 3$, $A_{scr} = 3$
     $$\mathbf{C_{tot}} = 15 \cdot (3 + 2 \cdot 3) = \mathbf{135}$$
 
-    \item {\large \textbf{Verifica credenziali di login}} \label{op14}
+    \item {\large \textbf{Verifica credenziali di login}} \label{op19}
     
     Verifica username e password per il login.
     
@@ -863,7 +984,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $A_{lett} = 3$
     $$\mathbf{C_{tot}} = 500 \cdot 3 = \mathbf{1.500}$$
 
-    \item {\large \textbf{Creazione nuovo ordine}} \label{op15}
+    \item {\large \textbf{Creazione nuovo ordine}} \label{op20}
     
     Crea un nuovo ordine con i relativi dettagli.
     
@@ -890,6 +1011,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
     $$\mathbf{C_{tot}} = 60 \cdot (5 + 2 \cdot 4) = \mathbf{780}$$
 \end{enumerate}
 
+\section{Analisi delle ridondanze}
 \section{Riepilogo operazioni}
 \begin{table}[H]
     \centering
@@ -900,7 +1022,17 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
         \rowcolor{gray!20}
         \textbf{Operazione} & \textbf{Costo totale/7gg} & \textbf{Tipo Utente} \\
         \hline
-        Visualizzazione statistiche dashboard & 4.417.500 & Admin / Staff \\
+        Top servizi per prenotazioni & 243.000 & Admin \\
+        \hline
+        Top prodotti per quantità venduta & 682.500 & Admin \\
+        \hline
+        Top eventi per partecipanti & 26.500 & Admin \\
+        \hline
+        Top prodotti per fatturato & 682.500 & Admin \\
+        \hline
+        Fatturato totale & 450.000 & Admin \\
+        \hline
+        Statistiche generali del sistema & 1.826.250 & Admin / Staff \\
         \hline
         Verifica disponibilità camere & 378.000 & Tutti \\
         \hline
@@ -931,7 +1063,7 @@ Di seguito viene riportata un'analisi per le operazioni principali sul database 
         Creazione nuovo ordine & 780 & Cliente / Staff \\
         \hline
         \rowcolor{gray!20}
-        \textbf{TOTALE} & \textbf{5.409.485} & \\
+        \textbf{TOTALE} & \textbf{4.902.735} & \\
         \hline
     \end{tabularx}
     \caption{Riepilogo delle operazioni con costi settimanali e tipi di utente}
