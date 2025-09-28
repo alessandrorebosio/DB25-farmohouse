@@ -13,7 +13,7 @@
             <div class="col-12">
 
                 <!-- User info -->
-                <div class="card border-0 shadow-sm rounded-4 card-hover mb-4">
+                <div class="card shadow-sm rounded-4 card-hover mb-4">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
@@ -55,8 +55,9 @@
 
                 <!-- Shifts -->
                 {% if query.employee and user.is_staff %}
-                <div class="card border-0 shadow-sm rounded-4 card-hover mb-4">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <div class="card shadow-sm rounded-4 card-hover mb-4">
+                    <div
+                        class="card-header bg-body-tertiary border-0 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Your shifts</h6>
                         <small class="text-muted">{{ shifts_label }}</small>
                     </div>
@@ -93,8 +94,9 @@
 
                 <!-- Event registrations -->
                 {% if subscriptions %}
-                <div class="card border-0 shadow-sm rounded-4 card-hover mb-4">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <div class="card shadow-sm rounded-4 card-hover mb-4">
+                    <div
+                        class="card-header bg-body-tertiary border-0 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Your event registrations</h6>
                         <small class="chip chip-muted">{{ subscriptions|length }} total</small>
                     </div>
@@ -119,13 +121,16 @@
                                         <td>{{ subscription.participants }}</td>
                                         <td>
                                             {% if subscription.can_review %}
-                                                <a href="{% url 'event_review' subscription.event.id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                                            <a href="{% url 'event_review' subscription.event.id %}"
+                                                class="btn btn-sm btn-outline-primary">Review</a>
                                             {% else %}
-                                                <form method="post" action="{% url 'event_cancel' subscription.event.id %}" class="d-inline">
+                                            <form method="post" action="{% url 'event_cancel' subscription.event.id %}"
+                                                class="d-inline">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
-                                                </form>
+                                                <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger">Cancel</button>
+                                            </form>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -141,8 +146,9 @@
 
                 <!-- Orders -->
                 {% if orders %}
-                <div class="card border-0 shadow-sm rounded-4 card-hover mb-4">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <div class="card shadow-sm rounded-4 card-hover mb-4">
+                    <div
+                        class="card-header bg-body-tertiary border-0 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Your orders</h6>
                         <small class="chip chip-muted">{{ orders|length }} total</small>
                     </div>
@@ -202,8 +208,9 @@
 
                 <!-- Reservations -->
                 {% if reservations %}
-                <div class="card border-0 shadow-sm rounded-4 card-hover">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <div class="card shadow-sm rounded-4 card-hover">
+                    <div
+                        class="card-header bg-body-tertiary border-0 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Your reservations</h6>
                         <small class="chip chip-muted">{{ reservations|length }} total</small>
                     </div>
@@ -269,15 +276,20 @@
                                                         </td>
                                                         <td class="align-middle">
                                                             {% if detail.can_review %}
-                                                                <a href="{% url 'service_review' detail.service_id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                                                            <a href="{% url 'service_review' detail.service_id %}"
+                                                                class="btn btn-sm btn-outline-primary">Review</a>
                                                             {% elif detail.can_cancel %}
-                                                                <form method="post" action="{% url 'service:cancel_reservation' detail.reservation_id %}" class="d-inline">
+                                                            <form method="post"
+                                                                action="{% url 'service:cancel_reservation' detail.reservation_id %}"
+                                                                class="d-inline">
                                                                 {% csrf_token %}
-                                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
-                                                                </form>
+                                                                <input type="hidden" name="next"
+                                                                    value="{{ request.get_full_path }}">
+                                                                <button type="submit"
+                                                                    class="btn btn-sm btn-outline-danger">Cancel</button>
+                                                            </form>
                                                             {% else %}
-                                                                &nbsp;  {# cella vuota nella settimana precedente #}
+                                                            &nbsp; {# cella vuota nella settimana precedente #}
                                                             {% endif %}
                                                         </td>
 
@@ -309,18 +321,18 @@
     /* miglioramenti leggeri */
     .card-hover {
         transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-        border: 1px solid rgba(0, 0, 0, .06);
+        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
     }
 
     .card-hover:hover {
         transform: translateY(-2px);
         box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
-        border-color: rgba(13, 110, 253, .2);
+        border-color: color-mix(in oklab, rgba(var(--bs-primary-rgb), .35) 60%, var(--bs-border-color) 40%);
     }
 
     .chip {
-        --bg: rgba(0, 0, 0, .06);
-        --fg: #212529;
+        --bg: var(--bs-secondary-bg);
+        --fg: var(--bs-body-color);
         background: var(--bg);
         color: var(--fg);
         border-radius: 999px;
@@ -332,12 +344,39 @@
     }
 
     .chip-muted {
-        --bg: rgba(108, 117, 125, .15);
-        --fg: #495057;
+        --bg: var(--bs-secondary-bg-subtle);
+        --fg: var(--bs-secondary-color);
+    }
+
+    /* Tables inside cards: inherit rounded corners and clean borders */
+    .card {
+        overflow: hidden;
+    }
+
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
     }
 
     .table> :not(caption)>*>* {
         vertical-align: middle;
+        border-color: var(--bs-border-color);
+        background-clip: padding-box;
+    }
+
+    .table thead th,
+    .table tfoot th {
+        background-color: var(--bs-tertiary-bg);
+        color: var(--bs-secondary-color);
+        font-weight: 500;
+    }
+
+    .table-responsive {
+        border-radius: inherit;
+    }
+
+    .table-light {
+        background-color: transparent;
     }
 </style>
 {% endblock %}

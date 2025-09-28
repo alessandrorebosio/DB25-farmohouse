@@ -21,10 +21,10 @@
                     <div class="row g-2">
                         <div class="col-md-3">
                             <select name="target" id="filter-target" class="form-select">
-                                <option value="all" {% if filters.target=="all" %}selected{% endif %}>All</option>
-                                <option value="service" {% if filters.target=="service" %}selected{% endif %}>Services
+                                <option value="all" {% if filters.target == "all" %}selected{% endif %}>All</option>
+                                <option value="service" {% if filters.target == "service" %}selected{% endif %}>Services
                                 </option>
-                                <option value="event" {% if filters.target=="event" %}selected{% endif %}>Events
+                                <option value="event" {% if filters.target == "event" %}selected{% endif %}>Events
                                 </option>
                             </select>
                         </div>
@@ -32,7 +32,7 @@
                             <select name="service_type" id="filter-service-type" class="form-select">
                                 <option value="">-- all types --</option>
                                 {% for st in service_types %}
-                                <option value="{{ st }}" {% if filters.service_type==st %}selected{% endif %}>
+                                <option value="{{ st }}" {% if filters.service_type == st %}selected{% endif %}>
                                     {{ st|title }}
                                 </option>
                                 {% endfor %}
@@ -52,13 +52,13 @@
                         </div>
                         <div class="col-md-3">
                             <select name="order" class="form-select">
-                                <option value="newest" {% if filters.order=="newest" %}selected{% endif %}>Newest
+                                <option value="newest" {% if filters.order == "newest" %}selected{% endif %}>Newest
                                 </option>
-                                <option value="oldest" {% if filters.order=="oldest" %}selected{% endif %}>Oldest
+                                <option value="oldest" {% if filters.order == "oldest" %}selected{% endif %}>Oldest
                                 </option>
-                                <option value="rating_desc" {% if filters.order=="rating_desc" %}selected{% endif %}>
+                                <option value="rating_desc" {% if filters.order == "rating_desc" %}selected{% endif %}>
                                     Rating ↓</option>
-                                <option value="rating_asc" {% if filters.order=="rating_asc" %}selected{% endif %}>
+                                <option value="rating_asc" {% if filters.order == "rating_asc" %}selected{% endif %}>
                                     Rating ↑</option>
                             </select>
                         </div>
@@ -69,8 +69,7 @@
                         <div class="col-md-2 d-grid">
                             <button type="submit" class="btn btn-primary">Apply</button>
                         </div>
-                        {% if filters.q or filters.service_type or filters.rating_min or filters.rating_max or
-                        filters.username or filters.target != "all" %}
+                        {% if filters.q or filters.service_type or filters.rating_min or filters.rating_max or filters.username or filters.target != "all" %}
                         <div class="col-md-2 d-grid">
                             <a href="{{ request.path }}" class="btn btn-outline-secondary">Reset</a>
                         </div>
@@ -88,7 +87,7 @@
         <div class="row g-3 g-md-4">
             {% for r in page_obj.object_list %}
             <div class="col-12">
-                <div class="card h-100 border-0 shadow-sm rounded-4 card-hover">
+                <div class="card h-100 shadow-sm rounded-4 card-hover">
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex flex-column">
@@ -174,18 +173,18 @@
 <style>
     .card-hover {
         transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-        border: 1px solid rgba(0, 0, 0, .06);
+        border: 1px solid color-mix(in oklab, var(--bs-border-color) 65%, currentColor 35%);
     }
 
     .card-hover:hover {
         transform: translateY(-2px);
         box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
-        border-color: rgba(13, 110, 253, .2);
+        border-color: rgba(var(--bs-primary-rgb), .2);
     }
 
     .chip {
-        --bg: rgba(0, 0, 0, .06);
-        --fg: #212529;
+        --bg: var(--bs-secondary-bg);
+        --fg: var(--bs-body-color);
         background: var(--bg);
         color: var(--fg);
         border-radius: 999px;
@@ -197,23 +196,23 @@
     }
 
     .chip-primary {
-        --bg: rgba(13, 110, 253, .12);
-        --fg: #0d6efd;
+        --bg: var(--bs-primary-bg-subtle);
+        --fg: var(--bs-primary);
     }
 
     .chip-success {
-        --bg: rgba(25, 135, 84, .14);
-        --fg: #198754;
+        --bg: var(--bs-success-bg-subtle);
+        --fg: var(--bs-success);
     }
 
     .chip-info {
-        --bg: rgba(13, 202, 240, .18);
-        --fg: #087990;
+        --bg: var(--bs-info-bg-subtle);
+        --fg: var(--bs-info);
     }
 
     .chip-muted {
-        --bg: rgba(108, 117, 125, .15);
-        --fg: #495057;
+        --bg: var(--bs-secondary-bg-subtle);
+        --fg: var(--bs-secondary-color);
     }
 </style>
 
