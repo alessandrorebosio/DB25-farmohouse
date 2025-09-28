@@ -10,6 +10,10 @@
             </div>
             <ul class="list-unstyled small mb-3">
                 <li class="d-flex justify-content-between">
+                    <span class="text-muted">Pax</span>
+                    <strong class="">{{ s.room.max_capacity }}</strong>
+                </li>
+                <li class="d-flex justify-content-between">
                     <span class="text-muted">Total</span>
                     <strong class="text-success">€{{ s.total_price|floatformat:2 }}</strong>
                 </li>
