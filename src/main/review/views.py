@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
 
-from users.views import _ensure_datetime
+from user.views import _ensure_datetime
 from .models import Review
 from service.models import ReservationDetail
 from event.models import Event, EventSubscription

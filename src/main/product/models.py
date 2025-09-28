@@ -12,7 +12,7 @@ and __str__ methods improve admin readability without altering the schema.
 """
 
 from django.db import models
-
+from user.models import User 
 
 # Create your models here.
 class Orders(models.Model):
@@ -20,7 +20,7 @@ class Orders(models.Model):
 
     date = models.DateTimeField(blank=True, null=True)
     username = models.ForeignKey(
-        "users.User",
+        User,
         on_delete=models.CASCADE,
         db_column="username",
         to_field="username",

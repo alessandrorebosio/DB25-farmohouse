@@ -1,3 +1,8 @@
+"""Views for listing services and handling quick bookings.
+
+Approximate SQL is provided in comments for clarity on what operations occur.
+"""
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
@@ -8,6 +13,7 @@ from django.utils import timezone
 from .models import Service, Reservation, ReservationDetail
 from datetime import datetime, time, timedelta
 from django.urls import reverse
+from django.db import transaction
 
 MEAL_START_TIMES = {
     "breakfast": time(8, 0),
@@ -22,16 +28,31 @@ MEAL_LABELS = {
 
 
 def get_meal_slot(date_obj, meal_key):
+    """Compute restaurant meal slot start/end datetimes.
+
+    Returns (start_dt, end_dt) or (None, None) if invalid.
+    """
     start_t = MEAL_START_TIMES.get(meal_key)
     if not (date_obj and start_t):
         return None, None
     start_dt = datetime.combine(date_obj, start_t)
     end_dt = start_dt + timedelta(hours=2)
     return start_dt, end_dt
-from django.db import transaction
 
 
 def service_list(request):
+    """List available services with simple room/table filters.
+
+    SQL (simplified for tables):
+        SELECT s.* FROM SERVICE s
+        LEFT JOIN RESTAURANT r ON r.service = s.id
+        WHERE s.type = 'RESTAURANT' AND r.max_capacity >= %(people)s
+          AND s.id NOT IN (
+            SELECT service FROM RESERVATION_DETAIL
+            WHERE start_date < %(end)s AND end_date > %(start)s
+          )
+        ORDER BY s.id;
+    """
     room_start_str = (request.GET.get("room_start") or "").strip()
     room_end_str = (request.GET.get("room_end") or "").strip()
     room_people_str = (request.GET.get("room_people") or "").strip()
@@ -88,14 +109,12 @@ def service_list(request):
                 s.total_price = s.price * room_nights
             available_rooms = list(qs_rooms)
 
-
     if table_date and table_people and table_meal:
         start_dt, end_dt = get_meal_slot(table_date, table_meal)
 
         reserved_table_ids = (
             ReservationDetail.objects.filter(
                 service__type="RESTAURANT",
-
                 start_date__lt=end_dt,
                 end_date__gt=start_dt,
             )
@@ -141,6 +160,13 @@ def service_list(request):
 
 @login_required
 def quick_book(request, service_id):
+    """Quick booking flow for a service (Room or Restaurant).
+
+    Guard rails:
+    - User must be authenticated.
+    - Validates date params and checks for overlapping reservations.
+    - Creates a Reservation and a ReservationDetail, then redirects.
+    """
     service = get_object_or_404(Service, id=service_id)
 
     start_param = request.GET.get("start")
@@ -165,6 +191,7 @@ def quick_book(request, service_id):
             end_date = e
 
     if not start_date or not end_date:
+        messages.error(request, "Invalid date selection for booking.")
         return redirect("service:service_list")
 
     try:
@@ -192,6 +219,10 @@ def quick_book(request, service_id):
         ).exists()
     else:
         if meal_param not in MEAL_START_TIMES:
+            messages.error(
+                request,
+                "Select the meal to book a table (Breakfast, Lunch, or Dinner).",
+            )
             return redirect(
                 f"{reverse('service:service_list')}?table_date={start_date}&table_people={people}"
             )
@@ -203,6 +234,7 @@ def quick_book(request, service_id):
         ).exists()
 
     if overlap_exists:
+        messages.error(request, "Selected time slot is no longer available.")
         return redirect(redirect_url)
 
     reservation = Reservation.objects.create(username_id=request.user.username)
@@ -214,29 +246,47 @@ def quick_book(request, service_id):
         people=people,
     )
 
+    if is_room:
+        messages.success(
+            request,
+            f"Room booked from {start_date:%Y-%m-%d} to {end_date:%Y-%m-%d} for {people} person{'s' if people != 1 else ''}.",
+        )
+    else:
+        messages.success(
+            request,
+            f"Table booked for {MEAL_LABELS.get(meal_param)} on {start_date:%Y-%m-%d} for {people} person{'s' if people != 1 else ''}.",
+        )
+
     return redirect(redirect_url)
+
 
 @login_required
 @require_POST
 @transaction.atomic
-def cancel_reservation(request, reservation_id):  # Deve essere reservation_id
+def cancel_reservation(request, reservation_id):
     """
-    Cancel a Reservation
+    Cancel a Reservation.
+
+    Constraints:
+    - Authenticated user and owner of the reservation.
+    - Only if reservation has not started.
     """
-    
-    reservation_details = ReservationDetail.objects.filter(reservation_id=reservation_id)
-    
-    # Verify that the user is the author of the reservation
-    if not reservation_details.exists() or reservation_details.first().reservation.username_id != request.user.username:
+
+    reservation_details = ReservationDetail.objects.filter(
+        reservation_id=reservation_id
+    )
+
+    if (
+        not reservation_details.exists()
+        or reservation_details.first().reservation.username_id != request.user.username
+    ):
         messages.error(request, "You can only cancel your own reservations.")
         return redirect(request.POST.get("next") or "profile")
-    
-    # Check if reservation has started
+
     if reservation_details.first().start_date < timezone.now():
         messages.error(request, "Cannot cancel a reservation that has already started.")
         return redirect(request.POST.get("next") or "profile")
-    
-    # delete all details
+
     reservation_details.delete()
 
     try:
@@ -245,6 +295,6 @@ def cancel_reservation(request, reservation_id):  # Deve essere reservation_id
             reservation.delete()
     except Reservation.DoesNotExist:
         pass
-    
+
     messages.success(request, "Reservation cancelled successfully.")
     return redirect(request.POST.get("next") or "profile")

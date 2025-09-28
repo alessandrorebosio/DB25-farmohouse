@@ -6,7 +6,7 @@ admin display without altering the database schema.
 """
 
 from django.db import models
-from users.models import User, Employee
+from user.models import User, Employee
 
 
 class Event(models.Model):

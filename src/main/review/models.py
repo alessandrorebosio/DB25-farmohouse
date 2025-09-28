@@ -7,7 +7,7 @@ maps existing database tables (managed = False).
 
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from users.models import User
+from user.models import User
 from service.models import Service
 from event.models import Event
 
