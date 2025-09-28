@@ -1,0 +1,36 @@
+/* Auth / Forms specific styles extracted from forms.html */
+.auth-page {
+    background: linear-gradient(180deg, var(--bs-secondary-bg), var(--bs-body-bg));
+    min-height: 100vh;
+}
+
+.auth-page .login-card {
+    border: 0;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(20, 30, 50, .08);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-page .brand {
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    background: var(--bs-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+.auth-page .muted-small {
+    color: var(--bs-secondary-color);
+    font-size: .9rem;
+}
+
+/* Utility layout helpers */
+.auth-page .vh-center {
+    min-height: 100vh;
+}

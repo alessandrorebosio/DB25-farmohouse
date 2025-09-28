@@ -13,15 +13,7 @@
     overflow: hidden;
 }
 
-.card-hover {
-    transition: transform .16s ease, box-shadow .16s ease, border-color .2s ease;
-}
-
-.card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 .9rem 1.6rem rgba(0, 0, 0, .08);
-    border-color: color-mix(in oklab, rgba(var(--bs-primary-rgb), .35) 60%, var(--bs-border-color) 40%);
-}
+/* Uses shared .card-hover from ui.css; optional stronger variant could use .card-hover--lift */
 
 .card-title {
     font-size: 1.25rem;
