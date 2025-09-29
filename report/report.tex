@@ -99,182 +99,132 @@
 
 \chapter{Analisi dei requisiti}
 \section{Intervista}
-
 L'agriturismo intende dotarsi di una piattaforma digitale che
-razionalizzi le attività quotidiane
-e migliori l'esperienza dei clienti, integrando in un unico ambiente
-la gestione del personale,
+razionalizzi le attività quotidiane e migliori l'esperienza dei
+clienti, integrando in un unico ambiente la gestione del personale,
 la vendita di prodotti e la promozione di eventi. Il titolare
-desidera uno strumento accessibile
-via web, utilizzabile da utenti registrati e dal personale
-autorizzato, in grado di offrire una
+desidera uno strumento accessibile via web, utilizzabile da utenti
+registrati e dal personale autorizzato, in grado di offrire una
 visione chiara e centralizzata delle informazioni operative,
-riducendo errori e tempi di
-coordinamento.
+riducendo errori e tempi di coordinamento.
 
 Il cuore dell'applicativo è costituito da un catalogo di prodotti e
-da un calendario di
-eventi, visibili ai visitatori e consultabili dagli utenti
-registrati. I prodotti, identificati
-da un codice univoco, sono descritti da un nome e da un prezzo, con
-la garanzia che i valori
-economici rimangano sempre positivi. Gli eventi, invece, sono
-presentati con titolo,
-descrizione, data di svolgimento e un numero di posti disponibili; la
-loro pubblicazione è
-effettuata da dipendenti autorizzati, così da mantenere controllo e
-coerenza dell'offerta.
+da un calendario di eventi, visibili ai visitatori e consultabili
+dagli utenti registrati. I prodotti, identificati da un codice
+univoco, sono descritti da un nome e da un prezzo, con la garanzia
+che i valori economici rimangano sempre positivi. Gli eventi, invece,
+sono presentati con titolo, descrizione, data di svolgimento e un
+numero di posti disponibili. La loro pubblicazione è effettuata da
+dipendenti autorizzati, così da mantenere controllo e coerenza
+dell'offerta.
 
 Gli utenti potranno creare un account fornendo un nome utente, un
-indirizzo email e una
-password; ogni profilo sarà associato a una persona identificata
-tramite codice fiscale,
-così da assicurare un'anagrafica pulita e non ridondante. Una volta
-autenticati, gli utenti
-potranno consultare il catalogo, comporre ordini di acquisto di
-prodotti e completarne la
-registrazione: ogni ordine sarà tracciato con data e ora, e conterrà
-le righe di dettaglio con
+indirizzo email e una password; ogni profilo sarà associato a una
+persona identificata tramite codice fiscale, così da assicurare
+un'anagrafica pulita e non ridondante. Una volta autenticati, gli
+utenti potranno consultare il catalogo, comporre ordini di acquisto
+di prodotti e completarne la registrazione: ogni ordine sarà
+tracciato con data e ora, e conterrà le righe di dettaglio con
 quantità e prezzo unitario, in modo da consentire il calcolo del
-totale e la successiva
-rendicontazione. Gli acquisti rimarranno associati in modo permanente
-all'account dell'utente,
-così da poterli rivedere e analizzare nel tempo.
+totale e la successiva rendicontazione. Gli acquisti rimarranno
+associati in modo permanente all'account dell'utente, così da poterli
+rivedere e analizzare nel tempo.
 
 Per la dimensione esperienziale dell'agriturismo, la piattaforma
-offrirà una sezione dedicata
-agli eventi: gli utenti interessati potranno iscriversi indicando il
-numero di partecipanti; il
-sistema dovrà garantire che le prenotazioni non superino i posti
-disponibili e registrerà
-automaticamente data e ora di ciascuna iscrizione. In questo modo, il
-titolare potrà monitorare
-in tempo reale l'andamento delle adesioni e prevedere l'affluenza,
-ottimizzando l'organizzazione
+offrirà una sezione dedicata agli eventi. Gli utenti interessati
+potranno iscriversi indicando il numero di partecipanti. Il sistema
+dovrà garantire che le prenotazioni non superino i posti disponibili
+e registrerà automaticamente data e ora di ciascuna iscrizione. In
+questo modo il titolare potrà monitorare in tempo reale l'andamento
+delle adesioni e prevedere l'affluenza, ottimizzando l'organizzazione
 delle serate e delle attività tematiche.
 
 La gestione del personale rappresenta un altro pilastro del sistema.
-Ciascun dipendente sarà un
-utente abilitato a funzioni specifiche e caratterizzato da un ruolo
-(ad esempio sala, cucina,
-reception), con la possibilità di tracciarne lo storico delle
-variazioni nel tempo. La
+Ciascun dipendente sarà un utente abilitato a funzioni specifiche e
+caratterizzato da un ruolo (ad esempio sala, cucina, reception). La
 pianificazione dei turni avverrà attraverso la definizione di modelli
-di turno (per giorno della
-settimana, con orari di inizio e fine) e la loro assegnazione a
-calendario per una data
-specifica. Ogni assegnazione prevede uno stato — programmato,
-completato o assente — così da
-fotografare l'effettiva presenza; inoltre, il sistema eviterà
-conflitti, impedendo che uno
-stesso dipendente risulti assegnato a più turni nella medesima giornata.
+di turno (per giorno della settimana, con orari di inizio e fine) e
+la loro assegnazione a calendario per una data specifica.
 
-Dal punto di vista direzionale, il titolare richiede una reportistica
-essenziale ma
-affidabile: l'andamento delle vendite per periodo, la partecipazione
-agli eventi e un quadro
-della presenza/assenza del personale sui turni. La piattaforma dovrà
-salvaguardare la sicurezza
-dei dati, conservando le password in forma sicura e applicando
-vincoli di integrità su prezzi e
-quantità; le operazioni frequenti — come consultare il catalogo,
-registrare un ordine o
-iscriversi a un evento — dovranno risultare rapide e semplici,
-privilegiando chiarezza e
-immediatezza d'uso.
+Dal punto di vista gestionale, il sistema dovrà offrire strumenti di
+reportistica per monitorare l'andamento delle vendite, la
+partecipazione agli eventi e la presenza del personale. Sarà
+fondamentale garantire la sicurezza e l'integrità dei dati,
+applicando vincoli su prezzi e quantità e gestendo le informazioni
+sensibili in modo appropriato. Le operazioni principali dovranno
+essere efficienti e facilmente accessibili, favorendo la chiarezza e
+la rapidità d'uso.
 
 \section{Estrazione dei concetti principali}
+L'agriturismo intende realizzare una piattaforma digitale che integri
+la vendita di prodotti, la promozione e gestione degli eventi e
+l'organizzazione del personale. Il sistema sarà accessibile via web
+agli utenti registrati e al personale autorizzato, offrendo una vista
+centralizzata delle attività e riducendo errori operativi e tempi di
+coordinamento.
 
-L'agriturismo intende realizzare una piattaforma digitale che unisca
-in un unico ecosistema la
-vendita di prodotti, la promozione e gestione degli eventi e
-l'organizzazione del personale. Il
-sistema sarà accessibile via web agli utenti registrati e al
-personale autorizzato, con
-l'obiettivo di offrire una vista centralizzata e coerente delle
-attività quotidiane, riducendo
-errori operativi e tempi di coordinamento. Il cuore dell'applicazione
-è rappresentato da un
-\textbf{catalogo di \underline{prodotti}} e da un calendario
-\underline{eventi}: i
-\underline{prodotti}, identificati in modo univoco (\textbf{codice}),
-e descritti da
-\textbf{nome} e \textbf{prezzo}, saranno acquistabili dagli
-\underline{utenti} autenticati; gli
-\underline{eventi}, caratterizzati da \textbf{titolo},
-\textbf{descrizione}, \textbf{data} e
-\textbf{posti disponibili}, saranno visibili e prenotabili secondo
-regole di capienza stabilite
-dall'azienda.
+Il cuore dell'applicazione è costituito dalle tabelle
+\textbf{PRODUCT} e \textbf{EVENT}: i prodotti, identificati da
+\underline{codice}, sono descritti da \underline{nome} e
+\underline{prezzo} e sono acquistabili dagli utenti autenticati; gli
+eventi, caratterizzati da \underline{titolo},
+\underline{descrizione}, \underline{data} e \underline{posti
+disponibili}, sono visibili e prenotabili secondo regole di capienza
+definite dall'azienda.
 
-Gli \underline{utenti} potranno creare un account fornendo
-\textbf{nome utente}, \textbf{email}
-e \textbf{password}; ogni account sarà associato a una
-\underline{persona} identificata da
-\textbf{codice fiscale}, in modo da mantenere un'anagrafica solida e
-priva di duplicati. Una
-volta autenticati, gli \underline{utenti} potranno consultare il
-catalogo e comporre
-\underline{ordini}, che verranno registrati con \textbf{data} e
-\textbf{ora} e articolati in
-\underline{righe d'ordine} di dettaglio con \textbf{quantità} e
-\textbf{prezzo unitario},
-garantendo la correttezza dei totali e la tracciabilità nel tempo.
-Gli \underline{acquisti}
-resteranno permanentemente associati al profilo
-dell'\underline{utente}, consentendo
-storicizzazione e successive analisi gestionali.
+Gli utenti sono gestiti tramite le tabelle \textbf{USER} e
+\textbf{PERSON}: ogni utente crea un account fornendo \underline{nome
+utente}, \underline{email} e \underline{password}, associato a una
+persona identificata da \underline{codice fiscale}, garantendo
+un'anagrafica unica e senza duplicati. Gli utenti autenticati possono
+consultare il catalogo e creare ordini (\textbf{ORDER}), che vengono
+registrati con \underline{data} e \underline{ora} e articolati in
+righe di dettaglio (\textbf{ORDER\_DETAIL}) con \underline{quantità}
+e \underline{prezzo unitario}, assicurando la correttezza dei totali
+e la tracciabilità nel tempo. Gli acquisti restano associati al
+profilo utente, consentendo storicizzazione e analisi successive.
 
-La dimensione esperienziale sarà supportata da un modulo
-\underline{eventi}: la creazione degli
-\underline{eventi} è affidata a \underline{dipendenti} autorizzati e
-prevede l'indicazione dei
-\textbf{posti disponibili}. Gli \underline{utenti} potranno
-iscriversi (\underline{iscrizione
-evento}) specificando il \textbf{numero di partecipanti}, mentre il
-sistema dovrà prevenire
-il superamento della capienza e registrare automaticamente
-\textbf{data} e \textbf{ora} di ogni
-iscrizione. In parallelo, la gestione interna del
-\underline{personale} è fondata su
-\underline{ruoli} e \underline{turni}: ogni \underline{dipendente}
-possiede un \textbf{ruolo}
-corrente, con storico delle variazioni per fini di audit, e partecipa
-a una pianificazione che
-combina \underline{modelli di turno} (\textbf{giorno della
-  settimana}, \textbf{nome},
-\textbf{orari}) con \underline{assegnazioni di turno} a calendario
-per \textbf{date} specifiche.
-Ogni assegnazione registra lo \textbf{stato} effettivo (\textbf{programmato},
-\textbf{completato}, \textbf{assente}) e impedisce conflitti, evitando che un
-\underline{dipendente} risulti pianificato su più turni nello stesso giorno.
+La gestione degli eventi è affidata ai dipendenti
+(\textbf{EMPLOYEE}), che possono creare record in \textbf{EVENT}
+indicando i \underline{posti disponibili}. Gli utenti possono
+iscriversi agli eventi tramite la tabella
+\textbf{EVENT\_SUBSCRIPTION}, specificando il \underline{numero di
+partecipanti}; il sistema previene il superamento della capienza e
+registra automaticamente \underline{data} e \underline{ora} di ogni iscrizione.
 
-A livello trasversale, la piattaforma tutela integrità e sicurezza
-dei dati: \textbf{prezzi} e
-\textbf{quantità} devono essere sempre positivi, le relazioni fra
-\underline{utenti},
-\underline{dipendenti}, \underline{ordini} ed \underline{eventi}
-rispettano vincoli
-referenziali, e le informazioni sensibili come le \textbf{password}
-sono gestite in modo sicuro.
+La gestione del personale si basa sulle tabelle \textbf{EMPLOYEE},
+\textbf{SHIFT}, \textbf{EMPLOYEE\_SHIFT} e
+\textbf{EMPLOYEE\_HISTORY}: ogni dipendente possiede un
+\underline{ruolo} corrente, con storico delle variazioni per audit, e
+partecipa a una pianificazione che combina modelli di turno
+(\textbf{SHIFT}, con \underline{giorno della settimana},
+\underline{nome}, \underline{orari}) e assegnazioni di turno
+(\textbf{EMPLOYEE\_SHIFT}) per date specifiche. Ogni assegnazione
+registra lo \underline{stato} (\underline{programmato},
+\underline{completato}, \underline{assente}) e impedisce conflitti,
+evitando che un dipendente sia pianificato su più turni nello stesso giorno.
 
-Il \underline{titolare} dispone di una visione complessiva tramite
-report essenziali su
-\underline{vendite}, \underline{adesioni agli eventi} e
-\underline{presenza del personale},
-mentre l'interfaccia privilegia semplicità e rapidità nelle
-operazioni più frequenti.
+La piattaforma garantisce integrità e sicurezza dei dati:
+\underline{prezzi} e \underline{quantità} sono sempre positivi, le
+relazioni tra \textbf{USER}, \textbf{EMPLOYEE}, \textbf{ORDER} ed
+\textbf{EVENT} rispettano vincoli referenziali, e le informazioni
+sensibili come le \underline{password} sono gestite in modo sicuro.
+
+Il titolare dispone di una visione complessiva tramite report sulle
+\textbf{vendite} (\textbf{ORDER}), sulle \textbf{adesioni agli
+eventi} (\textbf{EVENT\_SUBSCRIPTION}) e sulla \textbf{presenza del
+personale} (\textbf{EMPLOYEE\_SHIFT}), mentre l'interfaccia
+privilegia semplicità e rapidità nelle operazioni frequenti.
 
 \chapter{Progettazione concettuale}
 In questo capitolo presenteremo lo schema ER, partendo da una
-versione iniziale e migliorandola
-passo dopo passo ad arrivare a quella definitiva, attraverso dei raffinamenti.
+versione iniziale e migliorandola passo dopo passo ad arrivare a
+quella definitiva, attraverso dei raffinamenti.
 
 \section{Schema iniziale}
 Dopo aver eseguito l'analisi del dominio iniziale, abbiamo creato uno
-schema di base con
-le entità e le relazioni principali, che sarà poi perfezionato nei
-passaggi successivi.
+schema di base con le entità e le relazioni principali, che sarà poi
+perfezionato nei passaggi successivi.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth, trim=200pt 170pt 50pt 0pt,
@@ -286,30 +236,25 @@ passaggi successivi.
 \section{Raffinamenti proposti}
 \subsection{Utente e Dipendente}
 Nel modello concettuale iniziale la \textbf{Persona} raggruppava
-tutte le possibili interazioni
-con il sistema: iscrizione, creazione di eventi, prenotazioni, ordini
-e recensioni. Questo
-approccio, sebbene corretto dal punto di vista logico, risultava poco
-chiaro perché attribuiva
-a un'unica entità responsabilità molto eterogenee.
+tutte le possibili interazioni con il sistema: iscrizione, creazione
+di eventi, prenotazioni, ordini e recensioni. Questo approccio,
+sebbene corretto dal punto di vista logico, risultava poco chiaro
+perché attribuiva a un'unica entità responsabilità molto eterogenee.
 
 \vspace{\baselineskip}
-Per migliorare la rappresentazione è stato introdotto un raffinamento mediante
-generalizzazione/specializzazione: la superclasse \textbf{Persona} è
-stata mantenuta per
-raccogliere gli attributi comuni (CF, nome, cognome), mentre le
-funzionalità specifiche sono
+Per migliorare la rappresentazione è stato introdotto un raffinamento
+mediante generalizzazione/specializzazione: la superclasse
+\textbf{Persona} è stata mantenuta per raccogliere gli attributi
+comuni (CF, nome, cognome), mentre le funzionalità specifiche sono
 state assegnate ai sottotipi \textbf{Cliente} e \textbf{Dipendente}.
 
 \vspace{\baselineskip}
 In questo modo i clienti gestiscono attività come acquisti,
-recensioni, ordini e iscrizioni agli
-eventi, mentre i dipendenti si occupano della creazione degli eventi
-e della gestione dei
-servizi. Tale raffinamento migliora la chiarezza semantica del
-modello, riduce le ambiguità e
-riflette meglio la separazione dei ruoli reali all'interno del
-dominio applicativo.
+recensioni, ordini e iscrizioni agli eventi, mentre i dipendenti si
+occupano della creazione degli eventi e della gestione dei servizi.
+Tale raffinamento migliora la chiarezza semantica del modello, riduce
+le ambiguità e riflette meglio la separazione dei ruoli reali
+all'interno del dominio applicativo.
 
 \vspace{\baselineskip}
 Il raffinamento mette in evidenza anche le dipendenze temporali (come
@@ -329,27 +274,24 @@ coerente, sicuro e facilmente estendibile.
 \newpage
 \subsection{Prenotazione Servizi}
 Nel modello iniziale i diversi tipi di servizi potevano essere
-rappresentati come entità
-distinte, con il rischio però di ridondanza e frammentazione dei dati.
+rappresentati come entità distinte, con il rischio però di ridondanza
+e frammentazione dei dati.
 
 \vspace{\baselineskip}
 Con il raffinamento si è introdotta una \textbf{generalizzazione}: è
-stata creata la superclasse
-\textbf{Servizio}, che raccoglie gli attributi comuni (id, price,
-type), mentre ciascuna
-tipologia specifica di servizio (Camera e Ristorante) è modellata
-come sottoclasse.
+stata creata la superclasse \textbf{Servizio}, che raccoglie gli
+attributi comuni (id, price, type), mentre ciascuna tipologia
+specifica di servizio (Camera e Ristorante) è modellata come sottoclasse.
 
 \vspace{\baselineskip}
 Inoltre, è stato introdotto il legame con l'entità
-\textbf{Prenotazione}, che consente di
-registrare le informazioni su data di inizio e fine e di associare
-ogni prenotazione a uno o
-più servizi specifici tramite la relazione con \textbf{Dettagli
-Prenotazione}. Questo
-raffinamento permette di gestire correttamente scenari in cui un
-utente prenota più servizi
-differenti nello stesso arco temporale.
+\textbf{Prenotazione}, che consente di registrare le informazioni su
+data di inizio e fine e di associare ogni prenotazione a uno o più
+servizi specifici tramite la relazione con \textbf{Dettagli
+Prenotazione}. Questo raffinamento permette di gestire correttamente
+scenari in cui un utente prenota più servizi differenti nello stesso
+arco temporale.
+
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth, trim=0 200pt 300pt 0,
@@ -361,31 +303,27 @@ differenti nello stesso arco temporale.
 \newpage
 \subsection{Prodotti e ordini}
 Nel modello concettuale iniziale, la gestione degli ordini e dei
-prodotti risultava poco
-dettagliata: un ordine era semplicemente collegato a uno o più
-prodotti, senza possibilità di
-specificare informazioni aggiuntive come quantità o prezzo unitario.
+prodotti risultava poco dettagliata: un ordine era semplicemente
+collegato a uno o più prodotti, senza possibilità di specificare
+informazioni aggiuntive come quantità o prezzo unitario.
 
 \vspace{\baselineskip}
 Con il raffinamento, è stata introdotta l'entità \textbf{Dettaglio
-Ordine}, che funge da
-associazione tra \textbf{Ordine} e \textbf{Prodotto}. Ogni dettaglio
-ordine consente di
-memorizzare, per ciascun prodotto incluso in un ordine, la quantità
-acquistata e il prezzo
-applicato. Questo permette di rappresentare in modo accurato scenari
-reali come ordini
-multiprodotto, applicazione di sconti o variazioni di prezzo nel tempo.
+Ordine}, che funge da associazione tra \textbf{Ordine} e
+\textbf{Prodotto}. Ogni dettaglio ordine consente di memorizzare, per
+ciascun prodotto incluso in un ordine, la quantità acquistata e il
+prezzo applicato. Questo permette di rappresentare in modo accurato
+scenari reali come ordini multiprodotto, applicazione di sconti o
+variazioni di prezzo nel tempo.
 
 \vspace{\baselineskip}
 Inoltre, viene mantenuta la generalizzazione tra \textbf{Persona} e
-\textbf{Utente}, già
-introdotta nei raffinamenti precedenti, per distinguere i dati
-anagrafici comuni da quelli
-specifici per l'accesso al sistema e la gestione degli ordini. Questo
-approccio migliora la
-flessibilità e la chiarezza del modello, consentendo una gestione più efficace
-delle informazioni relative agli acquisti.
+\textbf{Utente}, già introdotta nei raffinamenti precedenti, per
+distinguere i dati anagrafici comuni da quelli specifici per
+l'accesso al sistema e la gestione degli ordini. Questo approccio
+migliora la flessibilità e la chiarezza del modello, consentendo una
+gestione più efficace delle informazioni relative agli acquisti.
+
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth, trim=0 300pt 325pt 0,
@@ -411,11 +349,11 @@ raffinamenti.
 \chapter{Progettazione Logica}
 
 \section{Stima del volume di dati}
-Sulla base dei requisiti e dell'analisi di dominio, abbiamo stimato l'ordine
-di grandezza dei dati iniziali e la crescita annua attesa per ciascuna
-entità principale. La Tabella~\ref{tab:volume-dati} riassume i volumi e la
-crescita previsti; i valori sono indicativi e utili per dimensionare indici,
-partizionamento e politiche di archiviazione.
+Sulla base dei requisiti e dell'analisi di dominio, abbiamo stimato
+l'ordine di grandezza dei dati iniziali e la crescita annua attesa
+per ciascuna entità principale. La Tabella~\ref{tab:volume-dati}
+riassume i volumi e la crescita previsti; i valori sono indicativi e
+utili per dimensionare indici, partizionamento e politiche di archiviazione.
 
 \begin{table}[H]
   \centering
@@ -453,15 +391,14 @@ clienti attivi generano 15.000 ordini all'anno, in media 6 ordini
 ciascuno. Ogni ordine contiene circa 3 prodotti, per un totale di
 45.000 dettagli ordine. Sono presenti 50 dipendenti che coprono
 18.000 turni annuali, ovvero circa un turno al giorno per ciascuno
-nei periodi di punta. Questi valori sono utili per dimensionare
-indici, archiviazione e prestazioni del sistema.
+nei periodi di punta.
 
 \section{Descrizione operazioni}
 La Tabella~\ref{tab:operazioni-settimanali} mostra le principali
 operazioni che gli utenti possono svolgere nel sistema, come
 statistiche, prenotazioni, ordini, recensioni e autenticazione. Per
-ogni operazione è indicata la frequenza settimanale stimata e
-il tipo di utente che la esegue.
+ogni operazione è indicata la frequenza settimanale stimata e il tipo
+di utente che la esegue.
 
 \begin{table}[H]
   \centering
@@ -523,7 +460,6 @@ il tipo di utente che la esegue.
   utente che le effettua}
   \label{tab:operazioni-settimanali}
 \end{table}
-
 \section{Analisi delle operazioni}
 Di seguito viene riportata un'analisi delle principali operazioni
 sul database dell'agriturismo.
@@ -534,6 +470,7 @@ Si definiscono:
     settimanalmente
   \item $C_{tot}$: costo totale dell'operazione (accessi settimanali)
   \item $A_{scr}$: numero di accessi in scrittura per operazione
+    (ogni scrittura conta come \textbf{2 accessi})
   \item $A_{lett}$: numero di accessi in lettura per operazione
 \end{itemize}
 
@@ -928,9 +865,10 @@ $$Op_{sett} = 100$$
 $$\mathbf{C_{tot}} = 100 \cdot (1 + 2 \cdot 1) = \mathbf{300}$$
 
 \subsection*{Prenotazione tavolo ristorante} \label{op14}
-\colorbox{yellow}{Completa la prenotazione di un tavolo al ristorante.}
+\colorbox{yellow}{Registra la prenotazione di un tavolo al ristorante.}
 
-Registra i dettagli della prenotazione tavolo associando servizio e ristorante.
+Associa il servizio ristorante ai dettagli della prenotazione,
+evitando duplicazioni.
 
 $$Op_{sett} = 80$$
 
@@ -959,8 +897,8 @@ $$\mathbf{C_{tot}} = 80 \cdot (2 + 2 \cdot 1) = \mathbf{320}$$
 \subsection*{Prenotazione camera con controllo duplicati} \label{op15}
 \colorbox{yellow}{Prenota una camera con controlli anti-duplicati.}
 
-Inserisce una prenotazione camera verificando l'assenza di duplicati
-per periodo/utente.
+Registra una prenotazione camera controllando che non esistano già
+prenotazioni sovrapposte per lo stesso utente e periodo.
 
 $$Op_{sett} = 70$$
 
@@ -1205,8 +1143,7 @@ $$\mathbf{C_{tot}} = 60 \cdot (5 + 2 \cdot 4) = \mathbf{780}$$
 In questa sezione vengono descritti i principali raffinamenti dello
 schema ER per la traduzione nel modello relazionale: rimozione
 attributi multivalore, gestione delle gerarchie, reificazione delle
-associazioni molti-a-molti e scelta degli identificatori. Questi
-passaggi rendono lo schema relazionale più semplice ed efficiente.
+associazioni molti-a-molti e scelta degli identificatori.
 
 \subsection{Rimozione gerarchie}
 Nel nostro schema ER sono presenti alcune gerarchie
