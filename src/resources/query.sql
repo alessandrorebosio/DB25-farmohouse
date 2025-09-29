@@ -1,3 +1,5 @@
+use farmhouse;
+
 -- Top 5 most booked services (by reservation details),
 -- showing a friendly name with subtype code (Restaurant/Room)
 SELECT

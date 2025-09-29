@@ -37,8 +37,8 @@ pip install -r requirements.txt
 ### 4. Database Setup
 **Create MySQL Database:**
 ```bash
-mysql -u root -p < src/main/resources/db.sql
-mysql -u root -p < src/main/resources/demo.sql
+mysql -u root -p < src/resources/db.sql
+mysql -u root -p < src/resources/demo.sql
 ```
 
 ## 🚀 Running the Application
