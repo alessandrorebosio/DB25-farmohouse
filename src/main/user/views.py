@@ -1,3 +1,15 @@
+"""Views for the User app.
+
+Contains:
+- register_view: create Person + User records via RegisterForm
+- login_view: authenticate using Django form and custom backend
+- profile_view: show orders, shifts, event subscriptions, reservations
+- statistic_view: staff-only counters for quick stats
+- logout_view: end session and render homepage
+
+The style mirrors the Event app with succinct explanations and inline hints.
+"""
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -13,17 +25,36 @@ from django.db.models import (
 )
 from decimal import Decimal
 from django.utils import timezone
-from datetime import datetime, time,timedelta
+from datetime import datetime, time, timedelta
 
 from .forms import RegisterForm
 from . import models
 from product.models import Orders, OrderDetail
 from event.models import EventSubscription
-from service.models import Reservation, ReservationDetail, Service
+from service.models import Reservation, ReservationDetail
 from django.contrib.admin.views.decorators import staff_member_required
 
 
 def register_view(request: HttpRequest) -> HttpResponse:
+    """Render and process the user registration form.
+
+    On success, creates both Person and User (see forms.RegisterForm.save)
+    and redirects to the login page.
+
+    SQL (approximate; executed by the form's save method):
+
+    SELECT P.*
+    FROM "PERSON" P
+    WHERE P."cf" = %s
+    LIMIT 1;
+
+    INSERT INTO "PERSON" ("cf", "name", "surname")
+    VALUES (%s, %s, %s)
+    ON CONFLICT ("cf") DO NOTHING;  -- backend-dependent
+
+    INSERT INTO "USER" ("username", "cf", "email", "password")
+    VALUES (%s, %s, %s, %s);
+    """
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -36,6 +67,37 @@ def register_view(request: HttpRequest) -> HttpResponse:
 
 
 def login_view(request: HttpRequest) -> HttpResponse:
+    """Render and process the login form using Django's AuthenticationForm.
+
+    Uses the project's custom authentication backend to map app users to
+    Django auth users. Respects an optional "next" redirect parameter.
+
+    SQL (approximate; executed by the custom auth backend):
+
+    SELECT U.*
+    FROM "USER" U
+    WHERE U."username" = %s
+    LIMIT 1;
+
+    SELECT 1
+    FROM "active_employees"
+    WHERE "username" = %s
+    LIMIT 1;
+
+    SELECT E."role"
+    FROM "EMPLOYEE" E
+    WHERE E."username" = %s
+    LIMIT 1;
+
+    -- Mirror to auth_user (insert or update)
+    SELECT AU.*
+    FROM "auth_user" AU
+    WHERE AU."username" = %s
+    LIMIT 1;
+
+    INSERT INTO "auth_user" ("username", "email", "is_staff", "is_superuser", "is_active", "password", "first_name", "last_name", "date_joined")
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+    """
     next_url = request.POST.get("next") or request.GET.get("next") or "/"
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -47,8 +109,15 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
     return render(request, "login.html", {"form": form, "next": next_url})
 
+
 def _ensure_datetime(value):
-    """Return a timezone-aware datetime from a date or datetime, or None."""
+    """Return a timezone-aware datetime from a date or datetime, or None.
+
+    - If value is already an aware datetime, return as-is
+    - If value is a naive datetime, make it aware in the current timezone
+    - If value is a date, convert to start-of-day aware datetime
+    - If None, return None
+    """
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -63,6 +132,65 @@ def _ensure_datetime(value):
 
 @login_required(login_url="login")
 def profile_view(request: HttpRequest) -> HttpResponse:
+    """Show the user's dashboard: orders, shifts, events and reservations.
+
+    Queries:
+    - Orders with prefetch of lines and computed order_total
+    - Shifts (next 30 days if any; else recent last 20)
+    - Event subscriptions with a computed flag `can_review`
+    - Reservations with details and computed pricing/cancellation flags
+
+    SQL (approximate; actual SQL and quoting vary by backend):
+
+    SELECT U."username", U."email", P."cf", P."name", P."surname", E."role"
+    FROM "USER" U
+    LEFT JOIN "PERSON" P ON P."cf" = U."cf"
+    LEFT JOIN "EMPLOYEE" E ON E."username" = U."username"
+    WHERE U."username" = %s
+    LIMIT 1;
+
+    SELECT O."id", O."date",
+           SUM(OD."quantity" * OD."unit_price") AS order_total
+    FROM "ORDERS" O
+    LEFT JOIN "ORDER_DETAIL" OD ON OD."order_id" = O."id"
+    WHERE O."username" = %s
+    GROUP BY O."id", O."date"
+    ORDER BY O."date" DESC, O."id" DESC;
+
+    SELECT OD.*
+    FROM "ORDER_DETAIL" OD
+    WHERE OD."order_id" IN (...);
+
+    SELECT ES."employee_username", ES."shift_date", S."shift_name", S."day", S."start_time", S."end_time"
+    FROM "EMPLOYEE_SHIFT" ES
+    JOIN "SHIFT" S ON S."id" = ES."shift_id"
+    WHERE ES."employee_username" = %s AND ES."shift_date" BETWEEN %s AND %s
+    ORDER BY ES."shift_date" ASC, S."start_time" ASC;
+
+    SELECT ES."employee_username", ES."shift_date", S."shift_name", S."day", S."start_time", S."end_time"
+    FROM "EMPLOYEE_SHIFT" ES
+    JOIN "SHIFT" S ON S."id" = ES."shift_id"
+    WHERE ES."employee_username" = %s
+    ORDER BY ES."shift_date" DESC, S."start_time" DESC
+    LIMIT 20;
+
+    SELECT ES.*
+    FROM "EVENT_SUBSCRIPTION" ES
+    JOIN "EVENT" E ON E."id" = ES."event"
+    WHERE ES."user" = %s
+    ORDER BY E."event_date" ASC, E."title" ASC;
+
+    SELECT R.*
+    FROM "RESERVATION" R
+    WHERE R."username" = %s
+    ORDER BY R."reservation_date" DESC;
+
+    SELECT RD.*, SV.*
+    FROM "RESERVATION_DETAIL" RD
+    JOIN "SERVICE" SV ON SV."id" = RD."service_id"
+    WHERE RD."reservation_id" IN (...)
+    ORDER BY RD."start_date" ASC;
+    """
     now = timezone.now()
     today = timezone.localdate()
 
@@ -146,7 +274,6 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         else:
             s.can_review = (ev_date is not None) and (ev_date < today)
 
-
     reservations = (
         Reservation.objects.filter(username_id=request.user.username)
         .prefetch_related(
@@ -166,20 +293,19 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         for d in r.reservation_details:
             svc = d.service
             d.is_room = svc.type == "ROOM"
-            
-            
+
             start_dt = _ensure_datetime(d.start_date)
             end_dt = _ensure_datetime(d.end_date)
-            # can_review: fine prenotazione passata
             d.can_review = (end_dt is not None) and (end_dt <= now)
 
-            # can_cancel: start > now + 7 giorni
-            d.can_cancel = (start_dt is not None) and ((start_dt - now) > timedelta(days=7))
+            d.can_cancel = (start_dt is not None) and (
+                (start_dt - now) > timedelta(days=7)
+            )
 
-            # in_no_action_window: tra 0 e 7 giorni
-            d.in_no_action_window = (start_dt is not None) and (timedelta(0) <= (start_dt - now) <= timedelta(days=7))
-            
-            # Notti: (end.date - start.date).days, niente +1; minimo 1 solo per camere
+            d.in_no_action_window = (start_dt is not None) and (
+                timedelta(0) <= (start_dt - now) <= timedelta(days=7)
+            )
+
             start_d = d.start_date.date()
             end_d = d.end_date.date()
             nights = (end_d - start_d).days if d.is_room else 1
@@ -208,12 +334,59 @@ def profile_view(request: HttpRequest) -> HttpResponse:
 
 
 def logout_view(request: HttpRequest) -> HttpResponse:
+    """
+    Log out and render the homepage template.
+    """
     logout(request)
     return render(request, "index.html")
 
 
 @staff_member_required(login_url="/login")
 def statistic_view(request: HttpRequest) -> HttpResponse:
+    """Simple staff-only statistics counters for users, employees and orders.
+
+    SQL (approximate):
+
+    SELECT COUNT(*) FROM "USER";
+    SELECT COUNT(*) FROM "EMPLOYEE";
+    SELECT COUNT(*) FROM "ORDERS";
+
+    SELECT SUM(OD."quantity" * OD."unit_price") AS revenue
+    FROM "ORDER_DETAIL" OD;
+
+    SELECT COUNT(*) FROM "RESERVATION";
+
+    SELECT RD."service_id", SV."type", SV."room_id", SV."restaurant_id", COUNT(*) AS bookings
+    FROM "RESERVATION_DETAIL" RD
+    JOIN "SERVICE" SV ON SV."id" = RD."service_id"
+    GROUP BY RD."service_id", SV."type", SV."room_id", SV."restaurant_id"
+    ORDER BY bookings DESC
+    LIMIT 10;
+
+    SELECT OD."product_id", P."name", SUM(OD."quantity") AS total_qty
+    FROM "ORDER_DETAIL" OD
+    JOIN "PRODUCT" P ON P."id" = OD."product_id"
+    GROUP BY OD."product_id", P."name"
+    ORDER BY total_qty DESC
+    LIMIT 10;
+
+    SELECT OD."product_id", P."name", SUM(OD."quantity" * OD."unit_price") AS total_revenue
+    FROM "ORDER_DETAIL" OD
+    JOIN "PRODUCT" P ON P."id" = OD."product_id"
+    GROUP BY OD."product_id", P."name"
+    ORDER BY total_revenue DESC
+    LIMIT 10;
+
+    SELECT ES."event", E."title", E."event_date", SUM(ES."participants") AS total_participants
+    FROM "EVENT_SUBSCRIPTION" ES
+    JOIN "EVENT" E ON E."id" = ES."event"
+    GROUP BY ES."event", E."title", E."event_date"
+    ORDER BY total_participants DESC, E."event_date" ASC
+    LIMIT 10;
+
+    SELECT * FROM "fully_booked_events" ORDER BY "event_date" DESC LIMIT 50;
+    SELECT * FROM "free_services_now" ORDER BY "available" DESC, "type" ASC, "service_id" ASC LIMIT 200;
+    """
     users_count = models.User.objects.count()
     employees_count = models.Employee.objects.count()
     orders_count = Orders.objects.count()
@@ -279,10 +452,11 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
         .annotate(total_participants=Sum("participants"))
         .order_by("-total_participants", "event__event_date")[:10]
     )
-    
-    fully_booked_qs = models.FullyBookedEvent.objects.all().order_by("-event_date")[:50]
-    free_services_qs = models.FreeServiceNow.objects.all().order_by("-available", "type", "service_id")[:200]
 
+    fully_booked_qs = models.FullyBookedEvent.objects.all().order_by("-event_date")[:50]
+    free_services_qs = models.FreeServiceNow.objects.all().order_by(
+        "-available", "type", "service_id"
+    )[:200]
 
     context = {
         "kpis": {

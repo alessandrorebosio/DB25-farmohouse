@@ -1,14 +1,24 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
+"""Models for the User app.
+
+Important notes:
+- All models map to existing database tables/views (managed = False)
+- Primary keys reflect the legacy schema as-is
+- Field and table names (db_table/db_column) are kept for compatibility
+
+This file mirrors the explanatory style used in Event app code, adding
+clear docstrings for maintenance without changing behavior.
+"""
+
 from django.db import models
 
 
 class ActiveEmployee(models.Model):
+    """Read-only projection for active employees with their role.
+
+    Backed by the "active_employees" table or view. Used to determine
+    staff/superuser in the custom auth backend.
+    """
+
     username = models.CharField(primary_key=True, max_length=32)
     role = models.CharField(max_length=32)
 
@@ -18,7 +28,13 @@ class ActiveEmployee(models.Model):
         verbose_name = "Active employee"
         verbose_name_plural = "Active employees"
 
+
 class FullyBookedEvent(models.Model):
+    """Materialized view of fully booked events (reporting convenience).
+
+    Provides quick access to events that have no remaining seats.
+    """
+
     id = models.IntegerField(primary_key=True, db_column="id")
     title = models.CharField(max_length=255, null=True, db_column="title")
     event_date = models.TimeField(null=True, db_column="event_date")
@@ -29,13 +45,20 @@ class FullyBookedEvent(models.Model):
         managed = False
         db_table = "fully_booked_events"
         ordering = ["-event_date"]
-        
+
+
 class FreeServiceNow(models.Model):
+    """Projection of services with their current availability state."""
+
     service_id = models.IntegerField(primary_key=True, db_column="service_id")
     type = models.CharField(max_length=50, null=True, db_column="type")
-    restaurant_code = models.CharField(max_length=64, null=True, db_column="restaurant_code")
+    restaurant_code = models.CharField(
+        max_length=64, null=True, db_column="restaurant_code"
+    )
     room_code = models.CharField(max_length=64, null=True, db_column="room_code")
-    restaurant_max_capacity = models.IntegerField(null=True, db_column="restaurant_max_capacity")
+    restaurant_max_capacity = models.IntegerField(
+        null=True, db_column="restaurant_max_capacity"
+    )
     room_max_capacity = models.IntegerField(null=True, db_column="room_max_capacity")
     people_booked_now = models.IntegerField(null=True, db_column="people_booked_now")
     reservations_now = models.IntegerField(null=True, db_column="reservations_now")
@@ -45,8 +68,11 @@ class FreeServiceNow(models.Model):
     class Meta:
         managed = False
         db_table = "free_services_now"
-        
+
+
 class Employee(models.Model):
+    """Employee entity linked 1:1 to the application User by username."""
+
     username = models.OneToOneField(
         "User", models.CASCADE, db_column="username", primary_key=True
     )
@@ -60,6 +86,8 @@ class Employee(models.Model):
 
 
 class EmployeeHistory(models.Model):
+    """Employment history entries; one row per fired event per employee."""
+
     username = models.ForeignKey(Employee, models.CASCADE, db_column="username")
     fired_at = models.DateTimeField()
 
@@ -71,6 +99,11 @@ class EmployeeHistory(models.Model):
 
 
 class EmployeeShift(models.Model):
+    """Assignment of an employee to a shift on a specific date.
+
+    unique_together ensures one shift per employee per date.
+    """
+
     employee_username = models.ForeignKey(
         Employee, models.CASCADE, db_column="employee_username"
     )
@@ -86,6 +119,8 @@ class EmployeeShift(models.Model):
 
 
 class Person(models.Model):
+    """Personal identity information (CF as primary key)."""
+
     cf = models.CharField(primary_key=True, max_length=16)
     name = models.CharField(max_length=32)
     surname = models.CharField(max_length=32)
@@ -98,6 +133,8 @@ class Person(models.Model):
 
 
 class Shift(models.Model):
+    """Shift catalog: logical name, day and time bounds."""
+
     day = models.CharField(max_length=3)
     shift_name = models.CharField(max_length=32)
     start_time = models.TimeField()
@@ -111,6 +148,12 @@ class Shift(models.Model):
 
 
 class User(models.Model):
+    """Application-level user account linked to a Person.
+
+    This is separate from Django's auth user; the custom backend bridges
+    between the two.
+    """
+
     cf = models.OneToOneField(Person, models.CASCADE, db_column="cf")
     username = models.CharField(primary_key=True, max_length=32)
     email = models.CharField(max_length=255)

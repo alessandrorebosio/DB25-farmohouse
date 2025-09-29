@@ -1,3 +1,14 @@
+"""Django admin configuration for the User app.
+
+Provides:
+- Inline tables for employee history and shifts
+- Custom admin for Person, User, Employee, Shift, ActiveEmployee
+- Password field handling for User admin (hashing and keep-blank-to-retain)
+
+This mirrors the documentation style used in the Event app, focusing on
+clear module-level intent and inline hints for maintenance.
+"""
+
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.hashers import make_password
@@ -6,6 +17,13 @@ from . import models
 
 
 class EmployeeHistoryInline(admin.TabularInline):
+    """Read-only inline to show firing events of an employee.
+
+    - No extra empty rows
+    - Prevent deletion from inline (history should be immutable)
+    - Only shows the date column
+    """
+
     model = models.EmployeeHistory
     extra = 0
     can_delete = False
@@ -15,6 +33,12 @@ class EmployeeHistoryInline(admin.TabularInline):
 
 
 class EmployeeShiftInline(admin.TabularInline):
+    """Inline list of scheduled shifts for an employee.
+
+    Shift relation is autocompleted; date and shift are read-only to avoid
+    accidental edits directly from the inline.
+    """
+
     model = models.EmployeeShift
     extra = 0
     readonly_fields = ("shift_date", "shift")
@@ -25,6 +49,8 @@ class EmployeeShiftInline(admin.TabularInline):
 
 @admin.register(models.Person)
 class PersonAdmin(admin.ModelAdmin):
+    """Basic registry for people (linked 1:1 to users by CF)."""
+
     list_display = ("cf", "name", "surname")
     search_fields = ("cf", "name", "surname")
     ordering = ("surname", "name")
@@ -32,12 +58,22 @@ class PersonAdmin(admin.ModelAdmin):
 
 @admin.register(models.User)
 class UserAdmin(admin.ModelAdmin):
+    """Admin for application-level users (separate from Django auth User).
+
+    Notes:
+    - Displays and allows editing of the raw hashed password value.
+    - When creating: the password field uses a password input widget.
+    - When editing: leaving password blank keeps the current hash.
+    - Hashes plain passwords on save if an unhashed value was provided.
+    """
+
     list_display = ("username", "email", "cf")
     search_fields = ("username", "email", "cf__cf", "cf__name", "cf__surname")
     list_select_related = ("cf",)
     ordering = ("username",)
 
     def get_form(self, request, obj=None, **kwargs):
+        """Use password input and contextual help for the password field."""
         form = super().get_form(request, obj, **kwargs)
         if "password" in form.base_fields:
             form.base_fields["password"].widget = forms.PasswordInput(render_value=True)
@@ -51,6 +87,11 @@ class UserAdmin(admin.ModelAdmin):
         return form
 
     def save_model(self, request, obj, form, change):
+        """Hash the password if necessary and support 'leave blank to keep'.
+
+        If updating and the field is left empty, retain the existing hash.
+        If a non-hashed value is provided, hash it using Django utilities.
+        """
         raw = form.cleaned_data.get("password")
         if change and not raw:
             old = type(obj).objects.get(pk=obj.pk)
@@ -63,6 +104,8 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(models.Employee)
 class EmployeeAdmin(admin.ModelAdmin):
+    """Admin for employees, with history and shift inlines."""
+
     list_display = ("username_id", "role")
     search_fields = (
         "username__username",
@@ -78,6 +121,8 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(models.EmployeeHistory)
 class EmployeeHistoryAdmin(admin.ModelAdmin):
+    """Top-level view for employee history (read-only oriented)."""
+
     list_display = ("username", "fired_at")
     search_fields = ("username__username",)
     list_filter = ("fired_at",)
@@ -88,6 +133,8 @@ class EmployeeHistoryAdmin(admin.ModelAdmin):
 
 @admin.register(models.EmployeeShift)
 class EmployeeShiftAdmin(admin.ModelAdmin):
+    """Admin for employee shifts with helpful filters and autocomplete."""
+
     list_display = ("employee_username", "shift_date", "shift")
     search_fields = ("employee_username__username", "shift__shift_name")
     list_filter = ("shift_date", "shift__shift_name")
@@ -98,6 +145,8 @@ class EmployeeShiftAdmin(admin.ModelAdmin):
 
 @admin.register(models.Shift)
 class ShiftAdmin(admin.ModelAdmin):
+    """Admin for shift catalog (day/time windows)."""
+
     list_display = ("shift_name", "day", "start_time", "end_time")
     search_fields = ("shift_name", "day")
     list_filter = ("day",)
@@ -106,6 +155,8 @@ class ShiftAdmin(admin.ModelAdmin):
 
 @admin.register(models.ActiveEmployee)
 class ActiveEmployeeAdmin(admin.ModelAdmin):
+    """Read-only materialized view of active employees (name + role)."""
+
     list_display = ("username", "role")
     search_fields = ("username", "role")
     ordering = ("username",)
