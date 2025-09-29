@@ -12,7 +12,6 @@ This project implements a comprehensive database system for managing an agritour
 - **MySQL Server**: 8.0 or higher
 - **pip**: Python package installer
 - **MySQL client**: Command line tool (`mysql`)
-- **django-compositepk-model**: 1.0.3
 
 ## ⚙️ Installation & Setup
 
@@ -48,7 +47,7 @@ mysql -u root -p < src/resources/demo.sql
 python src/main/manage.py runserver
 ```
 
-The application will be available at: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+The application will be available at: **[http://localhost:8000](http://localhost:8000)**
 
 ## 📦 Dependencies
 The project uses the following main dependencies (see `requirements.txt`):
