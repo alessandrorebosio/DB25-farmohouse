@@ -87,9 +87,8 @@
 }
 
 \date{
-  \vspace{1cm}
-  \today \\[0.5cm]
-  Anno Accademico 2024-2025
+  \vspace{4cm}
+  \today \\
 }
 
 \begin{document}
@@ -449,8 +448,21 @@ partizionamento e politiche di archiviazione.
   \label{tab:volume-dati}
 \end{table}
 
+I volumi stimati si basano su ipotesi realistiche: circa 2.500
+clienti attivi generano 15.000 ordini all'anno, in media 6 ordini
+ciascuno. Ogni ordine contiene circa 3 prodotti, per un totale di
+45.000 dettagli ordine. Sono presenti 50 dipendenti che coprono
+18.000 turni annuali, ovvero circa un turno al giorno per ciascuno
+nei periodi di punta. Questi valori sono utili per dimensionare
+indici, archiviazione e prestazioni del sistema.
 
 \section{Descrizione operazioni}
+La Tabella~\ref{tab:operazioni-settimanali} mostra le principali
+operazioni che gli utenti possono svolgere nel sistema, come
+statistiche, prenotazioni, ordini, recensioni e autenticazione. Per
+ogni operazione è indicata la frequenza settimanale stimata e
+il tipo di utente che la esegue.
+
 \begin{table}[H]
   \centering
   \small
@@ -458,15 +470,16 @@ partizionamento e politiche di archiviazione.
   \begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}X|c|c|}
     \hline
     \rowcolor{gray!20}
-    \textbf{\#} & \textbf{Operazione} & \textbf{Op / 7gg} & \textbf{Tipo Utente} \\
+    \textbf{\#} & \textbf{Operazione} & \textbf{Op / 7gg} &
+    \textbf{Tipo Utente} \\
     \hline
-    1 & \hyperref[op1]{Top servizi per prenotazioni} & 20 & Admin \\
+    1 & \hyperref[op1]{Migliori servizi per prenotazioni} & 20 & Admin \\
     \hline
-    2 & \hyperref[op2]{Top prodotti per quantità venduta} & 15 & Admin \\
+    2 & \hyperref[op2]{Migliori prodotti per quantità venduta} & 15 & Admin \\
     \hline
-    3 & \hyperref[op3]{Top eventi per partecipanti} & 10 & Admin \\
+    3 & \hyperref[op3]{Migliori eventi per partecipanti} & 10 & Admin \\
     \hline
-    4 & \hyperref[op4]{Top prodotti per fatturato} & 15 & Admin \\
+    4 & \hyperref[op4]{Migliori prodotti per fatturato} & 15 & Admin \\
     \hline
     5 & \hyperref[op5]{Fatturato totale} & 10 & Admin \\
     \hline
@@ -484,603 +497,716 @@ partizionamento e politiche di archiviazione.
     \hline
     12 & \hyperref[op12]{Update e Iscrizione utente a evento} & 25 & Cliente \\
     \hline
-    13 & \hyperref[op13]{Creazione prenotazione principale} & 100 & Cliente / Staff \\
+    13 & \hyperref[op13]{Creazione prenotazione principale} & 100 &
+    Cliente / Staff \\
     \hline
-    14 & \hyperref[op14]{Prenotazione tavolo ristorante} & 80 & Cliente / Staff \\
+    14 & \hyperref[op14]{Prenotazione tavolo ristorante} & 80 &
+    Cliente / Staff \\
     \hline
-    15 & \hyperref[op15]{Prenotazione camera con controllo duplicati} & 70 & Cliente / Staff \\
+    15 & \hyperref[op15]{Prenotazione camera con controllo duplicati}
+    & 70 & Cliente / Staff \\
     \hline
-    16 & \hyperref[op16]{Eliminazione prenotazione servizio} & 20 & Cliente / Staff \\
+    16 & \hyperref[op16]{Eliminazione prenotazione servizio} & 20 &
+    Cliente / Staff \\
     \hline
     17 & \hyperref[op17]{Eliminazione iscrizione evento} & 15 & Cliente \\
     \hline
-    18 & \hyperref[op18]{Eliminazione prenotazione con controllo temporale} & 15 & Cliente / Staff \\
+    18 & \hyperref[op18]{Eliminazione prenotazione con controllo
+    temporale} & 15 & Cliente / Staff \\
     \hline
     19 & \hyperref[op19]{Verifica credenziali di login} & 500 & Tutti \\
     \hline
     20 & \hyperref[op20]{Creazione nuovo ordine} & 60 & Cliente / Staff \\
     \hline
   \end{tabularx}
-  \caption{Numero stimato di operazioni per settimana, con tipo di utente che le effettua}
+  \caption{Numero stimato di operazioni per settimana, con tipo di
+  utente che le effettua}
   \label{tab:operazioni-settimanali}
 \end{table}
 
 \section{Analisi delle operazioni}
-Di seguito viene riportata un'analisi per le operazioni principali sul database dell'agriturismo.
+Di seguito viene riportata un'analisi delle principali operazioni
+sul database dell'agriturismo.
 
-\begin{enumerate}
-    \item {\large \textbf{Top servizi per prenotazioni}} \label{op1}
-    
-    Identifica i servizi più prenotati distinguendo tra ristoranti e camere.
-    
-    $$Op_{sett} = 20$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            SERVICE & E & 100 & L \\
-            RESTAURANT & E & 20 & L \\
-            ROOM & E & 30 & L \\
-            RESERVATION\_DETAIL & A & 12000 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 100 + 20 + 30 + 12000 = 12150$
-    $$\mathbf{C_{tot}} = 20 \cdot 12150 = \mathbf{243.000}$$
+Si definiscono:
+\begin{itemize}
+  \item $Op_{sett}$: numero di volte che l'operazione viene eseguita
+    settimanalmente
+  \item $C_{tot}$: costo totale dell'operazione (accessi settimanali)
+  \item $A_{scr}$: numero di accessi in scrittura per operazione
+  \item $A_{lett}$: numero di accessi in lettura per operazione
+\end{itemize}
 
-    \item {\large \textbf{Top prodotti per quantità venduta}} \label{op2}
-    
-    Calcola i prodotti più venduti in base alla quantità totale.
-    
-    $$Op_{sett} = 15$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            PRODUCT & E & 500 & L \\
-            ORDER\_DETAIL & A & 45000 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 500 + 45000 = 45500$
-    $$\mathbf{C_{tot}} = 15 \cdot 45500 = \mathbf{682.500}$$
+\newpage
+\subsection*{Migliori servizi per prenotazioni} \label{op1}
+\colorbox{yellow}{Identifica i servizi più prenotati distinguendo tra
+ristoranti e camere.}
 
-    \item {\large \textbf{Top eventi per partecipanti}} \label{op3}
-    
-    Determina gli eventi con il maggior numero di partecipanti.
-    
-    $$Op_{sett} = 10$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            EVENT & E & 150 & L \\
-            EVENT\_SUBSCRIPTION & A & 2500 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 150 + 2500 = 2650$
-    $$\mathbf{C_{tot}} = 10 \cdot 2650 = \mathbf{26.500}$$
+Mostra quali servizi (camere e ristoranti) sono
+prenotati più spesso, fornendo una classifica utile per capire la
+domanda e gestire meglio le risorse.
 
-    \item {\large \textbf{Top prodotti per fatturato}} \label{op4}
-    
-    Calcola i prodotti che generano il maggior fatturato.
-    
-    $$Op_{sett} = 15$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            PRODUCT & E & 500 & L \\
-            ORDER\_DETAIL & A & 45000 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 500 + 45000 = 45500$
-    $$\mathbf{C_{tot}} = 15 \cdot 45500 = \mathbf{682.500}$$
+$$Op_{sett} = 20$$
 
-    \item {\large \textbf{Fatturato totale}} \label{op5}
-    
-    Calcola il ricavo complessivo dalle vendite dei prodotti.
-    
-    $$Op_{sett} = 10$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            ORDER\_DETAIL & A & 45000 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 45000$
-    $$\mathbf{C_{tot}} = 10 \cdot 45000 = \mathbf{450.000}$$
-
-    \item {\large \textbf{Statistiche generali del sistema}} \label{op6}
-    
-    Query composita che fornisce un riepilogo completo delle metriche di sistema.
-    
-    $$Op_{sett} = 25$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            USER & E & 5000 & L \\
-            EMPLOYEE & E & 50 & L \\
-            ORDERS & E & 15000 & L \\
-            ORDER\_DETAIL & A & 45000 & L \\
-            RESERVATION & E & 8000 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 5000 + 50 + 15000 + 45000 + 8000 = 73050$
-    $$\mathbf{C_{tot}} = 25 \cdot 73050 = \mathbf{1.826.250}$$
-
-    \item {\large \textbf{Verifica disponibilità camere}} \label{op7}
-    
-    Verifica la disponibilità delle camere in un dato periodo.
-    
-    $$Op_{sett} = 300$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            ROOM & E & 30 & L \\
-            SERVICE & E & 30 & L \\
-            RESERVATION\_DETAIL & A & 1200 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 30 + 30 + 1200 = 1260$
-    $$\mathbf{C_{tot}} = 300 \cdot 1260 = \mathbf{378.000}$$
-
-    \item {\large \textbf{Verifica disponibilità tavoli}} \label{op8}
-    
-    Verifica la disponibilità dei tavoli al ristorante.
-    
-    $$Op_{sett} = 250$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            RESTAURANT & E & 20 & L \\
-            SERVICE & E & 20 & L \\
-            RESERVATION\_DETAIL & A & 800 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    Totale: $A_{lett} = 20 + 20 + 800 = 840$
-    $$\mathbf{C_{tot}} = 250 \cdot 840 = \mathbf{210.000}$$
-
-    \item {\large \textbf{Inserimento recensione evento}} \label{op9}
-    
-    Inserisce una recensione per un evento.
-    
-    $$Op_{sett} = 20$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            EVENT & E & 1 & L \\
-            EVENT\_SUBSCRIPTION & A & 1 & L \\
-            REVIEW & E & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 2$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 20 \cdot (2 + 2 \cdot 1) = \mathbf{80}$$
-
-    \item {\large \textbf{Inserimento recensione servizio}} \label{op10}
-    
-    Inserisce una recensione per un servizio.
-    
-    $$Op_{sett} = 30$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            SERVICE & E & 1 & L \\
-            RESERVATION\_DETAIL & A & 1 & L \\
-            RESERVATION & E & 1 & L \\
-            REVIEW & E & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 3$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 30 \cdot (3 + 2 \cdot 1) = \mathbf{150}$$
-
-    \item {\large \textbf{Aggiornamento recensione}} \label{op11}
-    
-    Aggiorna una recensione esistente.
-    
-    $$Op_{sett} = 10$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            REVIEW & E & 1 & L \\
-            REVIEW & E & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 1$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 10 \cdot (1 + 2 \cdot 1) = \mathbf{30}$$
-
-    \item {\large \textbf{Update e Iscrizione utente a evento}} \label{op12}
-    
-    Iscrive un utente a un evento o aggiorna l'iscrizione esistente.
-    
-    $$Op_{sett} = 25$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            EVENT & E & 1 & L \\
-            USER & E & 1 & L \\
-            EVENT\_SUBSCRIPTION & A & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 2$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 25 \cdot (2 + 2 \cdot 1) = \mathbf{100}$$
-
-    \item {\large \textbf{Creazione prenotazione principale}} \label{op13}
-    
-    Crea il record principale di una prenotazione.
-    
-    $$Op_{sett} = 100$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            RESERVATION & E & 1 & S \\
-            USER & E & 1 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 1$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 100 \cdot (1 + 2 \cdot 1) = \mathbf{300}$$
-
-    \item {\large \textbf{Prenotazione tavolo ristorante}} \label{op14}
-    
-    Completa la prenotazione di un tavolo al ristorante.
-    
-    $$Op_{sett} = 80$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            SERVICE & E & 1 & L \\
-            RESTAURANT & E & 1 & L \\
-            RESERVATION\_DETAIL & A & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 2$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 80 \cdot (2 + 2 \cdot 1) = \mathbf{320}$$
-
-    \item {\large \textbf{Prenotazione camera con controllo duplicati}} \label{op15}
-    
-    Prenota una camera con controlli anti-duplicati.
-    
-    $$Op_{sett} = 70$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            RESERVATION & E & 1 & L \\
-            SERVICE & E & 1 & L \\
-            ROOM & E & 1 & L \\
-            RESERVATION\_DETAIL & A & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 3$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 70 \cdot (3 + 2 \cdot 1) = \mathbf{350}$$
-
-    \item {\large \textbf{Eliminazione prenotazione servizio}} \label{op16}
-    
-    Elimina una prenotazione di servizio.
-    
-    $$Op_{sett} = 20$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            RESERVATION\_DETAIL & A & 2 & L \\
-            RESERVATION\_DETAIL & A & 2 & S \\
-            RESERVATION & E & 1 & L \\
-            RESERVATION & E & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 3$, $A_{scr} = 3$
-    $$\mathbf{C_{tot}} = 20 \cdot (3 + 2 \cdot 3) = \mathbf{180}$$
-
-    \item {\large \textbf{Eliminazione iscrizione evento}} \label{op17}
-    
-    Elimina l'iscrizione a un evento.
-    
-    $$Op_{sett} = 15$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            EVENT\_SUBSCRIPTION & A & 1 & L \\
-            EVENT\_SUBSCRIPTION & A & 1 & S \\
-            EVENT & E & 1 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 2$, $A_{scr} = 1$
-    $$\mathbf{C_{tot}} = 15 \cdot (2 + 2 \cdot 1) = \mathbf{60}$$
-
-    \item {\large \textbf{Eliminazione prenotazione con controllo temporale}} \label{op18}
-    
-    Elimina una prenotazione con controllo che non sia già iniziata.
-    
-    $$Op_{sett} = 15$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            RESERVATION & E & 1 & L \\
-            RESERVATION\_DETAIL & A & 2 & L \\
-            RESERVATION\_DETAIL & A & 2 & S \\
-            RESERVATION & E & 1 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 3$, $A_{scr} = 3$
-    $$\mathbf{C_{tot}} = 15 \cdot (3 + 2 \cdot 3) = \mathbf{135}$$
-
-    \item {\large \textbf{Verifica credenziali di login}} \label{op19}
-    
-    Verifica username e password per il login.
-    
-    $$Op_{sett} = 500$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            USER & E & 1 & L \\
-            PERSON & E & 1 & L \\
-            active\_employees & V & 1 & L \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 3$
-    $$\mathbf{C_{tot}} = 500 \cdot 3 = \mathbf{1.500}$$
-
-    \item {\large \textbf{Creazione nuovo ordine}} \label{op20}
-    
-    Crea un nuovo ordine con i relativi dettagli.
-    
-    $$Op_{sett} = 60$$
-    
-    \begin{table}[H]
-        \centering
-        \small
-        \renewcommand{\arraystretch}{1.15}
-        \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
-            \hline
-            \rowcolor{gray!20}
-            \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
-            \hline
-            ORDERS & E & 1 & S \\
-            USER & E & 1 & L \\
-            PRODUCT & E & 3 & L \\
-            ORDER\_DETAIL & A & 3 & S \\
-            \hline
-        \end{tabularx}
-    \end{table}
-    
-    $A_{lett} = 5$, $A_{scr} = 4$
-    $$\mathbf{C_{tot}} = 60 \cdot (5 + 2 \cdot 4) = \mathbf{780}$$
-\end{enumerate}
-
-\section{Analisi delle ridondanze}
-\section{Riepilogo operazioni}
 \begin{table}[H]
-    \centering
-    \small
-    \renewcommand{\arraystretch}{1.2}
-    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|}
-        \hline
-        \rowcolor{gray!20}
-        \textbf{Operazione} & \textbf{Costo totale/7gg} & \textbf{Tipo Utente} \\
-        \hline
-        Top servizi per prenotazioni & 243.000 & Admin \\
-        \hline
-        Top prodotti per quantità venduta & 682.500 & Admin \\
-        \hline
-        Top eventi per partecipanti & 26.500 & Admin \\
-        \hline
-        Top prodotti per fatturato & 682.500 & Admin \\
-        \hline
-        Fatturato totale & 450.000 & Admin \\
-        \hline
-        Statistiche generali del sistema & 1.826.250 & Admin / Staff \\
-        \hline
-        Verifica disponibilità camere & 378.000 & Tutti \\
-        \hline
-        Verifica disponibilità tavoli & 210.000 & Tutti \\
-        \hline
-        Inserimento recensione evento & 80 & Cliente \\
-        \hline
-        Inserimento recensione servizio & 150 & Cliente \\
-        \hline
-        Aggiornamento recensione & 30 & Cliente \\
-        \hline
-        Update e Iscrizione utente a evento & 100 & Cliente \\
-        \hline
-        Creazione prenotazione principale & 300 & Cliente / Staff \\
-        \hline
-        Prenotazione tavolo ristorante & 320 & Cliente / Staff \\
-        \hline
-        Prenotazione camera con controllo duplicati & 350 & Cliente / Staff \\
-        \hline
-        Eliminazione prenotazione servizio & 180 & Cliente / Staff \\
-        \hline
-        Eliminazione iscrizione evento & 60 & Cliente \\
-        \hline
-        Eliminazione prenotazione con controllo temporale & 135 & Cliente / Staff \\
-        \hline
-        Verifica credenziali di login & 1.500 & Tutti \\
-        \hline
-        Creazione nuovo ordine & 780 & Cliente / Staff \\
-        \hline
-        \rowcolor{gray!20}
-        \textbf{TOTALE} & \textbf{4.902.735} & \\
-        \hline
-    \end{tabularx}
-    \caption{Riepilogo delle operazioni con costi settimanali e tipi di utente}
-    \label{tab:riepilogo-operazioni}
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    SERVICE & E & 100 & L \\
+    RESTAURANT & E & 20 & L \\
+    ROOM & E & 30 & L \\
+    RESERVATION\_DETAIL & A & 12\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 12\,150 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
 \end{table}
 
+$$\mathbf{C_{tot}} = 20 \cdot 12\,150 = \mathbf{243.000}$$
 
+\subsection*{Migliori prodotti per quantità venduta} \label{op2}
+\colorbox{yellow}{Calcola i prodotti più venduti in base alla
+quantità totale ordinata.}
 
+Classifica i prodotti in base alla quantità totale venduta, utile per
+analizzare le preferenze dei clienti e ottimizzare l'offerta.
+
+$$Op_{sett} = 15$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    PRODUCT & E & 500 & L \\
+    ORDER\_DETAIL & A & 45\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 45\,500 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 15 \cdot 45\,500 = \mathbf{682.500}$$
+
+\subsection*{Migliori eventi per partecipanti} \label{op3}
+\colorbox{yellow}{Determina gli eventi con il maggior numero di
+partecipanti totali.}
+
+Individua gli eventi che hanno raccolto il maggior numero di
+iscritti, fornendo una classifica utile per analizzare la popolarità
+delle iniziative e ottimizzare la pianificazione futura.
+
+$$Op_{sett} = 10$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    EVENT & E & 150 & L \\
+    EVENT\_SUBSCRIPTION & A & 2\,500 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 2\,650 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 10 \cdot 2\,650 = \mathbf{26.500}$$
+
+\subsection*{Migliori prodotti per fatturato} \label{op4}
+\colorbox{yellow}{Calcola i prodotti che generano il maggior fatturato.}
+
+Identifica i prodotti che generano più fatturato, mostrando il totale
+ricavi per ciascun articolo.
+
+$$Op_{sett} = 15$$
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    PRODUCT & E & 500 & L \\
+    ORDER\_DETAIL & A & 45\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 45\,500 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 15 \cdot 45\,500 = \mathbf{682.500}$$
+
+\subsection*{Fatturato totale} \label{op5}
+\colorbox{yellow}{Calcola il ricavo complessivo dalle vendite dei prodotti.}
+
+Calcola il totale dei ricavi generati dagli ordini di prodotti, utile
+per monitorare l'andamento economico.
+
+$$Op_{sett} = 10$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    ORDER\_DETAIL & A & 45\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 45\,000 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+$$\mathbf{C_{tot}} = 10 \cdot 45\,000 = \mathbf{450.000}$$
+
+\subsection*{Statistiche generali del sistema} \label{op6}
+\colorbox{yellow}{Calcola le principali metriche aggregate del sistema.}
+
+Mostra i numeri principali del sistema: utenti, dipendenti, ordini,
+dettagli ordine e prenotazioni. Serve per avere una visione rapida e
+generale della piattaforma.
+
+$$Op_{sett} = 25$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    USER & E & 5\,000 & L \\
+    EMPLOYEE & E & 50 & L \\
+    ORDERS & E & 15\,000 & L \\
+    ORDER\_DETAIL & A & 45\,000 & L \\
+    RESERVATION & E & 8\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 73\,050 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 25 \cdot 73\,050 = \mathbf{1.826.250}$$
+
+\subsection*{Verifica disponibilità camere} \label{op7}
+\colorbox{yellow}{Verifica la disponibilità delle camere in un dato periodo.}
+
+Verifica quali camere sono libere per un intervallo di date e numero
+di persone, evitando sovrapposizioni con prenotazioni esistenti.
+
+$$Op_{sett} = 300$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} &
+    \textbf{S/L} \\
+    \hline
+    ROOM & E & 30 & L \\
+    SERVICE & E & 30 & L \\
+    RESERVATION\_DETAIL & A & 1\,200 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 1\,260 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 300 \cdot 1\,260 = \mathbf{378.000}$$
+
+\subsection*{Verifica disponibilità tavoli} \label{op8}
+\colorbox{yellow}{Verifica la disponibilità dei tavoli al ristorante.}
+
+Controlla i tavoli liberi in un intervallo di data/ora, evitando
+sovrapposizioni con prenotazioni esistenti.
+
+$$Op_{sett} = 250$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    RESTAURANT & E & 20 & L \\
+    SERVICE & E & 20 & L \\
+    RESERVATION\_DETAIL & A & 800 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 840 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 250 \cdot 840 = \mathbf{210.000}$$
+
+\subsection*{Inserimento recensione evento} \label{op9}
+\colorbox{yellow}{Inserisce una recensione per un evento.}
+
+Registra una recensione associata a un evento a cui l'utente ha partecipato.
+
+$$Op_{sett} = 20$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    EVENT & E & 1 & L \\
+    EVENT\_SUBSCRIPTION & A & 1 & L \\
+    REVIEW & E & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 3 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 20 \cdot (2 + 2 \cdot 1) = \mathbf{80}$$
+
+\subsection*{Inserimento recensione servizio} \label{op10}
+\colorbox{yellow}{Inserisce una recensione per un servizio.}
+
+Registra una recensione su un servizio (camera/ristorante) legato a
+una prenotazione.
+
+$$Op_{sett} = 30$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    SERVICE & E & 1 & L \\
+    RESERVATION\_DETAIL & A & 1 & L \\
+    RESERVATION & E & 1 & L \\
+    REVIEW & E & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 4 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 30 \cdot (3 + 2 \cdot 1) = \mathbf{150}$$
+
+\subsection*{Aggiornamento recensione} \label{op11}
+\colorbox{yellow}{Aggiorna una recensione esistente.}
+
+Modifica il contenuto di una recensione precedentemente inserita dall'utente.
+
+$$Op_{sett} = 10$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    REVIEW & E & 1 & L \\
+    REVIEW & E & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 2 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 10 \cdot (1 + 2 \cdot 1) = \mathbf{30}$$
+
+\subsection*{Update e Iscrizione utente a evento} \label{op12}
+\colorbox{yellow}{Iscrive un utente a un evento o aggiorna l'iscrizione.}
+
+Gestisce la creazione o l'aggiornamento dell'iscrizione di un utente
+a un evento.
+
+$$Op_{sett} = 25$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    EVENT & E & 1 & L \\
+    USER & E & 1 & L \\
+    EVENT\_SUBSCRIPTION & A & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 3 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 25 \cdot (2 + 2 \cdot 1) = \mathbf{100}$$
+
+\subsection*{Creazione prenotazione principale} \label{op13}
+\colorbox{yellow}{Crea il record principale di una prenotazione.}
+
+Avvia una prenotazione registrando l'intestazione collegata all'utente.
+
+$$Op_{sett} = 100$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    RESERVATION & E & 1 & S \\
+    USER & E & 1 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 2 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 100 \cdot (1 + 2 \cdot 1) = \mathbf{300}$$
+
+\subsection*{Prenotazione tavolo ristorante} \label{op14}
+\colorbox{yellow}{Completa la prenotazione di un tavolo al ristorante.}
+
+Registra i dettagli della prenotazione tavolo associando servizio e ristorante.
+
+$$Op_{sett} = 80$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    SERVICE & E & 1 & L \\
+    RESTAURANT & E & 1 & L \\
+    RESERVATION\_DETAIL & A & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 3 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 80 \cdot (2 + 2 \cdot 1) = \mathbf{320}$$
+
+\subsection*{Prenotazione camera con controllo duplicati} \label{op15}
+\colorbox{yellow}{Prenota una camera con controlli anti-duplicati.}
+
+Inserisce una prenotazione camera verificando l'assenza di duplicati
+per periodo/utente.
+
+$$Op_{sett} = 70$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    RESERVATION & E & 1 & L \\
+    SERVICE & E & 1 & L \\
+    ROOM & E & 1 & L \\
+    RESERVATION\_DETAIL & A & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 4 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 70 \cdot (3 + 2 \cdot 1) = \mathbf{350}$$
+
+\subsection*{Eliminazione prenotazione servizio} \label{op16}
+\colorbox{yellow}{Elimina una prenotazione di servizio.}
+
+Rimuove un dettaglio di prenotazione e aggiorna lo stato della
+prenotazione principale.
+
+$$Op_{sett} = 20$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    RESERVATION\_DETAIL & A & 2 & L \\
+    RESERVATION\_DETAIL & A & 2 & S \\
+    RESERVATION & E & 1 & L \\
+    RESERVATION & E & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 6 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 20 \cdot (3 + 2 \cdot 3) = \mathbf{180}$$
+
+\subsection*{Eliminazione iscrizione evento} \label{op17}
+\colorbox{yellow}{Elimina l'iscrizione a un evento.}
+
+Cancella la sottoscrizione a un evento mantenendo la coerenza dei
+posti disponibili.
+
+$$Op_{sett} = 15$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    EVENT\_SUBSCRIPTION & A & 1 & L \\
+    EVENT\_SUBSCRIPTION & A & 1 & S \\
+    EVENT & E & 1 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 3 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 15 \cdot (2 + 2 \cdot 1) = \mathbf{60}$$
+
+\subsection*{Eliminazione prenotazione con controllo temporale} \label{op18}
+\colorbox{yellow}{Elimina una prenotazione non ancora iniziata.}
+
+Consente l'eliminazione solo se la prenotazione non è già iniziata
+alla data corrente.
+
+$$Op_{sett} = 15$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    RESERVATION & E & 1 & L \\
+    RESERVATION\_DETAIL & A & 2 & L \\
+    RESERVATION\_DETAIL & A & 2 & S \\
+    RESERVATION & E & 1 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 6 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 15 \cdot (3 + 2 \cdot 3) = \mathbf{135}$$
+
+\subsection*{Verifica credenziali di login} \label{op19}
+\colorbox{yellow}{Verifica username e password per il login.}
+
+Controlla le credenziali confrontando utente, persona e vista del
+personale attivo.
+
+$$Op_{sett} = 500$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    USER & E & 1 & L \\
+    PERSON & E & 1 & L \\
+    active\_employees & V & 1 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 3 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 500 \cdot 3 = \mathbf{1.500}$$
+
+\subsection*{Creazione nuovo ordine} \label{op20}
+\colorbox{yellow}{Crea un nuovo ordine con i relativi dettagli.}
+
+Inserisce l'ordine principale e i dettagli riga collegati ai prodotti
+selezionati.
+
+$$Op_{sett} = 60$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.8\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    extbf{Nome} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
+    \hline
+    ORDERS & E & 1 & S \\
+    USER & E & 1 & L \\
+    PRODUCT & E & 3 & L \\
+    ORDER\_DETAIL & A & 3 & S \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 8 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot}} = 60 \cdot (5 + 2 \cdot 4) = \mathbf{780}$$
+
+\section{Analisi delle ridondanze}
+
+\section{Riepilogo operazioni}
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Operazione} & \textbf{Costo totale/7gg} & \textbf{Tipo Utente} \\
+    \hline
+    Migliori servizi per prenotazioni & 243.000 & Admin \\
+    \hline
+    Migliori prodotti per quantità venduta & 682.500 & Admin \\
+    \hline
+    Migliori eventi per partecipanti & 26.500 & Admin \\
+    \hline
+    Migliori prodotti per fatturato & 682.500 & Admin \\
+    \hline
+    Fatturato totale & 450.000 & Admin \\
+    \hline
+    Statistiche generali del sistema & 1.826.250 & Admin / Staff \\
+    \hline
+    Verifica disponibilità camere & 378.000 & Tutti \\
+    \hline
+    Verifica disponibilità tavoli & 210.000 & Tutti \\
+    \hline
+    Inserimento recensione evento & 80 & Cliente \\
+    \hline
+    Inserimento recensione servizio & 150 & Cliente \\
+    \hline
+    Aggiornamento recensione & 30 & Cliente \\
+    \hline
+    Update e Iscrizione utente a evento & 100 & Cliente \\
+    \hline
+    Creazione prenotazione principale & 300 & Cliente / Staff \\
+    \hline
+    Prenotazione tavolo ristorante & 320 & Cliente / Staff \\
+    \hline
+    Prenotazione camera con controllo duplicati & 350 & Cliente / Staff \\
+    \hline
+    Eliminazione prenotazione servizio & 180 & Cliente / Staff \\
+    \hline
+    Eliminazione iscrizione evento & 60 & Cliente \\
+    \hline
+    Eliminazione prenotazione con controllo temporale & 135 & Cliente / Staff \\
+    \hline
+    Verifica credenziali di login & 1.500 & Tutti \\
+    \hline
+    Creazione nuovo ordine & 780 & Cliente / Staff \\
+    \hline
+    \rowcolor{gray!20}
+    \textbf{TOTALE} & \textbf{4.902.735} & \\
+    \hline
+  \end{tabularx}
+  \caption{Riepilogo delle operazioni con costi settimanali e tipi di utente}
+  \label{tab:riepilogo-operazioni}
+\end{table}
+
+\newpage
 \section{Raffinamento dello schema}
-In questa sezione vengono illustrati i passaggi di raffinamento dello
-schema ER necessari per la sua traduzione nel modello relazionale. Il
-processo comprende la rimozione di attributi multivalore, la gestione
-delle gerarchie tramite generalizzazione/specializzazione, la
-reificazione delle associazioni molti-a-molti e la definizione degli
-identificatori principali per ciascuna entità. Questi interventi
-garantiscono la coerenza, la semplicità e l'efficienza dello schema
-relazionale risultante.
+In questa sezione vengono descritti i principali raffinamenti dello
+schema ER per la traduzione nel modello relazionale: rimozione
+attributi multivalore, gestione delle gerarchie, reificazione delle
+associazioni molti-a-molti e scelta degli identificatori. Questi
+passaggi rendono lo schema relazionale più semplice ed efficiente.
 
 \subsection{Rimozione gerarchie}
 Nel nostro schema ER sono presenti alcune gerarchie
@@ -1089,26 +1215,24 @@ modello relazionale. Di seguito analizziamo ciascun caso specifico e
 le relative scelte implementative.
 
 \subsubsection{Gerarchia di Servizio}
-La gerarchia tra SERVICE e le sottoclassi ROOM e RESTAURANT è totale
-ed esclusiva: ogni servizio è o una camera o un ristorante. SERVICE
-contiene gli attributi comuni, mentre ROOM e RESTAURANT sono tabelle
+La gerarchia tra \texttt{SERVICE} e le sottoclassi \texttt{ROOM} e
+\texttt{RESTAURANT} è totale
+ed esclusiva: ogni servizio è o una camera o un ristorante. \texttt{SERVICE}
+contiene gli attributi comuni, mentre \texttt{ROOM} e
+\texttt{RESTAURANT} sono tabelle
 specializzate collegate tramite chiave esterna. Il campo
-\textit{type} in SERVICE identifica il tipo di servizio. Il modello è
+\texttt{type} in \texttt{SERVICE} identifica il tipo di servizio. Il modello è
 facilmente estendibile aggiungendo nuove tabelle specializzate per
 altri tipi di servizi.
 
 \subsubsection{Gerarchia di Persona}
-La gerarchia tra PERSON, USER ed EMPLOYEE è stata gestita con un
-approccio misto. La relazione tra PERSON e USER è stata collassata
-verso l'alto: ogni USER corrisponde necessariamente a una PERSONA,
-consentendo così di mantenere un'anagrafica centralizzata e priva di
-duplicati. Per quanto riguarda il passaggio da USER a EMPLOYEE, si è
-preferito sostituire la specializzazione con un'associazione: non
-tutti gli USER sono EMPLOYEE, ma solo quelli che ricoprono
-effettivamente un ruolo nel personale. Questa soluzione garantisce
-una chiara distinzione tra identità anagrafica e ruolo operativo,
-semplificando la gestione dei dati e delle funzionalità specifiche
-all'interno del sistema.
+La gerarchia tra \texttt{PERSON}, \texttt{USER} ed \texttt{EMPLOYEE}
+è stata gestita in modo semplice: ogni \texttt{USER} corrisponde a
+una \texttt{PERSON}, così l'anagrafica è unica e senza duplicati.
+Solo alcuni \texttt{USER} sono anche \texttt{EMPLOYEE}, cioè
+dipendenti con un ruolo specifico. In questo modo si separano
+chiaramente i dati personali (in \texttt{PERSON}) dalle credenziali
+di accesso (\texttt{USER}) e dal ruolo aziendale (\texttt{EMPLOYEE}).
 
 \subsection{Scelta degli identificatori principali}
 Per ogni entità sono stati scelti identificatori che garantiscono
@@ -1314,7 +1438,7 @@ iscrizioni eventi, autenticazione e gestione ordini.
 Le seguenti query sono utilizzate per popolare la dashboard
 amministrativa con le metriche principali del sistema.
 
-\subsubsection{Top servizi per prenotazioni}
+\subsubsection{Migliori servizi per prenotazioni}
 Analizza le prenotazioni per identificare i servizi più richiesti,
 distinguendo tra ristoranti e camere attraverso un'articolata
 procedura di join e raggruppamento.
@@ -1337,7 +1461,7 @@ LIMIT 5;
 \end{sqlcode}
 % tex-fmt: on
 
-\subsubsection{Top prodotti per quantità venduta}
+\subsubsection{Migliori prodotti per quantità venduta}
 Prodotti più venduti in base alla quantità totale ordinata.
 
 % tex-fmt: off
@@ -1354,7 +1478,7 @@ LIMIT 5;
 % tex-fmt: on
 
 \newpage
-\subsubsection{Top eventi per partecipanti}
+\subsubsection{Migliori eventi per partecipanti}
 Determina gli eventi con il maggior numero di partecipanti totali.
 
 % tex-fmt: off
@@ -1371,7 +1495,7 @@ LIMIT 5;
 \end{sqlcode}
 % tex-fmt: on
 
-\subsubsection{Top prodotti per fatturato}
+\subsubsection{Migliori prodotti per fatturato}
 Calcola i 5 prodotti che generano il maggior fatturato.
 
 % tex-fmt: off
