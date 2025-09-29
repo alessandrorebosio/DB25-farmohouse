@@ -570,12 +570,16 @@ $$Op_{sett} = 10$$
 $$\mathbf{C_{tot}} = 10 \cdot 2\,650 = \mathbf{26.500}$$
 
 \subsection*{Migliori prodotti per fatturato} \label{op4}
+
 \colorbox{yellow}{Calcola i prodotti che generano il maggior fatturato.}
 
 Identifica i prodotti che generano più fatturato, mostrando il totale
 ricavi per ciascun articolo.
 
+
+
 $$Op_{sett} = 15$$
+
 \begin{table}[H]
   \centering
   \small
@@ -595,9 +599,34 @@ $$Op_{sett} = 15$$
   \vspace{-1em}
 \end{table}
 
-$$\mathbf{C_{tot}} = 15 \cdot 45\,500 = \mathbf{682.500}$$
+$$\mathbf{C_{tot\ (con\ ridondanza)}} = 15 \cdot 45\,500 = \mathbf{682.500}$$
 
-\subsection*{Fatturato totale} \label{op5}
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    PRODUCT & E & 500 & L \\
+    ORDER\_DETAIL & A & 45\,000 & L \\
+    ORDERS & E & 15\,000 & L \\
+    PRICE\_HISTORY & E & 75\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 135\,500 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot\ (senza\ ridondanza)}} = 15 \cdot 135\,500 = \mathbf{2.032.500}$$
+
+L'assenza di \texttt{unit\_price} avrebbe richiesto la creazione di una tabella \texttt{PRICE\_HISTORY} per tracciare l'evoluzione temporale dei prezzi dei prodotti. Senza questa ridondanza controllata, per calcolare il fatturato storico sarebbe necessario ricostruire il prezzo effettivo di ciascun prodotto al momento di ogni ordine, effettuando complessi JOIN tra \texttt{ORDER\_DETAIL}, \texttt{ORDERS} e \texttt{PRICE\_HISTORY} con sottoselezioni per determinare il prezzo vigente alla data dell'ordine.
+
+
 \colorbox{yellow}{Calcola il ricavo complessivo dalle vendite dei prodotti.}
 
 Calcola il totale dei ricavi generati dagli ordini di prodotti, utile
@@ -623,6 +652,61 @@ $$Op_{sett} = 10$$
   \vspace{-1em}
 \end{table}
 $$\mathbf{C_{tot}} = 10 \cdot 45\,000 = \mathbf{450.000}$$
+
+\subsection*{Fatturato totale} \label{op5}
+
+\colorbox{yellow}{Calcola il ricavo complessivo dalle vendite dei prodotti.}
+
+Calcola il totale dei ricavi generati dagli ordini di prodotti, utile
+per monitorare l'andamento economico.
+
+$$Op_{sett} = 10$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    ORDER\_DETAIL & A & 45\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 45\,000 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot\ (con\ ridondanza)}} = 10 \cdot 45\,000 = \mathbf{450.000}$$
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{0.9\textwidth}{|X|c|c|c|}
+    \hline
+    \rowcolor{gray!20}
+    \textbf{Tabella} & \textbf{Tipo} & \textbf{Accessi} & \textbf{S/L} \\
+    \hline
+    ORDER\_DETAIL & A & 45\,000 & L \\
+    PRODUCT & E & 500 & L \\
+    ORDERS & E & 15\,000 & L \\
+    PRICE\_HISTORY & E & 75\,000 & L \\
+    \hline
+    \rowcolor{gray!20}
+    TOTALE & & 135\,500 & \\
+    \hline
+  \end{tabularx}
+  \vspace{-1em}
+\end{table}
+
+$$\mathbf{C_{tot\ (senza\ ridondanza)}} = 10 \cdot 135\,500 = \mathbf{1.355.000}$$
+
+Anche per il fatturato totale, l'assenza di \texttt{unit\_price} richiederebbe l'accesso
+a \texttt{PRICE\_HISTORY} per ogni riga d'ordine, moltiplicando gli accessi necessari e complicando notevolmente le query di reporting finanziario.
 
 \subsection*{Statistiche generali del sistema} \label{op6}
 \colorbox{yellow}{Calcola le principali metriche aggregate del sistema.}
@@ -1080,6 +1164,30 @@ $$\mathbf{C_{tot}} = 60 \cdot (5 + 2 \cdot 4) = \mathbf{780}$$
 
 \section{Analisi delle ridondanze}
 
+In questa sezione andremo ad analizzare le due ridondanze presenti nel modello, ovvero:
+\begin{itemize}
+  \item \texttt{unit\_price} su \texttt{ORDER\_DETAIL}
+\end{itemize}
+
+
+\subsection{Analisi attributo \texttt{unit\_price}}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|l|c|c|c|}
+	\hline
+	\textbf{Num Op.} & \textbf{Con ridondanza} & \textbf{Senza ridondanza} \\
+	\hline
+	4 & 682.500 & 2.032.500  \\
+  \hline
+	5 & 450.000 & 1.355.000 \\
+  \hline
+  \textbf{TOTALE} & \textbf{1.132.500} & \textbf{3.387.500} \\
+  \hline
+  \end{tabular}
+\end{table}
+
+Visti i risultati conseguiti dall'applicazione dell'attributo ridondante, decidiamo di mantenere l'attributo \texttt{unit\_price}.
 \section{Riepilogo operazioni}
 \begin{table}[H]
   \centering
@@ -1151,7 +1259,7 @@ Nel nostro schema ER sono presenti alcune gerarchie
 modello relazionale. Di seguito analizziamo ciascun caso specifico e
 le relative scelte implementative.
 
-\subsection*{Gerarchia di Servizio}
+\subsubsection{Gerarchia di Servizio}
 La gerarchia tra \texttt{SERVICE} e le sottoclassi \texttt{ROOM} e
 \texttt{RESTAURANT} è totale
 ed esclusiva: ogni servizio è o una camera o un ristorante. \texttt{SERVICE}
@@ -1162,7 +1270,7 @@ specializzate collegate tramite chiave esterna. Il campo
 facilmente estendibile aggiungendo nuove tabelle specializzate per
 altri tipi di servizi.
 
-\subsection*{Gerarchia di Persona}
+\subsubsection{Gerarchia di Persona}
 La gerarchia tra \texttt{PERSON}, \texttt{USER} ed \texttt{EMPLOYEE}
 è stata gestita in modo semplice: ogni \texttt{USER} corrisponde a
 una \texttt{PERSON}, così l'anagrafica è unica e senza duplicati.
@@ -1178,7 +1286,7 @@ stata effettuata in modo da facilitare la gestione delle relazioni,
 assicurare la coerenza dei dati e supportare eventuali evoluzioni
 future dello schema.
 
-\subsection*{Identificatori naturali}
+\subsubsection{Identificatori naturali}
 Gli identificatori naturali vengono utilizzati nelle tabelle in cui
 esiste un attributo intrinsecamente univoco e stabile nel tempo. In
 particolare, nella tabella \texttt{PERSON} si adotta il codice
@@ -1189,7 +1297,7 @@ sia distinto in modo univoco. Analogamente, la tabella
 \texttt{EMPLOYEE} eredita lo username come chiave primaria,
 mantenendo la coerenza tra le entità correlate.
 
-\subsection*{Identificatori artificiali}
+\subsubsection{Identificatori artificiali}
 Gli identificatori artificiali vengono introdotti quando non è
 presente un attributo naturale sufficientemente stabile o univoco,
 oppure per semplificare la gestione delle relazioni e delle chiavi
@@ -1200,7 +1308,7 @@ approccio è adottato per entità come \texttt{SERVICE}, \texttt{ORDER},
 ed \texttt{EVENT}, dove non esiste un attributo intrinseco che garantisca
 l'unicità e la stabilità nel tempo.
 
-\subsection*{Identificatori composti}
+\subsubsection{Identificatori composti}
 Per le entità derivate da reificazioni, sono stati adottati
 identificatori composti secondo la notazione dello schema logico:
 
@@ -1213,7 +1321,7 @@ identificatori composti secondo la notazione dello schema logico:
 
 \subsection{Scelte progettuali significative}
 
-\subsection*{Flessibilità del catalogo servizi}
+\subsubsection{Flessibilità del catalogo servizi}
 La scelta di non collassare la gerarchia di \texttt{SERVICE} è
 significativa dal punto di vista progettuale. Questo approccio consente:
 
@@ -1229,7 +1337,7 @@ significativa dal punto di vista progettuale. Questo approccio consente:
     presenza di nuovi servizi.
 \end{itemize}
 
-\subsection*{Gestione storica del personale}
+\subsubsection{Gestione storica del personale}
 La tabella \texttt{EMPLOYEE\_HISTORY} consente di verificare se un
 utente è un ex dipendente: se lo username è presente in
 \texttt{EMPLOYEE} l'utente è dipendente attivo, se compare anche in
@@ -1237,7 +1345,7 @@ utente è un ex dipendente: se lo username è presente in
 L'intreccio tra le due tabelle permette di distinguere tra dipendenti
 attuali ed ex dipendenti, soddisfacendo il requisito di audit trail.
 
-\subsection*{Separazione identità e autenticazione}
+\subsubsection{Separazione identità e autenticazione}
 La separazione tra \texttt{PERSON} e \texttt{USER} garantisce che i
 dati anagrafici siano gestiti indipendentemente dalle credenziali di
 accesso. Questo approccio migliora la sicurezza, evita duplicazioni e
