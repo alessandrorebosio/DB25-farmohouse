@@ -20,6 +20,9 @@ class ActiveEmployee(models.Model):
     """
 
     username = models.CharField(primary_key=True, max_length=32)
+    email = models.CharField(max_length=255)
+    name = models.CharField(max_length=32)
+    surname = models.CharField(max_length=32)
     role = models.CharField(max_length=32)
 
     class Meta:
@@ -36,8 +39,8 @@ class FullyBookedEvent(models.Model):
     """
 
     id = models.IntegerField(primary_key=True, db_column="id")
-    title = models.CharField(max_length=255, null=True, db_column="title")
-    event_date = models.TimeField(null=True, db_column="event_date")
+    title = models.CharField(max_length=100, null=True, db_column="title")
+    event_date = models.DateField(null=True, db_column="event_date")
     seats = models.IntegerField(null=True, db_column="seats")
     total_participants = models.IntegerField(null=True, db_column="total_participants")
 
@@ -51,11 +54,11 @@ class FreeServiceNow(models.Model):
     """Projection of services with their current availability state."""
 
     service_id = models.IntegerField(primary_key=True, db_column="service_id")
-    type = models.CharField(max_length=50, null=True, db_column="type")
+    type = models.CharField(max_length=20, null=True, db_column="type")
     restaurant_code = models.CharField(
-        max_length=64, null=True, db_column="restaurant_code"
+        max_length=3, null=True, db_column="restaurant_code"
     )
-    room_code = models.CharField(max_length=64, null=True, db_column="room_code")
+    room_code = models.CharField(max_length=3, null=True, db_column="room_code")
     restaurant_max_capacity = models.IntegerField(
         null=True, db_column="restaurant_max_capacity"
     )
@@ -86,8 +89,7 @@ class Employee(models.Model):
 
 
 class EmployeeHistory(models.Model):
-    """Employment history entries; one row per fired event per employee."""
-
+    id = models.AutoField(primary_key=True)
     username = models.ForeignKey(Employee, models.CASCADE, db_column="username")
     fired_at = models.DateTimeField()
 

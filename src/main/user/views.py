@@ -31,7 +31,7 @@ from .forms import RegisterForm
 from . import models
 from product.models import Orders, OrderDetail
 from event.models import EventSubscription
-from service.models import Reservation, ReservationDetail
+from service.models import Booking, BookingDetail, Service
 from django.contrib.admin.views.decorators import staff_member_required
 
 
@@ -121,11 +121,10 @@ def _ensure_datetime(value):
     if value is None:
         return None
     if isinstance(value, datetime):
-        # if naive, makes aware
         if timezone.is_naive(value):
             return timezone.make_aware(value, timezone.get_current_timezone())
         return value
-    # instance of date (but not datetime)
+
     dt = datetime.combine(value, time.min)
     return timezone.make_aware(dt, timezone.get_current_timezone())
 
@@ -202,7 +201,7 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         return render(
             request,
             "profile.html",
-            {"query": None, "orders": [], "shifts": [], "reservations": []},
+            {"query": None, "orders": [], "shifts": [], "bookings": []},
         )
 
     query = {
@@ -274,23 +273,23 @@ def profile_view(request: HttpRequest) -> HttpResponse:
         else:
             s.can_review = (ev_date is not None) and (ev_date < today)
 
-    reservations = (
-        Reservation.objects.filter(username_id=request.user.username)
+    bookings = (
+        Booking.objects.filter(username_id=request.user.username)
         .prefetch_related(
             Prefetch(
                 "details",
-                queryset=ReservationDetail.objects.select_related(
+                queryset=BookingDetail.objects.select_related(
                     "service", "service__room", "service__restaurant"
                 ).order_by("start_date"),
-                to_attr="reservation_details",
+                to_attr="booking_details",
             )
         )
-        .order_by("-reservation_date")
+        .order_by("-booking_date")
     )
 
-    for r in reservations:
+    for r in bookings:
         total = Decimal("0.00")
-        for d in r.reservation_details:
+        for d in r.booking_details:
             svc = d.service
             d.is_room = svc.type == "ROOM"
 
@@ -298,14 +297,17 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             end_dt = _ensure_datetime(d.end_date)
             d.can_review = (end_dt is not None) and (end_dt <= now)
 
+            # can_cancel: start > now + 7 giorni
             d.can_cancel = (start_dt is not None) and (
                 (start_dt - now) > timedelta(days=7)
             )
 
+            # in_no_action_window: tra 0 e 7 giorni
             d.in_no_action_window = (start_dt is not None) and (
                 timedelta(0) <= (start_dt - now) <= timedelta(days=7)
             )
 
+            # Notti: (end.date - start.date).days, niente +1; minimo 1 solo per camere
             start_d = d.start_date.date()
             end_d = d.end_date.date()
             nights = (end_d - start_d).days if d.is_room else 1
@@ -313,7 +315,10 @@ def profile_view(request: HttpRequest) -> HttpResponse:
                 nights = 1
 
             d.nights = nights
-            d.total_price = (svc.price or Decimal("0.00")) * nights
+            price = getattr(d, "unit_price", None)
+            if price is None:
+                price = svc.price or Decimal("0.00")
+            d.total_price = price * nights
             total += d.total_price
 
         r.total_price = total
@@ -327,7 +332,7 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             "shifts": shifts,
             "shifts_label": shifts_label,
             "subscriptions": subscriptions,
-            "reservations": reservations,
+            "bookings": bookings,
             "today": timezone.localdate(),
         },
     )
@@ -391,17 +396,28 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
     employees_count = models.Employee.objects.count()
     orders_count = Orders.objects.count()
 
-    revenue = OrderDetail.objects.annotate(
+    product_revenue = OrderDetail.objects.annotate(
         line_total=ExpressionWrapper(
             F("quantity") * F("unit_price"),
             output_field=DecimalField(max_digits=12, decimal_places=2),
         )
     ).aggregate(total=Sum("line_total")).get("total") or Decimal("0.00")
 
-    reservations_count = Reservation.objects.count()
+    booking_revenue = BookingDetail.objects.annotate(
+        line_total=ExpressionWrapper(
+            F("people") * F("unit_price"),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        )
+    ).aggregate(total=Sum("line_total")).get("total") or Decimal("0.00")
+
+    revenue = (product_revenue or Decimal("0.00")) + (
+        booking_revenue or Decimal("0.00")
+    )
+
+    bookings_count = Booking.objects.count()
 
     top_services_qs = (
-        ReservationDetail.objects.values(
+        BookingDetail.objects.values(
             "service",
             "service__type",
             "service__room__code",
@@ -464,7 +480,7 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
             "employees": employees_count,
             "orders": orders_count,
             "revenue": revenue,
-            "reservations": reservations_count,
+            "bookings": bookings_count,
         },
         "top_services": top_services,
         "top_products_qty": top_products_qty,

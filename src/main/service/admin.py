@@ -1,11 +1,11 @@
-"""Admin configuration for Services and Reservations.
+"""Admin configuration for Services and Booking.
 
 This improves display helpers, pagination, and inline filtering to show only the
 relevant inline (Restaurant or Room) based on Service.type.
 """
 
 from django.contrib import admin
-from .models import Reservation, Service, Restaurant, Room
+from .models import Booking, Service, Restaurant, Room
 
 
 class RestaurantInline(admin.StackedInline):
@@ -24,15 +24,15 @@ class RoomInline(admin.StackedInline):
     show_change_link = False
 
 
-@admin.register(Reservation)
-class ReservationAdmin(admin.ModelAdmin):
-    list_display = ("id", "username_display", "reservation_date")
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ("id", "username_display", "booking_date")
     search_fields = ("username__username",)
-    list_filter = ("reservation_date",)
-    date_hierarchy = "reservation_date"
+    list_filter = ("booking_date",)
+    date_hierarchy = "booking_date"
     list_select_related = ("username",)
     autocomplete_fields = ("username",)
-    readonly_fields = ("reservation_date",)
+    readonly_fields = ("booking_date",)
     list_per_page = 50
 
     @admin.display(description="User", ordering="username")

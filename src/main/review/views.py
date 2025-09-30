@@ -14,7 +14,7 @@ from django.contrib import messages
 
 from user.views import _ensure_datetime
 from .models import Review
-from service.models import ReservationDetail
+from service.models import BookingDetail
 from event.models import Event, EventSubscription
 from .forms import ReviewForm
 
@@ -140,22 +140,22 @@ def event_review_view(request, event_id):
 
 @login_required
 def service_review_view(request, service_id):
-    """Create or update a review for a service after reservation end date.
+    """Create or update a review for a service after booking end date.
 
-    Checks the user has a past reservation for the service. On success, flashes
+    Checks the user has a past booking for the service. On success, flashes
     a message and redirects to `profile`.
 
     SQL (simplified):
         SELECT rd.*
-        FROM RESERVATION_DETAIL rd
-        JOIN RESERVATION r ON r.id = rd.reservation
+        FROM BOOKING_DETAIL rd
+        JOIN BOOKING r ON r.id = rd.booking
         WHERE rd.service = %s AND r.username = %s
         ORDER BY rd.end_date DESC
         LIMIT 1;
     """
     detail = get_object_or_404(
-        ReservationDetail.objects.filter(
-            service_id=service_id, reservation__username_id=request.user.username
+        BookingDetail.objects.filter(
+            service_id=service_id, booking__username_id=request.user.username
         ).order_by("-end_date"),
         end_date__lte=timezone.now(),
     )

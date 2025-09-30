@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 
 from django.utils import timezone
-from .models import Service, Reservation, ReservationDetail
+from .models import Service, Booking, BookingDetail
 from datetime import datetime, time, timedelta
 from django.urls import reverse
 from django.db import transaction
@@ -44,14 +44,14 @@ def service_list(request):
     """List available services with simple room/table filters.
 
     SQL (simplified for tables):
-        SELECT s.* FROM SERVICE s
-        LEFT JOIN RESTAURANT r ON r.service = s.id
-        WHERE s.type = 'RESTAURANT' AND r.max_capacity >= %(people)s
-          AND s.id NOT IN (
-            SELECT service FROM RESERVATION_DETAIL
-            WHERE start_date < %(end)s AND end_date > %(start)s
-          )
-        ORDER BY s.id;
+    SELECT s.* FROM SERVICE s
+    LEFT JOIN RESTAURANT r ON r.service = s.id
+    WHERE s.type = 'RESTAURANT' AND r.max_capacity >= %(people)s
+      AND s.id NOT IN (
+                    SELECT service FROM BOOKING_DETAIL
+        WHERE start_date < %(end)s AND end_date > %(start)s
+      )
+    ORDER BY s.id;
     """
     room_start_str = (request.GET.get("room_start") or "").strip()
     room_end_str = (request.GET.get("room_end") or "").strip()
@@ -86,7 +86,7 @@ def service_list(request):
             end_dt = datetime.combine(room_end, time.max)
 
             reserved_room_ids = (
-                ReservationDetail.objects.filter(
+                BookingDetail.objects.filter(
                     service__type="ROOM",
                     start_date__lte=end_dt,
                     end_date__gte=start_dt,
@@ -113,7 +113,7 @@ def service_list(request):
         start_dt, end_dt = get_meal_slot(table_date, table_meal)
 
         reserved_table_ids = (
-            ReservationDetail.objects.filter(
+            BookingDetail.objects.filter(
                 service__type="RESTAURANT",
                 start_date__lt=end_dt,
                 end_date__gt=start_dt,
@@ -164,8 +164,8 @@ def quick_book(request, service_id):
 
     Guard rails:
     - User must be authenticated.
-    - Validates date params and checks for overlapping reservations.
-    - Creates a Reservation and a ReservationDetail, then redirects.
+    - Validates date params and checks for overlapping bookings.
+    - Creates a Booking and a BookingDetail, then redirects.
     """
     service = get_object_or_404(Service, id=service_id)
 
@@ -214,7 +214,7 @@ def quick_book(request, service_id):
         total_price = service.price * nights
         redirect_url = f"{reverse('service:service_list')}?room_start={start_date}&room_end={end_date}&room_people={people}"
 
-        overlap_exists = ReservationDetail.objects.filter(
+        overlap_exists = BookingDetail.objects.filter(
             service=service, start_date__lte=end_dt, end_date__gte=start_dt
         ).exists()
     else:
@@ -229,7 +229,7 @@ def quick_book(request, service_id):
         start_dt, end_dt = get_meal_slot(start_date, meal_param)
         redirect_url = f"{reverse('service:service_list')}?table_date={start_date}&table_people={people}&table_meal={meal_param}"
 
-        overlap_exists = ReservationDetail.objects.filter(
+        overlap_exists = BookingDetail.objects.filter(
             service=service, start_date__lt=end_dt, end_date__gt=start_dt
         ).exists()
 
@@ -237,13 +237,14 @@ def quick_book(request, service_id):
         messages.error(request, "Selected time slot is no longer available.")
         return redirect(redirect_url)
 
-    reservation = Reservation.objects.create(username_id=request.user.username)
-    ReservationDetail.objects.create(
-        reservation=reservation,
+    booking = Booking.objects.create(username_id=request.user.username)
+    BookingDetail.objects.create(
+        booking=booking,
         service=service,
         start_date=start_dt,
         end_date=end_dt,
         people=people,
+        unit_price=service.price,
     )
 
     if is_room:
@@ -263,38 +264,36 @@ def quick_book(request, service_id):
 @login_required
 @require_POST
 @transaction.atomic
-def cancel_reservation(request, reservation_id):
+def cancel_booking(request, booking_id):
     """
-    Cancel a Reservation.
+    Cancel a Booking.
 
     Constraints:
-    - Authenticated user and owner of the reservation.
-    - Only if reservation has not started.
+    - Authenticated user and owner of the booking.
+    - Only if booking has not started.
     """
 
-    reservation_details = ReservationDetail.objects.filter(
-        reservation_id=reservation_id
-    )
+    booking_details = BookingDetail.objects.filter(booking_id=booking_id)
 
     if (
-        not reservation_details.exists()
-        or reservation_details.first().reservation.username_id != request.user.username
+        not booking_details.exists()
+        or booking_details.first().booking.username_id != request.user.username
     ):
-        messages.error(request, "You can only cancel your own reservations.")
+        messages.error(request, "You can only cancel your own bookings.")
         return redirect(request.POST.get("next") or "profile")
 
-    if reservation_details.first().start_date < timezone.now():
-        messages.error(request, "Cannot cancel a reservation that has already started.")
+    if booking_details.first().start_date < timezone.now():
+        messages.error(request, "Cannot cancel a booking that has already started.")
         return redirect(request.POST.get("next") or "profile")
 
-    reservation_details.delete()
+    booking_details.delete()
 
     try:
-        reservation = Reservation.objects.get(id=reservation_id)
-        if not reservation.details.exists():
-            reservation.delete()
-    except Reservation.DoesNotExist:
+        booking = Booking.objects.get(id=booking_id)
+        if not booking.details.exists():
+            booking.delete()
+    except Booking.DoesNotExist:
         pass
 
-    messages.success(request, "Reservation cancelled successfully.")
+    messages.success(request, "Booking cancelled successfully.")
     return redirect(request.POST.get("next") or "profile")

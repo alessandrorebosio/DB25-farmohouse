@@ -61,7 +61,7 @@ class Review(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     comment = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_column="created_at")
+    created_at = models.DateTimeField(db_column="created_at")
 
     class Meta:
         managed = False

@@ -3,7 +3,7 @@
 These tests avoid DB usage and focus on routing and auth guards:
 - service_list resolves and returns 200 OK.
 - quick_book requires login and redirects anonymous users.
-- cancel_reservation requires login and redirects anonymous users.
+- cancel_booking requires login and redirects anonymous users.
 """
 
 from django.test import TestCase
@@ -30,8 +30,8 @@ class ServiceRoutingAuthTests(TestCase):
 
         self.assertTrue(url.endswith("/book/1/quick/"))
 
-    def test_cancel_reservation_requires_login(self):
-        url = reverse("service:cancel_reservation", kwargs={"reservation_id": 1})
+    def test_cancel_booking_requires_login(self):
+        url = reverse("service:cancel_booking", kwargs={"booking_id": 1})
         request = self.factory.post(url)
         request.user = AnonymousUser()
-        self.assertTrue(url.endswith("/cancel-reservation/1/"))
+        self.assertTrue(url.endswith("/cancel-booking/1/"))
