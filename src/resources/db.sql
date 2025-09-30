@@ -91,10 +91,10 @@ CREATE TABLE EVENT_SUBSCRIPTION (
 	FOREIGN KEY (user) REFERENCES USER(username)
 );
 
-CREATE TABLE RESERVATION (
+CREATE TABLE BOOKING (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	username VARCHAR(32) NOT NULL,
-	reservation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (username) REFERENCES USER(username)
 );
 
@@ -105,15 +105,16 @@ CREATE TABLE SERVICE (
 	type ENUM('RESTAURANT', 'ROOM') NOT NULL
 );
 
-CREATE TABLE RESERVATION_DETAIL (
-	reservation INT NOT NULL,
+CREATE TABLE BOOKING_DETAIL (
+	booking INT NOT NULL,
 	service INT NOT NULL,
 	start_date DATETIME NOT NULL,
 	end_date DATETIME NOT NULL,
 	people INT NOT NULL CHECK (people > 0),
+	unit_price DECIMAL(8,2) NOT NULL CHECK (unit_price >= 0),
 	CHECK (start_date <= end_date),
-	PRIMARY KEY (reservation, service),
-	FOREIGN KEY (reservation) REFERENCES RESERVATION(id),
+	PRIMARY KEY (booking, service),
+	FOREIGN KEY (booking) REFERENCES BOOKING(id),
 	FOREIGN KEY (service) REFERENCES SERVICE(id)
 );
 
@@ -179,20 +180,20 @@ IF NEW.event IS NOT NULL THEN
 	END IF;
 END IF;
 
--- Service check: the user must have a reservation for that service that has already ended
+-- Service check: the user must have a booking for that service that has already ended
 IF NEW.service IS NOT NULL THEN
 	SELECT COUNT(*)
 		INTO cnt
-		FROM RESERVATION r
-		JOIN RESERVATION_DETAIL rd
-			ON rd.reservation = r.id
-			AND rd.service = NEW.service
-		WHERE r.username = NEW.`user`
-			AND rd.end_date < NOW(); -- reservation already completed
+	    FROM BOOKING r
+	    JOIN BOOKING_DETAIL rd
+		    ON rd.booking = r.id
+		    AND rd.service = NEW.service
+	    WHERE r.username = NEW.`user`
+		    AND rd.end_date < NOW(); -- booking already completed
 
 	IF cnt = 0 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+			SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed booking).';
 	END IF;
 END IF;
 END$$
@@ -229,20 +230,20 @@ IF NEW.event IS NOT NULL THEN
 	END IF;
 END IF;
 
--- Service check: the user must have a reservation for that service that has already ended
+-- Service check: the user must have a booking for that service that has already ended
 IF NEW.service IS NOT NULL THEN
 	SELECT COUNT(*)
 		INTO cnt
-		FROM RESERVATION r
-		JOIN RESERVATION_DETAIL rd
-			ON rd.reservation = r.id
-			AND rd.service = NEW.service
-		WHERE r.username = NEW.`user`
-			AND rd.end_date < NOW();
+	    FROM BOOKING r
+	    JOIN BOOKING_DETAIL rd
+		    ON rd.booking = r.id
+		    AND rd.service = NEW.service
+	    WHERE r.username = NEW.`user`
+		    AND rd.end_date < NOW();
 
 	IF cnt = 0 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+			SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed booking).';
 	END IF;
 END IF;
 END$$
@@ -305,8 +306,8 @@ LEFT JOIN (
 	SELECT rd.service,
 				 SUM(rd.people) AS people_now,
 				 COUNT(*) AS reservations_now
-	FROM RESERVATION_DETAIL rd
-	JOIN RESERVATION r2 ON rd.reservation = r2.id
+	FROM BOOKING_DETAIL rd
+	JOIN BOOKING r2 ON rd.booking = r2.id
 	WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()
 	GROUP BY rd.service
 ) b ON b.service = s.id
@@ -314,3 +315,29 @@ WHERE
 	(s.type = 'ROOM' AND IFNULL(b.reservations_now,0) = 0) OR
 	(s.type = 'RESTAURANT' AND IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0)) OR
 	(s.type IN ('POOL', 'PLAYGROUND') AND IFNULL(b.reservations_now,0) = 0);
+
+-- View: booking revenue per service (total people * unit_price)
+CREATE VIEW booking_revenue_per_service AS
+SELECT 
+	s.id AS service_id,
+	s.type,
+	COALESCE(r.code, ro.code) AS code,
+	SUM(rd.people * rd.unit_price) AS total_revenue,
+	COUNT(*) AS booking_lines
+FROM BOOKING_DETAIL rd
+JOIN SERVICE s ON s.id = rd.service
+LEFT JOIN RESTAURANT r ON r.service = s.id
+LEFT JOIN ROOM ro ON ro.service = s.id
+GROUP BY s.id, s.type, COALESCE(r.code, ro.code);
+
+-- View: user future bookings summary
+CREATE VIEW user_future_bookings AS
+SELECT 
+	b.username,
+	COUNT(*) AS future_booking_lines,
+	MIN(rd.start_date) AS next_start,
+	MAX(rd.end_date) AS last_end
+FROM BOOKING_DETAIL rd
+JOIN BOOKING b ON b.id = rd.booking
+WHERE rd.start_date > NOW()
+GROUP BY b.username;

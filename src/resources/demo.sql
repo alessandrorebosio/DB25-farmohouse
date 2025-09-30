@@ -144,8 +144,6 @@ SELECT e.id, 'mrossi', '2025-08-30 00:00:00', 2
 FROM EVENT e
 WHERE e.title = 'Farm Open Day';
 
-
--- Insert demo services
 INSERT INTO SERVICE (price, type) VALUES
 (0, 'RESTAURANT'),
 (0, 'RESTAURANT'),
@@ -155,14 +153,14 @@ INSERT INTO SERVICE (price, type) VALUES
 
 -- Link restaurant services
 INSERT INTO RESTAURANT (service, code, max_capacity)
-SELECT id, 'T01', 4 FROM SERVICE WHERE type = 'RESTAURANT' LIMIT 1;
+SELECT id, 'T01', 4 FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id ASC LIMIT 1;
 
 INSERT INTO RESTAURANT (service, code, max_capacity)
 SELECT id, 'T02', 6 FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id DESC LIMIT 1;
 
 -- Link room services
 INSERT INTO ROOM (service, code, max_capacity)
-SELECT id, 'R01', 2 FROM SERVICE WHERE type = 'ROOM' LIMIT 1;
+SELECT id, 'R01', 2 FROM SERVICE WHERE type = 'ROOM' ORDER BY id ASC LIMIT 1;
 
 INSERT INTO ROOM (service, code, max_capacity)
 SELECT id, 'R02', 4 FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1;
@@ -174,18 +172,18 @@ WHERE type = 'ROOM'
   AND id NOT IN (SELECT service FROM ROOM)
 LIMIT 1;
 
--- Insert demo reservations
-INSERT INTO RESERVATION (username, reservation_date) VALUES
+-- Insert demo bookings
+INSERT INTO BOOKING (username, booking_date) VALUES
 ('mrossi', '2025-09-15 10:00:00'),
 ('lverdi', '2025-09-16 12:30:00'),
 ('mbianchi', '2025-09-17 14:00:00'),
 ('aneri', '2025-09-18 09:15:00');
 
--- Store reservation IDs
-SET @r1 = (SELECT id FROM RESERVATION WHERE username = 'mrossi' AND reservation_date = '2025-09-15 10:00:00');
-SET @r2 = (SELECT id FROM RESERVATION WHERE username = 'lverdi' AND reservation_date = '2025-09-16 12:30:00');
-SET @r3 = (SELECT id FROM RESERVATION WHERE username = 'mbianchi' AND reservation_date = '2025-09-17 14:00:00');
-SET @r4 = (SELECT id FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-18 09:15:00');
+-- Store booking IDs
+SET @r1 = (SELECT id FROM BOOKING WHERE username = 'mrossi' AND booking_date = '2025-09-15 10:00:00');
+SET @r2 = (SELECT id FROM BOOKING WHERE username = 'lverdi' AND booking_date = '2025-09-16 12:30:00');
+SET @r3 = (SELECT id FROM BOOKING WHERE username = 'mbianchi' AND booking_date = '2025-09-17 14:00:00');
+SET @r4 = (SELECT id FROM BOOKING WHERE username = 'aneri' AND booking_date = '2025-09-18 09:15:00');
 
 -- Store some service IDs
 SET @s_table1 = (SELECT id FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id ASC LIMIT 1);
@@ -193,13 +191,15 @@ SET @s_table2 = (SELECT id FROM SERVICE WHERE type = 'RESTAURANT' ORDER BY id DE
 SET @s_room1 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id ASC LIMIT 1);
 SET @s_room2 = (SELECT id FROM SERVICE WHERE type = 'ROOM' ORDER BY id DESC LIMIT 1);
 
--- Reservation details
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
-VALUES
-(@r1, @s_table1, '2025-09-15 12:00:00', '2025-09-15 14:00:00', 3), -- Table T01 (cap 4)
-(@r2, @s_room1,  '2025-09-16 15:00:00', '2025-09-18 10:00:00', 2), -- Room R01 (cap 2)
-(@r3, @s_room2,  '2025-09-17 18:00:00', '2025-09-19 10:00:00', 3), -- Room R02 (cap 4)
-(@r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00', 5); -- Table T02 (cap 6)
+-- Booking details with unit_price captured at booking time
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
+SELECT @r1, @s_table1, '2025-09-15 12:00:00', '2025-09-15 14:00:00', 3, price FROM SERVICE WHERE id = @s_table1; -- Table T01 (cap 4)
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
+SELECT @r2, @s_room1,  '2025-09-16 15:00:00', '2025-09-18 10:00:00', 2, price FROM SERVICE WHERE id = @s_room1;  -- Room R01 (cap 2)
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
+SELECT @r3, @s_room2,  '2025-09-17 18:00:00', '2025-09-19 10:00:00', 3, price FROM SERVICE WHERE id = @s_room2;  -- Room R02 (cap 4)
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
+SELECT @r4, @s_table2, '2025-09-18 20:00:00', '2025-09-18 22:00:00', 5, price FROM SERVICE WHERE id = @s_table2; -- Table T02 (cap 6)
 
 -- Alias for event IDs
 SET @e_workshop  = (SELECT id FROM EVENT WHERE title = 'Cheese Making Workshop');
@@ -213,18 +213,20 @@ WHERE NOT EXISTS (
   SELECT 1 FROM EVENT_SUBSCRIPTION WHERE event = @e_open_day AND user = 'lverdi'
 );
 
-INSERT INTO RESERVATION (username, reservation_date)
+-- Additional booking for past restaurant visit by 'aneri'
+INSERT INTO BOOKING (username, booking_date)
 SELECT 'aneri', '2025-09-10 19:00:00'
 WHERE NOT EXISTS (
-  SELECT 1 FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-10 19:00:00'
+  SELECT 1 FROM BOOKING WHERE username = 'aneri' AND booking_date = '2025-09-10 19:00:00'
 );
-SET @r5 = (SELECT id FROM RESERVATION WHERE username = 'aneri' AND reservation_date = '2025-09-10 19:00:00');
+SET @r5 = (SELECT id FROM BOOKING WHERE username = 'aneri' AND booking_date = '2025-09-10 19:00:00');
 
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
-SELECT @r5, @s_table2, '2025-09-10 20:00:00', '2025-09-10 22:00:00', 2
-WHERE NOT EXISTS (
-  SELECT 1 FROM RESERVATION_DETAIL WHERE reservation = @r5 AND service = @s_table2
-);
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
+SELECT @r5, @s_table2, '2025-09-10 20:00:00', '2025-09-10 22:00:00', 2, price
+FROM SERVICE WHERE id = @s_table2
+ON DUPLICATE KEY UPDATE unit_price = VALUES(unit_price);
+
+-- (Removed pool and playground demo bookings per request)
 
 -- Demo reviews (conditional, safe to re-run)
 -- Service review: mrossi used @s_table1 (ended in the past)
@@ -232,8 +234,8 @@ INSERT INTO REVIEW (`user`, service, rating, comment)
 SELECT 'mrossi', @s_table1, 5, 'Great table and service.'
 WHERE EXISTS (
   SELECT 1
-  FROM RESERVATION r
-  JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
+  FROM BOOKING r
+  JOIN BOOKING_DETAIL rd ON rd.booking = r.id
   WHERE r.username = 'mrossi'
     AND rd.service = @s_table1
     AND rd.end_date < NOW()
@@ -245,8 +247,8 @@ INSERT INTO REVIEW (`user`, service, rating, comment)
 SELECT 'aneri', @s_table2, 4, 'Nice dinner experience.'
 WHERE EXISTS (
   SELECT 1
-  FROM RESERVATION r
-  JOIN RESERVATION_DETAIL rd ON rd.reservation = r.id
+  FROM BOOKING r
+  JOIN BOOKING_DETAIL rd ON rd.booking = r.id
   WHERE r.username = 'aneri'
     AND rd.service = @s_table2
     AND rd.end_date < NOW()
