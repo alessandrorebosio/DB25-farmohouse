@@ -1,6 +1,5 @@
 use farmhouse;
-
--- Top 5 most booked services (by reservation details),
+-- Top 5 most booked services (by booking details),
 -- showing a friendly name with subtype code (Restaurant/Room)
 SELECT
   CASE
@@ -14,7 +13,7 @@ LEFT JOIN RESTAURANT AS r
   ON s.id = r.service
 LEFT JOIN ROOM AS ro
   ON s.id = ro.service
-JOIN RESERVATION_DETAIL AS rd
+JOIN BOOKING_DETAIL AS rd
   ON s.id = rd.service
 GROUP BY
   s.id,
@@ -69,18 +68,14 @@ ORDER BY
   total_revenue DESC
 LIMIT 5;
 
--- Overall total revenue from all order details
-SELECT ROUND(SUM(od.quantity * od.unit_price), 2) as overall_total_revenue
-FROM ORDER_DETAIL od;
-
--- Quick KPIs: total customers, employees, orders, revenue, reservations
--- Note: expects tables USER, EMPLOYEE, ORDERS, ORDER_DETAIL, RESERVATION
+-- Quick KPIs: total customers, employees, orders, revenue, bookings
+-- Note: expects tables USER, EMPLOYEE, ORDERS, ORDER_DETAIL, BOOKING
 SELECT
   (SELECT COUNT(*) FROM USER) AS total_customers,
   (SELECT COUNT(*) FROM EMPLOYEE) AS total_employees,
   (SELECT COUNT(*) FROM ORDERS) AS total_orders,
   (SELECT ROUND(SUM(od.quantity * od.unit_price), 2) FROM ORDER_DETAIL AS od) AS total_revenue,
-  (SELECT COUNT(*) FROM RESERVATION) AS total_reservations;
+  (SELECT COUNT(*) FROM BOOKING) AS total_bookings;
 
 -- Room availability for a given period and people
 -- Requires session variables:
@@ -96,8 +91,8 @@ WHERE
   ro.max_capacity >= @n_people
   AND ro.service NOT IN (
     SELECT rd.service
-    FROM RESERVATION_DETAIL AS rd
-    WHERE NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
+    FROM BOOKING_DETAIL AS rd
+    WHERE NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
   );
 
 -- Restaurant availability with remaining seats in a period
@@ -108,11 +103,18 @@ SELECT
   r.max_capacity,
   (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS available_seats
 FROM RESTAURANT AS r
-JOIN SERVICE AS s ON s.id = r.service
-LEFT JOIN RESERVATION_DETAIL AS rd ON rd.service = r.service
-  AND NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
-GROUP BY r.service, r.code, s.price, r.max_capacity
-HAVING available_seats >= @n_people;
+JOIN SERVICE AS s
+  ON s.id = r.service
+LEFT JOIN BOOKING_DETAIL AS rd
+  ON rd.service = r.service
+  AND NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
+GROUP BY
+  r.service,
+  r.code,
+  s.price,
+  r.max_capacity
+HAVING
+  posti_disponibili >= @n_partecipanti;
 
 -- Insert a REVIEW for an event attended by user 'mrossi'
 -- Guards: only if subscribed, past event, and review does not already exist
@@ -135,7 +137,7 @@ WHERE
   )
 LIMIT 1;
 
--- Insert a REVIEW for a service used by user 'aneri' (completed reservation)
+-- Insert a REVIEW for a service used by user 'aneri' (completed booking)
 -- Guards: only for RESTAURANT services and avoid duplicate reviews
 INSERT INTO REVIEW (user, service, rating, comment)
 SELECT
@@ -144,10 +146,10 @@ SELECT
   4 AS rating,
   'Good service and friendly staff.' AS comment
 FROM SERVICE AS s
-INNER JOIN RESERVATION_DETAIL AS rd
+INNER JOIN BOOKING_DETAIL AS rd
   ON s.id = rd.service
-INNER JOIN RESERVATION AS r
-  ON rd.reservation = r.id
+INNER JOIN BOOKING AS r
+  ON rd.booking = r.id
 WHERE
   r.username = 'aneri'
   AND rd.end_date < NOW()
@@ -186,72 +188,79 @@ CROSS JOIN USER AS u
 WHERE e.title = 'Harvest Festival' AND u.username = 'lblu'
 ON DUPLICATE KEY UPDATE participants = 4;
 
--- Create a reservation today for 'gverdi' only if not already present
-INSERT INTO RESERVATION (username, reservation_date)
+-- Create a booking today for 'gverdi' only if not already present
+INSERT INTO BOOKING (username, booking_date)
 SELECT
   'gverdi',
   NOW()
 WHERE NOT EXISTS (
   SELECT 1
-  FROM RESERVATION
+  FROM BOOKING
   WHERE
     username = 'gverdi'
-    AND DATE(reservation_date) = CURDATE()
-  );
-
--- Capture the last inserted reservation id in @new_reservation_id
-SET @new_reservation_id = LAST_INSERT_ID();
-
--- Add a RESTAURANT reservation detail (table T01) for the created reservation
-INSERT INTO RESERVATION (username, reservation_date)
-SELECT 'fbianchi', DATE_ADD(NOW(), INTERVAL 1 HOUR)
-WHERE NOT EXISTS (
-  SELECT 1 FROM RESERVATION
-  WHERE username = 'fbianchi'
-  AND DATE(reservation_date) = CURDATE()
+  AND DATE(booking_date) = CURDATE()
 );
 
-SET @room_reservation_id = LAST_INSERT_ID();
+-- Capture the last inserted booking id in @new_booking_id
+SET @new_booking_id = LAST_INSERT_ID();
 
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+-- Add a RESTAURANT booking detail (table T01) for the created booking
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
 SELECT
-  @room_reservation_id as reservation,
-  s.id as service,
-  '2024-01-26 15:00:00' as start_date,
-  '2024-01-28 11:00:00' as end_date,
-  2 as people
-FROM SERVICE s
-INNER JOIN ROOM r ON s.id = r.service
-WHERE r.code = 'R03'
+  @new_booking_id AS booking,
+  s.id AS service,
+  '2024-01-25 19:00:00' AS start_date,
+  '2024-01-25 21:00:00' AS end_date,
+  2 AS people,
+  s.price AS unit_price
+FROM SERVICE AS s
+INNER JOIN RESTAURANT AS r
+  ON s.id = r.service
+WHERE r.code = 'T01'
 LIMIT 1;
 
--- Capture the new reservation id in @room_reservation_id
-SET @room_reservation_id = LAST_INSERT_ID();
-
--- Add a ROOM reservation detail (room R03) to the created reservation
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+-- Create a second booking (1 hour later) for 'fbianchi' if not already present
+INSERT INTO BOOKING (username, booking_date)
 SELECT
-  @room_reservation_id AS reservation,
+  'fbianchi',
+  DATE_ADD(NOW(), INTERVAL 1 HOUR)
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM BOOKING
+  WHERE
+    username = 'fbianchi'
+  AND DATE(booking_date) = CURDATE()
+);
+
+-- Capture the new booking id in @room_booking_id
+SET @room_booking_id = LAST_INSERT_ID();
+
+-- Add a ROOM booking detail (room R03) to the created booking
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
+SELECT
+  @room_booking_id AS booking,
   s.id AS service,
   '2024-01-26 15:00:00' AS start_date,
   '2024-01-28 11:00:00' AS end_date,
-  2 AS people
+  2 AS people,
+  s.price AS unit_price
 FROM SERVICE AS s
 INNER JOIN ROOM AS r
   ON s.id = r.service
 WHERE r.code = 'R03'
 LIMIT 1;
 
--- Delete all RESERVATION_DETAIL rows associated with @reservation_id
--- Requires variables: @reservation_id
-DELETE FROM RESERVATION_DETAIL
-WHERE reservation = @reservation_id;
+-- Delete all BOOKING_DETAIL rows associated with @booking_id
+-- Requires variables: @booking_id
+DELETE FROM BOOKING_DETAIL
+WHERE booking = @booking_id;
 
--- Then delete the RESERVATION itself for the given user
--- Requires variables: @reservation_id, @username
-DELETE FROM RESERVATION
-WHERE id = @reservation_id
-AND username = @username;
+-- Then delete the BOOKING itself for the given user
+-- Requires variables: @booking_id, @username
+DELETE FROM BOOKING
+WHERE
+  id = @booking_id
+    AND username = @username;
 
 -- Cancel an event subscription in the future for @username and @event_id
 -- Requires variables: @username, @event_id
@@ -267,20 +276,19 @@ WHERE
       AND e.event_date > CURDATE()
   );
 
--- Delete an empty reservation (no past or current details)
--- Requires variables: @reservation_id, @username
-DELETE FROM RESERVATION
+-- Delete an empty booking (no past or current details)
+-- Requires variables: @booking_id, @username
+DELETE FROM BOOKING
 WHERE
-  id = @reservation_id
-  AND username = @username
-  AND NOT EXISTS (
+  id = @booking_id
+    AND username = @username
+    AND NOT EXISTS (
     SELECT 1
-    FROM RESERVATION_DETAIL AS rd
-    WHERE
-      rd.reservation = @reservation_id
-      AND rd.start_date <= NOW()
-  );
-\end{sqlcode}
+    FROM BOOKING_DETAIL AS rd
+        WHERE
+  rd.booking = @booking_id
+            AND rd.start_date <= NOW()
+    );
 
 -- Get user profile details with role classification (employee/customer)
 SELECT
@@ -312,7 +320,7 @@ WHERE NOT EXISTS (
 SET @new_order_id = LAST_INSERT_ID();
 
 -- Add items to the newly created order: eggs, bread, honey (with current product price)
-INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price)
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
 SELECT
   @new_order_id AS order_id,
   p.id AS product_id,
@@ -322,7 +330,7 @@ FROM PRODUCT AS p
 WHERE p.name = 'Farm Eggs (12 pcs)'
 LIMIT 1;
 
-INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price)
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
 SELECT
   @new_order_id AS order_id,
   p.id AS product_id,
@@ -332,7 +340,7 @@ FROM PRODUCT AS p
 WHERE p.name = 'Fresh Bread'
 LIMIT 1;
 
-INSERT INTO ORDER_DETAIL (order, product, quantity, unit_price)
+INSERT INTO ORDER_DETAIL (`order`, product, quantity, unit_price)
 SELECT
   @new_order_id AS order_id,
   p.id AS product_id,
