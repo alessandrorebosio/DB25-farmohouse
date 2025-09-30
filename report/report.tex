@@ -228,7 +228,7 @@ schema di base con le entità e le relazioni principali, che sarà poi
 perfezionato nei passaggi successivi.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth, trim=200pt 170pt 50pt 0pt,
+  \includegraphics[width=\textwidth, trim=100pt 170pt 175pt 0pt,
   clip]{./schemas/er-base.pdf}
   \caption{Schema ER iniziale}
   \label{fig:schema-iniziale}
@@ -363,7 +363,7 @@ ciascuna tabella e associazione, riferiti a un periodo di un anno.
     \textbf{Tabella} & \textbf{Volume stimato} & \textbf{E/R} \\
     \hline
     \texttt{ORDER}               & 12\,000  & E \\
-    \texttt{RESERVATION}         & 6\,000   & E \\
+  	\texttt{BOOKING}             & 6\,000   & E \\
     \texttt{PERSON}              & 5\,000   & E \\
     \texttt{USER}                & 4\,000   & E \\
     \texttt{REVIEW}              & 2\,500   & E \\
@@ -375,7 +375,7 @@ ciascuna tabella e associazione, riferiti a un periodo di un anno.
     \texttt{SHIFT}               & 30       & E \\
     \texttt{RESTAURANT}          & 3        & E \\
     \texttt{ORDER\_DETAIL}       & 36\,000  & E \\
-    \texttt{RESERVATION\_DETAIL} & 6\,000   & E \\
+  	\texttt{BOOKING\_DETAIL}     & 6\,000   & E \\
     \texttt{EMPLOYEE\_SHIFT}     & 15\,000  & E \\
     \texttt{EMPLOYEE\_HISTORY}   & 100      & E \\
     \hline
@@ -500,7 +500,7 @@ $$Op_{sett} = 20$$
     SERVICE & E & L & 150 \\
     RESTAURANT & E & L & 3\\
     ROOM & E & L & 25 \\
-    RESERVATION\_DETAIL & R & L & 6\,000 \\
+  BOOKING\_DETAIL & R & L & 6\,000 \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & & 6\,178  \\
@@ -619,8 +619,8 @@ $$Op_{sett} = 10$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{S/L} & \textbf{Accessi} \\
     \hline
-    ORDER\_DETAIL & R & L & 36\,000 \\
-    RESERVATION\_DETAIL & R & L & 6\,000 \\
+  ORDER\_DETAIL & R & L & 36\,000 \\
+  BOOKING\_DETAIL & R & L & 6\,000 \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & & 42\,000 \\
@@ -653,7 +653,7 @@ $$Op_{sett} = 25$$
     EMPLOYEE & E & 50 & L \\
     ORDERS & E & 15\,000 & L \\
     ORDER\_DETAIL & A & 45\,000 & L \\
-    RESERVATION & E & 8\,000 & L \\
+  BOOKING & E & 8\,000 & L \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 73\,050 & \\
@@ -684,7 +684,7 @@ $$Op_{sett} = 300$$
     \hline
     ROOM & E & 30 & L \\
     SERVICE & E & 30 & L \\
-    RESERVATION\_DETAIL & A & 1\,200 & L \\
+  BOOKING\_DETAIL & A & 1\,200 & L \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 1\,260 & \\
@@ -714,7 +714,7 @@ $$Op_{sett} = 250$$
     \hline
     RESTAURANT & E & 20 & L \\
     SERVICE & E & 20 & L \\
-    RESERVATION\_DETAIL & A & 800 & L \\
+  BOOKING\_DETAIL & A & 800 & L \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 840 & \\
@@ -772,8 +772,8 @@ $$Op_{sett} = 30$$
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
     SERVICE & E & 1 & L \\
-    RESERVATION\_DETAIL & A & 1 & L \\
-    RESERVATION & E & 1 & L \\
+  BOOKING\_DETAIL & A & 1 & L \\
+  BOOKING & E & 1 & L \\
     REVIEW & E & 1 & S \\
     \hline
     \rowcolor{gray!20}
@@ -859,7 +859,7 @@ $$Op_{sett} = 100$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-    RESERVATION & E & 1 & S \\
+  BOOKING & E & 1 & S \\
     USER & E & 1 & L \\
     \hline
     \rowcolor{gray!20}
@@ -890,7 +890,7 @@ $$Op_{sett} = 80$$
     \hline
     SERVICE & E & 1 & L \\
     RESTAURANT & E & 1 & L \\
-    RESERVATION\_DETAIL & A & 1 & S \\
+  BOOKING\_DETAIL & A & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 3 & \\
@@ -918,10 +918,10 @@ $$Op_{sett} = 70$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-    RESERVATION & E & 1 & L \\
+  BOOKING & E & 1 & L \\
     SERVICE & E & 1 & L \\
     ROOM & E & 1 & L \\
-    RESERVATION\_DETAIL & A & 1 & S \\
+  BOOKING\_DETAIL & A & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 4 & \\
@@ -949,10 +949,10 @@ $$Op_{sett} = 20$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-    RESERVATION\_DETAIL & A & 2 & L \\
-    RESERVATION\_DETAIL & A & 2 & S \\
-    RESERVATION & E & 1 & L \\
-    RESERVATION & E & 1 & S \\
+  BOOKING\_DETAIL & A & 2 & L \\
+  BOOKING\_DETAIL & A & 2 & S \\
+  BOOKING & E & 1 & L \\
+  BOOKING & E & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 6 & \\
@@ -1010,10 +1010,10 @@ $$Op_{sett} = 15$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-    RESERVATION & E & 1 & L \\
-    RESERVATION\_DETAIL & A & 2 & L \\
-    RESERVATION\_DETAIL & A & 2 & S \\
-    RESERVATION & E & 1 & S \\
+  BOOKING & E & 1 & L \\
+  BOOKING\_DETAIL & A & 2 & L \\
+  BOOKING\_DETAIL & A & 2 & S \\
+  BOOKING & E & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 6 & \\
@@ -1191,7 +1191,7 @@ garantisce l'unicità.
 Quando non è disponibile un attributo naturale sufficientemente
 stabile, si introduce un campo numerico auto-incrementale
 (\texttt{id}) come chiave primaria. Questo vale per entità come
-\texttt{Service}, \texttt{Order}, \texttt{Reservation},
+	exttt{Service}, \texttt{Order}, \texttt{Booking},
 \texttt{Review}, \texttt{Shift}, \texttt{Product} ed \texttt{Event},
 dove non è presente un attributo che assicuri unicità e persistenza.
 
@@ -1201,7 +1201,7 @@ identificatori composti secondo la notazione dello schema logico:
 
 \begin{itemize}
   \item \texttt{Order\_Detail}(order, product)
-  \item \texttt{Reservation\_detail}(reservation, service)
+  \item \texttt{Booking\_detail}(booking, service)
   \item \texttt{Event\_subscription}(event, user)
   \item \texttt{Employee\_shift}(employee, shift, shift\_date)
 \end{itemize}
@@ -1336,16 +1336,16 @@ BEGIN
     IF NEW.service IS NOT NULL THEN
         SELECT COUNT(*)
             INTO cnt
-            FROM RESERVATION r
-            JOIN RESERVATION_DETAIL rd
-                ON rd.reservation = r.id
+      FROM BOOKING r
+      JOIN BOOKING_DETAIL rd
+        ON rd.booking = r.id
              AND rd.service = NEW.service
          WHERE r.username = NEW.`user`
              AND rd.end_date < NOW();
 
         IF cnt = 0 THEN
             SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed reservation).';
+                SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed booking).';
         END IF;
     END IF;
 END$$
@@ -1381,7 +1381,7 @@ SELECT CASE
 FROM SERVICE AS s
 LEFT JOIN RESTAURANT AS r ON s.id = r.service
 LEFT JOIN ROOM AS ro ON s.id = ro.service
-JOIN RESERVATION_DETAIL AS rd ON s.id = rd.service
+JOIN BOOKING_DETAIL AS rd ON s.id = rd.service
 GROUP BY s.id, s.type, r.code, ro.code
 ORDER BY booking_count DESC
 LIMIT 5;
@@ -1460,7 +1460,7 @@ SELECT
   (SELECT COUNT(*) FROM EMPLOYEE) AS total_employees,
   (SELECT COUNT(*) FROM ORDERS) AS total_orders,
   (SELECT ROUND(SUM(od.quantity * od.unit_price), 2) FROM ORDER_DETAIL AS od) AS total_revenue,
-  (SELECT COUNT(*) FROM RESERVATION) AS total_reservations;
+  (SELECT COUNT(*) FROM BOOKING) AS total_bookings;
 \end{sqlcode}
 % tex-fmt: on
 
@@ -1493,7 +1493,7 @@ WHERE
   ro.max_capacity >= @n_people
   AND ro.service NOT IN (
     SELECT rd.service
-    FROM RESERVATION_DETAIL AS rd
+  FROM BOOKING_DETAIL AS rd
     WHERE NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
   );
 \end{sqlcode}
@@ -1514,7 +1514,7 @@ SELECT
   (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS available_seats
 FROM RESTAURANT AS r
 JOIN SERVICE AS s ON s.id = r.service
-LEFT JOIN RESERVATION_DETAIL AS rd ON rd.service = r.service
+LEFT JOIN BOOKING_DETAIL AS rd ON rd.service = r.service
   AND NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
 GROUP BY r.service, r.code, s.price, r.max_capacity
 HAVING available_seats >= @n_people;
@@ -1571,14 +1571,16 @@ SELECT
   4 AS rating,
   'Good service and friendly staff.' AS comment
 FROM SERVICE AS s
-INNER JOIN RESERVATION_DETAIL AS rd ON s.id = rd.service
-INNER JOIN RESERVATION AS r ON rd.reservation = r.id
+INNER JOIN BOOKING_DETAIL AS rd ON s.id = rd.service
+INNER JOIN BOOKING AS r ON rd.booking = r.id
 WHERE
   r.username = 'aneri'
   AND rd.end_date < NOW()
   AND s.type = 'RESTAURANT'
   AND NOT EXISTS (
     SELECT 1
+
+
     FROM REVIEW AS rev
     WHERE rev.user = 'aneri' AND rev.service = s.id
   )
@@ -1650,16 +1652,16 @@ stessa giornata.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
-INSERT INTO RESERVATION (username, reservation_date)
+INSERT INTO BOOKING (username, booking_date)
 SELECT
   'gverdi',
   NOW()
 WHERE NOT EXISTS (
   SELECT 1
-  FROM RESERVATION
+  FROM BOOKING
   WHERE
     username = 'gverdi'
-    AND DATE(reservation_date) = CURDATE()
+  AND DATE(booking_date) = CURDATE()
   );
 \end{sqlcode}
 % tex-fmt: on
@@ -1669,15 +1671,16 @@ Prenotazione di tavoli al ristorante, con join sulla tabella
 RESTAURANT per identificare correttamente il servizio.
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
-SET @new_reservation_id = LAST_INSERT_ID();
+SET @new_booking_id = LAST_INSERT_ID();
 
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
 SELECT
-  @new_reservation_id AS reservation,
+  @new_booking_id AS booking,
   s.id AS service,
   '2024-01-25 19:00:00' AS start_date,
   '2024-01-25 21:00:00' AS end_date,
-  2 AS people
+  2 AS people,
+  s.price AS unit_price
 FROM SERVICE AS s
 INNER JOIN RESTAURANT AS r ON s.id = r.service
 WHERE r.code = 'T01'
@@ -1694,23 +1697,24 @@ prenotazione.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
-INSERT INTO RESERVATION (username, reservation_date)
+INSERT INTO BOOKING (username, booking_date)
 SELECT 'fbianchi', DATE_ADD(NOW(), INTERVAL 1 HOUR)
 WHERE NOT EXISTS (
-  SELECT 1 FROM RESERVATION
+  SELECT 1 FROM BOOKING
   WHERE username = 'fbianchi'
-  AND DATE(reservation_date) = CURDATE()
+  AND DATE(booking_date) = CURDATE()
 );
 
-SET @room_reservation_id = LAST_INSERT_ID();
+SET @room_booking_id = LAST_INSERT_ID();
 
-INSERT INTO RESERVATION_DETAIL (reservation, service, start_date, end_date, people)
+INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
 SELECT
-  @room_reservation_id as reservation,
+  @room_booking_id as booking,
   s.id as service,
   '2024-01-26 15:00:00' as start_date,
   '2024-01-28 11:00:00' as end_date,
-  2 as people
+  2 as people,
+  s.price as unit_price
 FROM SERVICE s
 INNER JOIN ROOM r ON s.id = r.service
 WHERE r.code = 'R03'
@@ -1736,11 +1740,11 @@ principale della prenotazione.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
-DELETE FROM RESERVATION_DETAIL
-WHERE reservation = @reservation_id;
+DELETE FROM BOOKING_DETAIL
+WHERE booking = @booking_id;
 
-DELETE FROM RESERVATION
-WHERE id = @reservation_id
+DELETE FROM BOOKING
+WHERE id = @booking_id
 AND username = @username;
 \end{sqlcode}
 % tex-fmt: on
@@ -1773,15 +1777,15 @@ cancellazione di prenotazioni in corso o concluse.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
-DELETE FROM RESERVATION
+DELETE FROM BOOKING
 WHERE
-  id = @reservation_id
+  id = @booking_id
   AND username = @username
   AND NOT EXISTS (
     SELECT 1
-    FROM RESERVATION_DETAIL AS rd
+  FROM BOOKING_DETAIL AS rd
     WHERE
-      rd.reservation = @reservation_id
+      rd.booking = @booking_id
       AND rd.start_date <= NOW()
   );
 \end{sqlcode}
