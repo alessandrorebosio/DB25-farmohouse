@@ -363,7 +363,7 @@ ciascuna tabella e associazione, riferiti a un periodo di un anno.
     \textbf{Tabella} & \textbf{Volume stimato} & \textbf{E/R} \\
     \hline
     \texttt{ORDER}               & 12\,000  & E \\
-  	\texttt{BOOKING}             & 6\,000   & E \\
+    \texttt{BOOKING}             & 6\,000   & E \\
     \texttt{PERSON}              & 5\,000   & E \\
     \texttt{USER}                & 4\,000   & E \\
     \texttt{REVIEW}              & 2\,500   & E \\
@@ -375,7 +375,7 @@ ciascuna tabella e associazione, riferiti a un periodo di un anno.
     \texttt{SHIFT}               & 30       & E \\
     \texttt{RESTAURANT}          & 3        & E \\
     \texttt{ORDER\_DETAIL}       & 36\,000  & E \\
-  	\texttt{BOOKING\_DETAIL}     & 6\,000   & E \\
+    \texttt{BOOKING\_DETAIL}     & 6\,000   & E \\
     \texttt{EMPLOYEE\_SHIFT}     & 15\,000  & E \\
     \texttt{EMPLOYEE\_HISTORY}   & 100      & E \\
     \hline
@@ -500,7 +500,7 @@ $$Op_{sett} = 20$$
     SERVICE & E & L & 150 \\
     RESTAURANT & E & L & 3\\
     ROOM & E & L & 25 \\
-  BOOKING\_DETAIL & R & L & 6\,000 \\
+    BOOKING\_DETAIL & R & L & 6\,000 \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & & 6\,178  \\
@@ -619,8 +619,8 @@ $$Op_{sett} = 10$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{S/L} & \textbf{Accessi} \\
     \hline
-  ORDER\_DETAIL & R & L & 36\,000 \\
-  BOOKING\_DETAIL & R & L & 6\,000 \\
+    ORDER\_DETAIL & R & L & 36\,000 \\
+    BOOKING\_DETAIL & R & L & 6\,000 \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & & 42\,000 \\
@@ -629,7 +629,7 @@ $$Op_{sett} = 10$$
   \vspace{-1em}
 \end{table}
 
-$$\mathbf{C_{tot}} = 10 \cdot 42\,000 = \mathbf{420.000}$$    
+$$\mathbf{C_{tot}} = 10 \cdot 42\,000 = \mathbf{420.000}$$
 
 \subsection*{Statistiche generali del sistema} \label{op6}
 \colorbox{yellow}{Calcola le principali metriche aggregate del sistema.}
@@ -653,7 +653,7 @@ $$Op_{sett} = 25$$
     EMPLOYEE & E & 50 & L \\
     ORDERS & E & 15\,000 & L \\
     ORDER\_DETAIL & A & 45\,000 & L \\
-  BOOKING & E & 8\,000 & L \\
+    BOOKING & E & 8\,000 & L \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 73\,050 & \\
@@ -684,7 +684,7 @@ $$Op_{sett} = 300$$
     \hline
     ROOM & E & 30 & L \\
     SERVICE & E & 30 & L \\
-  BOOKING\_DETAIL & A & 1\,200 & L \\
+    BOOKING\_DETAIL & A & 1\,200 & L \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 1\,260 & \\
@@ -714,7 +714,7 @@ $$Op_{sett} = 250$$
     \hline
     RESTAURANT & E & 20 & L \\
     SERVICE & E & 20 & L \\
-  BOOKING\_DETAIL & A & 800 & L \\
+    BOOKING\_DETAIL & A & 800 & L \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 840 & \\
@@ -772,8 +772,8 @@ $$Op_{sett} = 30$$
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
     SERVICE & E & 1 & L \\
-  BOOKING\_DETAIL & A & 1 & L \\
-  BOOKING & E & 1 & L \\
+    BOOKING\_DETAIL & A & 1 & L \\
+    BOOKING & E & 1 & L \\
     REVIEW & E & 1 & S \\
     \hline
     \rowcolor{gray!20}
@@ -859,7 +859,7 @@ $$Op_{sett} = 100$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-  BOOKING & E & 1 & S \\
+    BOOKING & E & 1 & S \\
     USER & E & 1 & L \\
     \hline
     \rowcolor{gray!20}
@@ -890,7 +890,7 @@ $$Op_{sett} = 80$$
     \hline
     SERVICE & E & 1 & L \\
     RESTAURANT & E & 1 & L \\
-  BOOKING\_DETAIL & A & 1 & S \\
+    BOOKING\_DETAIL & A & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 3 & \\
@@ -918,10 +918,10 @@ $$Op_{sett} = 70$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-  BOOKING & E & 1 & L \\
+    BOOKING & E & 1 & L \\
     SERVICE & E & 1 & L \\
     ROOM & E & 1 & L \\
-  BOOKING\_DETAIL & A & 1 & S \\
+    BOOKING\_DETAIL & A & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 4 & \\
@@ -949,10 +949,10 @@ $$Op_{sett} = 20$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-  BOOKING\_DETAIL & A & 2 & L \\
-  BOOKING\_DETAIL & A & 2 & S \\
-  BOOKING & E & 1 & L \\
-  BOOKING & E & 1 & S \\
+    BOOKING\_DETAIL & A & 2 & L \\
+    BOOKING\_DETAIL & A & 2 & S \\
+    BOOKING & E & 1 & L \\
+    BOOKING & E & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 6 & \\
@@ -1010,10 +1010,10 @@ $$Op_{sett} = 15$$
     \rowcolor{gray!20}
     \textbf{Tabella} & \textbf{Tipo} & \textbf{Numero accessi} & \textbf{S/L} \\
     \hline
-  BOOKING & E & 1 & L \\
-  BOOKING\_DETAIL & A & 2 & L \\
-  BOOKING\_DETAIL & A & 2 & S \\
-  BOOKING & E & 1 & S \\
+    BOOKING & E & 1 & L \\
+    BOOKING\_DETAIL & A & 2 & L \\
+    BOOKING\_DETAIL & A & 2 & S \\
+    BOOKING & E & 1 & S \\
     \hline
     \rowcolor{gray!20}
     TOTALE & & 6 & \\
@@ -1191,7 +1191,7 @@ garantisce l'unicità.
 Quando non è disponibile un attributo naturale sufficientemente
 stabile, si introduce un campo numerico auto-incrementale
 (\texttt{id}) come chiave primaria. Questo vale per entità come
-	exttt{Service}, \texttt{Order}, \texttt{Booking},
+exttt{Service}, \texttt{Order}, \texttt{Booking},
 \texttt{Review}, \texttt{Shift}, \texttt{Product} ed \texttt{Event},
 dove non è presente un attributo che assicuri unicità e persistenza.
 
@@ -1443,8 +1443,9 @@ Calcolo del ricavo complessivo generato dalle vendite dei prodotti.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
-SELECT ROUND(SUM(od.quantity * od.unit_price), 2) as overall_total_revenue
-FROM ORDER_DETAIL od;
+  ROUND(
+    COALESCE((SELECT SUM(od.quantity * od.unit_price) FROM ORDER_DETAIL AS od), 0)
+    + COALESCE((SELECT SUM(rd.people * rd.unit_price) FROM BOOKING_DETAIL AS rd), 0), 2) AS total_revenue;
 \end{sqlcode}
 % tex-fmt: on
 
@@ -1579,7 +1580,6 @@ WHERE
   AND s.type = 'RESTAURANT'
   AND NOT EXISTS (
     SELECT 1
-
 
     FROM REVIEW AS rev
     WHERE rev.user = 'aneri' AND rev.service = s.id
