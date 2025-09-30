@@ -81,8 +81,8 @@ def event_view(request: HttpRequest) -> HttpResponse:
 def book_event(request: HttpRequest, event_id: int) -> HttpResponse:
     """Book one or more seats for the current authenticated user.
 
-    Validates input, enforces capacity with SELECT ... FOR UPDATE to avoid
-    race conditions, then inserts/updates the user's subscription.
+    Validates input, enforces capacity using row locks (SELECT ... FOR UPDATE)
+    to avoid race conditions, then inserts/updates the user's subscription.
 
     SQL (approximate; executed within a transaction):
 
@@ -165,8 +165,8 @@ def book_event(request: HttpRequest, event_id: int) -> HttpResponse:
 def cancel_event(request: HttpRequest, event_id: int) -> HttpResponse:
     """Cancel the current user's booking for a future event.
 
-    Protects past events from cancellation and uses row-level locking
-    to ensure consistent state when deleting the subscription.
+    Protects past events from cancellation and uses row-level locking to
+    ensure consistent state when deleting the subscription.
 
     SQL (approximate; executed within a transaction):
 

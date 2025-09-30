@@ -43,7 +43,7 @@ def get_meal_slot(date_obj, meal_key):
 def service_list(request):
     """List available services with simple room/table filters.
 
-    SQL (simplified for tables):
+    SQL (approximate for restaurant tables):
     SELECT s.* FROM SERVICE s
     LEFT JOIN RESTAURANT r ON r.service = s.id
     WHERE s.type = 'RESTAURANT' AND r.max_capacity >= %(people)s
@@ -134,7 +134,7 @@ def service_list(request):
         table_meal_label = MEAL_LABELS.get(table_meal)
     elif table_date and table_people and not table_meal:
         table_meal_label = None
-        table_error = "Seleziona il pasto (Colazione, Pranzo o Cena)."
+        table_error = "Select the meal (Breakfast, Lunch, or Dinner)."
     else:
         table_meal_label = None
 

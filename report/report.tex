@@ -1443,9 +1443,10 @@ Calcolo del ricavo complessivo generato dalle vendite dei prodotti.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
-  ROUND(
-    COALESCE((SELECT SUM(od.quantity * od.unit_price) FROM ORDER_DETAIL AS od), 0)
-    + COALESCE((SELECT SUM(rd.people * rd.unit_price) FROM BOOKING_DETAIL AS rd), 0), 2) AS total_revenue;
+SELECT
+    (SELECT SUM(quantity * unit_price) FROM ORDER_DETAIL)
+  + (SELECT SUM(unit_price * DATEDIFF(end_date, start_date)) FROM BOOKING_DETAIL)
+  AS fatturato_totale;
 \end{sqlcode}
 % tex-fmt: on
 

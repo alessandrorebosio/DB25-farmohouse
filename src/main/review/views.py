@@ -140,7 +140,7 @@ def event_review_view(request, event_id):
 
 @login_required
 def service_review_view(request, service_id):
-    """Create or update a review for a service after booking end date.
+    """Create or update a review for a service after the booking end date.
 
     Checks the user has a past booking for the service. On success, flashes
     a message and redirects to `profile`.

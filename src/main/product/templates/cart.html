@@ -38,14 +38,9 @@
                                     <form method="post" action="{% url 'update_cart' %}" class="d-inline-block m-0">
                                         {% csrf_token %}
                                         <input type="hidden" name="product_id" value="{{ it.product.id }}">
-                                        <div class="input-group input-group-sm qty-group"
-                                            style="max-width:8rem; margin:0 auto;">
-                                            <button class="btn btn-outline-secondary btn-qty" type="button"
-                                                data-delta="-1">−</button>
+                                        <div class="qty-group" style="max-width:8rem; margin:0 auto;">
                                             <input type="number" name="qty" min="0" value="{{ it.qty }}"
-                                                class="form-control text-center">
-                                            <button class="btn btn-outline-secondary btn-qty" type="button"
-                                                data-delta="1">+</button>
+                                                class="form-control form-control-sm text-center">
                                         </div>
                                         <noscript><button type="submit"
                                                 class="btn btn-outline-secondary btn-sm">Update</button></noscript>

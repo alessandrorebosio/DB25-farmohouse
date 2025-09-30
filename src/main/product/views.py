@@ -15,7 +15,7 @@ Contains:
 - product_view: list/search for products
 - cart_view: render cart contents and totals
 - add_to_cart/update_cart/remove_from_cart: mutate session-based cart
-- checkout: create an order and insert order details
+- checkout: create an order and insert order details (parameterized SQL)
 """
 
 
@@ -137,13 +137,12 @@ def checkout(request: HttpRequest) -> HttpResponse:
     """Create an order with details from the current cart and clear it.
 
     SQL (approximate; within a transaction):
-    -- Create order (Django ORM INSERT into ORDERS)
-    INSERT INTO "ORDERS" ("username", "date") VALUES (%username, %now)
-    RETURNING id;
+    -- Create order (executed via ORM)
+    INSERT INTO "ORDERS" ("username", "date") VALUES (%s, %s) RETURNING id;  -- backend-dependent
 
-    -- Insert order lines (manual SQL)
-    INSERT INTO "ORDER_DETAIL" ("order", "product", "quantity", "unit_price")
-    VALUES (%order_id, %product_id, %qty, %unit_price);
+    -- Insert order lines (executed with a parameterized cursor)
+    INSERT INTO ORDER_DETAIL (`order`, `product`, `quantity`, `unit_price`)
+    VALUES (%s, %s, %s, %s);
     """
     if request.method != "POST":
         return HttpResponseBadRequest("Invalid method")

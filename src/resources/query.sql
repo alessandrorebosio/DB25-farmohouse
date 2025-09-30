@@ -1,6 +1,7 @@
-use farmhouse;
--- Top 5 most booked services (by booking details),
--- showing a friendly name with subtype code (Restaurant/Room)
+USE farmhouse;
+
+-- Top 5 most booked services (by booking details)
+-- Friendly display name with subtype code (Restaurant/Room)
 SELECT
   CASE
     WHEN s.type = 'RESTAURANT' THEN CONCAT('Restaurant - ', r.code)
@@ -20,8 +21,7 @@ GROUP BY
   s.type,
   r.code,
   ro.code
-ORDER BY
-  booking_count DESC
+ORDER BY booking_count DESC
 LIMIT 5;
 
 -- Top 5 products by total quantities sold (sum of ORDER_DETAIL.quantity)
@@ -34,8 +34,7 @@ JOIN ORDER_DETAIL AS od
 GROUP BY
   p.id,
   p.name
-ORDER BY
-  total_quantity DESC
+ORDER BY total_quantity DESC
 LIMIT 5;
 
 -- Top 5 events by total participants (sum of EVENT_SUBSCRIPTION.participants)
@@ -50,8 +49,7 @@ GROUP BY
   e.id,
   e.title,
   e.event_date
-ORDER BY
-  total_participants DESC
+ORDER BY total_participants DESC
 LIMIT 5;
 
 -- Top 5 products by total revenue (quantity * unit_price)
@@ -64,16 +62,16 @@ JOIN ORDER_DETAIL AS od
 GROUP BY
   p.id,
   p.name
-ORDER BY
-  total_revenue DESC
+ORDER BY total_revenue DESC
 LIMIT 5;
 
 
 -- Total revenue (orders + bookings)
-SELECT
-  ROUND(
-    COALESCE((SELECT SUM(od.quantity * od.unit_price) FROM ORDER_DETAIL AS od), 0)
-    + COALESCE((SELECT SUM(rd.people * rd.unit_price) FROM BOOKING_DETAIL AS rd), 0), 2) AS total_revenue;
+SELECT 
+    (SELECT SUM(quantity * unit_price) FROM ORDER_DETAIL) 
+  + (SELECT SUM(unit_price * DATEDIFF(end_date, start_date)) FROM BOOKING_DETAIL) 
+  AS fatturato_totale;
+
 
 
 -- Quick KPIs: total customers, employees, orders, revenue, bookings
@@ -100,7 +98,7 @@ WHERE
   AND ro.service NOT IN (
     SELECT rd.service
     FROM BOOKING_DETAIL AS rd
-    WHERE NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
+    WHERE NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
   );
 
 -- Restaurant availability with remaining seats in a period
@@ -115,14 +113,14 @@ JOIN SERVICE AS s
   ON s.id = r.service
 LEFT JOIN BOOKING_DETAIL AS rd
   ON rd.service = r.service
-  AND NOT (rd.end_date <= @data_inizio OR rd.start_date >= @data_fine)
+  AND NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
 GROUP BY
   r.service,
   r.code,
   s.price,
   r.max_capacity
 HAVING
-  posti_disponibili >= @n_partecipanti;
+  available_seats >= @n_people;
 
 -- Insert a REVIEW for an event attended by user 'mrossi'
 -- Guards: only if subscribed, past event, and review does not already exist

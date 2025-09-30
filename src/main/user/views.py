@@ -22,6 +22,10 @@ from django.db.models import (
     Prefetch,
     ExpressionWrapper,
     Count,
+    Case,
+    When,
+    Value,
+    IntegerField,
 )
 from decimal import Decimal
 from django.utils import timezone
@@ -33,6 +37,8 @@ from product.models import Orders, OrderDetail
 from event.models import EventSubscription
 from service.models import Booking, BookingDetail, Service
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models.functions import TruncDate, Greatest
+from django.db.models.expressions import Func
 
 
 def register_view(request: HttpRequest) -> HttpResponse:
@@ -131,7 +137,7 @@ def _ensure_datetime(value):
 
 @login_required(login_url="login")
 def profile_view(request: HttpRequest) -> HttpResponse:
-    """Show the user's dashboard: orders, shifts, events and reservations.
+    """Show the user's dashboard: orders, shifts, event subscriptions, bookings.
 
     Queries:
     - Orders with prefetch of lines and computed order_total
@@ -179,16 +185,16 @@ def profile_view(request: HttpRequest) -> HttpResponse:
     WHERE ES."user" = %s
     ORDER BY E."event_date" ASC, E."title" ASC;
 
-    SELECT R.*
-    FROM "RESERVATION" R
-    WHERE R."username" = %s
-    ORDER BY R."reservation_date" DESC;
+    SELECT B.*
+    FROM "BOOKING" B
+    WHERE B."username" = %s
+    ORDER BY B."booking_date" DESC;
 
-    SELECT RD.*, SV.*
-    FROM "RESERVATION_DETAIL" RD
-    JOIN "SERVICE" SV ON SV."id" = RD."service_id"
-    WHERE RD."reservation_id" IN (...)
-    ORDER BY RD."start_date" ASC;
+    SELECT BD.*, SV.*
+    FROM "BOOKING_DETAIL" BD
+    JOIN "SERVICE" SV ON SV."id" = BD."service"
+    WHERE BD."booking" IN (...)
+    ORDER BY BD."start_date" ASC;
     """
     now = timezone.now()
     today = timezone.localdate()
@@ -297,17 +303,14 @@ def profile_view(request: HttpRequest) -> HttpResponse:
             end_dt = _ensure_datetime(d.end_date)
             d.can_review = (end_dt is not None) and (end_dt <= now)
 
-            # can_cancel: start > now + 7 giorni
             d.can_cancel = (start_dt is not None) and (
                 (start_dt - now) > timedelta(days=7)
             )
 
-            # in_no_action_window: tra 0 e 7 giorni
             d.in_no_action_window = (start_dt is not None) and (
                 timedelta(0) <= (start_dt - now) <= timedelta(days=7)
             )
 
-            # Notti: (end.date - start.date).days, niente +1; minimo 1 solo per camere
             start_d = d.start_date.date()
             end_d = d.end_date.date()
             nights = (end_d - start_d).days if d.is_room else 1
@@ -359,12 +362,12 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
     SELECT SUM(OD."quantity" * OD."unit_price") AS revenue
     FROM "ORDER_DETAIL" OD;
 
-    SELECT COUNT(*) FROM "RESERVATION";
+    SELECT COUNT(*) FROM "BOOKING";
 
-    SELECT RD."service_id", SV."type", SV."room_id", SV."restaurant_id", COUNT(*) AS bookings
-    FROM "RESERVATION_DETAIL" RD
-    JOIN "SERVICE" SV ON SV."id" = RD."service_id"
-    GROUP BY RD."service_id", SV."type", SV."room_id", SV."restaurant_id"
+    SELECT BD."service", SV."type", SV."room_id", SV."restaurant_id", COUNT(*) AS bookings
+    FROM "BOOKING_DETAIL" BD
+    JOIN "SERVICE" SV ON SV."id" = BD."service"
+    GROUP BY BD."service", SV."type", SV."room_id", SV."restaurant_id"
     ORDER BY bookings DESC
     LIMIT 10;
 
@@ -403,9 +406,35 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
         )
     ).aggregate(total=Sum("line_total")).get("total") or Decimal("0.00")
 
-    booking_revenue = BookingDetail.objects.annotate(
-        line_total=ExpressionWrapper(
-            F("people") * F("unit_price"),
+    # For rooms, revenue should consider number of nights (at least 1).
+    # For restaurants, keep existing behavior (people * unit_price).
+    nights_expr = Case(
+        When(
+            service__type="ROOM",
+            then=Greatest(
+                Value(1),
+                Func(
+                    TruncDate("end_date"), TruncDate("start_date"), function="DATEDIFF"
+                ),
+            ),
+        ),
+        default=Value(1),
+        output_field=IntegerField(),
+    )
+
+    booking_revenue = BookingDetail.objects.annotate(nights=nights_expr).annotate(
+        line_total=Case(
+            When(
+                service__type="ROOM",
+                then=ExpressionWrapper(
+                    F("unit_price") * F("nights"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                ),
+            ),
+            default=ExpressionWrapper(
+                F("people") * F("unit_price"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            ),
             output_field=DecimalField(max_digits=12, decimal_places=2),
         )
     ).aggregate(total=Sum("line_total")).get("total") or Decimal("0.00")
