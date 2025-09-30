@@ -149,7 +149,6 @@ CREATE TABLE REVIEW (
 );
 
 -- Trigger: allow reviews only after the event/service has been used
-DROP TRIGGER IF EXISTS trg_review_before_insert;
 DELIMITER $$
 CREATE TRIGGER trg_review_before_insert
 BEFORE INSERT ON REVIEW
@@ -199,7 +198,6 @@ END IF;
 END$$
 DELIMITER ;
 
-DROP TRIGGER IF EXISTS trg_review_before_update;
 DELIMITER $$
 CREATE TRIGGER trg_review_before_update
 BEFORE UPDATE ON REVIEW
@@ -253,13 +251,8 @@ DELIMITER ;
 CREATE VIEW active_employees AS
 SELECT 
 	e.username,
-	u.email,
-	p.name,
-	p.surname,
 	e.role
 FROM EMPLOYEE e
-JOIN USER u ON e.username = u.username
-JOIN PERSON p ON u.cf = p.cf
 WHERE e.username NOT IN (
 	SELECT username FROM EMPLOYEE_HISTORY
 );
@@ -278,7 +271,6 @@ GROUP BY e.id
 HAVING IFNULL(SUM(es.participants), 0) >= e.seats;
 
 -- View: services currently free/available (no active reservations now)
-DROP VIEW IF EXISTS free_services_now;
 CREATE VIEW free_services_now AS
 SELECT 
 	s.id AS service_id,

@@ -29,10 +29,6 @@ class UserBackend(BaseBackend):
     FROM "active_employees" AE
     WHERE AE."username" = %s
     LIMIT 1;
-
-    SELECT AU.* FROM "auth_user" AU WHERE AU."username" = %s LIMIT 1;
-    INSERT INTO "auth_user" (...) VALUES (...);
-    UPDATE "auth_user" SET ... WHERE "username" = %s;
     """
 
     def authenticate(
