@@ -149,9 +149,7 @@ INSERT INTO SERVICE (price, type) VALUES
 (0, 'RESTAURANT'),
 (60.00, 'ROOM'),
 (80.00, 'ROOM'),
-(45.00, 'ROOM'),
-(15.00, 'POOL'),
-(0.00, 'PLAYGROUND');
+(45.00, 'ROOM');
 
 -- Link restaurant services
 INSERT INTO RESTAURANT (service, code, max_capacity)
@@ -228,28 +226,7 @@ SELECT @r5, @s_table2, '2025-09-10 20:00:00', '2025-09-10 22:00:00', 2, price
 FROM SERVICE WHERE id = @s_table2
 ON DUPLICATE KEY UPDATE unit_price = VALUES(unit_price);
 
--- Additional enrichment: pool and playground bookings
-SET @s_pool = (SELECT id FROM SERVICE WHERE type = 'POOL' ORDER BY id ASC LIMIT 1);
-SET @s_play = (SELECT id FROM SERVICE WHERE type = 'PLAYGROUND' ORDER BY id ASC LIMIT 1);
-
-INSERT INTO BOOKING (username, booking_date)
-SELECT 'lblu', '2025-09-19 16:00:00'
-WHERE NOT EXISTS (
-  SELECT 1 FROM BOOKING WHERE username = 'lblu' AND booking_date = '2025-09-19 16:00:00'
-);
-INSERT INTO BOOKING (username, booking_date)
-SELECT 'pgialli', '2025-09-20 09:00:00'
-WHERE NOT EXISTS (
-  SELECT 1 FROM BOOKING WHERE username = 'pgialli' AND booking_date = '2025-09-20 09:00:00'
-);
-
-SET @r6 = (SELECT id FROM BOOKING WHERE username = 'lblu' AND booking_date = '2025-09-19 16:00:00');
-SET @r7 = (SELECT id FROM BOOKING WHERE username = 'pgialli' AND booking_date = '2025-09-20 09:00:00');
-
-INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
-SELECT @r6, @s_pool, '2025-09-19 16:30:00', '2025-09-19 18:00:00', 4, price FROM SERVICE WHERE id = @s_pool;
-INSERT INTO BOOKING_DETAIL (booking, service, start_date, end_date, people, unit_price)
-SELECT @r7, @s_play, '2025-09-20 09:30:00', '2025-09-20 11:00:00', 6, price FROM SERVICE WHERE id = @s_play;
+-- (Removed pool and playground demo bookings per request)
 
 -- Demo reviews (conditional, safe to re-run)
 -- Service review: mrossi used @s_table1 (ended in the past)
