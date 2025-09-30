@@ -12,7 +12,9 @@ and __str__ methods improve admin readability without altering the schema.
 """
 
 from django.db import models
-from user.models import User 
+from django.core.validators import MinValueValidator
+from user.models import User
+
 
 # Create your models here.
 class Orders(models.Model):
@@ -43,8 +45,10 @@ class OrderDetail(models.Model):
     pk = models.CompositePrimaryKey("order", "product")
     order = models.ForeignKey(Orders, models.CASCADE, db_column="order")
     product = models.ForeignKey("Product", models.CASCADE, db_column="product")
-    quantity = models.IntegerField()
-    unit_price = models.DecimalField(max_digits=8, decimal_places=2)
+    quantity = models.IntegerField(validators=[MinValueValidator(1)])
+    unit_price = models.DecimalField(
+        max_digits=8, decimal_places=2, validators=[MinValueValidator(0.01)]
+    )
 
     class Meta:
         managed = False
@@ -61,7 +65,9 @@ class Product(models.Model):
 
     name = models.CharField(max_length=100)
     description = models.TextField()  # added
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    price = models.DecimalField(
+        max_digits=8, decimal_places=2, validators=[MinValueValidator(0.01)]
+    )
 
     class Meta:
         managed = False

@@ -6,6 +6,7 @@ admin display without altering the database schema.
 """
 
 from django.db import models
+from django.core.validators import MinValueValidator
 from user.models import User, Employee
 
 
@@ -53,7 +54,7 @@ class EventSubscription(models.Model):
         related_name="event_subscriptions",
     )
     subscription_date = models.DateTimeField(blank=True, null=True)
-    participants = models.IntegerField()
+    participants = models.IntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
         managed = False

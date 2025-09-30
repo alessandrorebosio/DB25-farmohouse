@@ -1,21 +1,18 @@
 """Unmanaged models mapping existing Service-related tables.
 
 Tables:
-- SERVICE, RESTAURANT, ROOM, RESERVATION, RESERVATION_DETAIL
+- SERVICE, RESTAURANT, ROOM, BOOKING, BOOKING_DETAIL
 """
 
 from django.db import models
+from django.core.validators import MinValueValidator
 from user.models import User
 
-class Reservation(models.Model):
+
+class Booking(models.Model):
     """A booking container for a user.
 
-    Schema (MySQL):
-        CREATE TABLE RESERVATION (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            `username` VARCHAR(255) NOT NULL,
-            reservation_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );
+    Maps to BOOKING(id, username, booking_date).
     """
 
     id = models.AutoField(primary_key=True)
@@ -24,18 +21,18 @@ class Reservation(models.Model):
         on_delete=models.CASCADE,
         db_column="username",
         to_field="username",
-        related_name="reservations",
+        related_name="bookings",
     )
-    reservation_date = models.DateTimeField(auto_now_add=True)
+    booking_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
-        db_table = "RESERVATION"
-        verbose_name = "Reservation"
-        verbose_name_plural = "Reservations"
+        db_table = "BOOKING"
+        verbose_name = "Booking"
+        verbose_name_plural = "Bookings"
 
     def __str__(self) -> str:
-        return f"Reservation(id={self.id}, user={self.username_id})"
+        return f"Booking(id={self.id}, user={self.username_id})"
 
 
 class Service(models.Model):
@@ -47,8 +44,6 @@ class Service(models.Model):
         max_length=20,
         choices=[
             ("RESTAURANT", "Restaurant"),
-            ("POOL", "Pool"),
-            ("PLAYGROUND", "Playground"),
             ("ROOM", "Room"),
         ],
     )
@@ -63,37 +58,38 @@ class Service(models.Model):
         return f"Service(id={self.id}, type={self.type})"
 
 
-class ReservationDetail(models.Model):
-    """Join table for reservations and services with time bounds."""
+class BookingDetail(models.Model):
+    """Join table for bookings and services with time bounds."""
 
-    pk = models.CompositePrimaryKey("reservation", "service")
-    reservation = models.ForeignKey(
-        Reservation,
+    pk = models.CompositePrimaryKey("booking", "service")
+    booking = models.ForeignKey(
+        Booking,
         on_delete=models.CASCADE,
-        db_column="reservation",
+        db_column="booking",
         related_name="details",
     )
     service = models.ForeignKey(
         Service,
         on_delete=models.CASCADE,
         db_column="service",
-        related_name="reservation_details",
+        related_name="BOOKING_DETAILs",
     )
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    people = models.IntegerField()
+    people = models.IntegerField(validators=[MinValueValidator(1)])
+    unit_price = models.DecimalField(
+        max_digits=8, decimal_places=2, validators=[MinValueValidator(0)]
+    )
 
     class Meta:
         managed = False
-        db_table = "RESERVATION_DETAIL"
-        unique_together = (("reservation", "service"),)
-        verbose_name = "Reservation detail"
-        verbose_name_plural = "Reservation details"
+        db_table = "BOOKING_DETAIL"
+        unique_together = (("booking", "service"),)
+        verbose_name = "Booking detail"
+        verbose_name_plural = "Booking details"
 
     def __str__(self) -> str:
-        return (
-            f"ReservationDetail(res={self.reservation_id}, service={self.service_id})"
-        )
+        return f"BookingDetail(booking={self.booking_id}, service={self.service_id})"
 
 
 class Restaurant(models.Model):
