@@ -68,6 +68,14 @@ ORDER BY
   total_revenue DESC
 LIMIT 5;
 
+
+-- Total revenue (orders + bookings)
+SELECT
+  ROUND(
+    COALESCE((SELECT SUM(od.quantity * od.unit_price) FROM ORDER_DETAIL AS od), 0)
+    + COALESCE((SELECT SUM(rd.people * rd.unit_price) FROM BOOKING_DETAIL AS rd), 0), 2) AS total_revenue;
+
+
 -- Quick KPIs: total customers, employees, orders, revenue, bookings
 -- Note: expects tables USER, EMPLOYEE, ORDERS, ORDER_DETAIL, BOOKING
 SELECT
