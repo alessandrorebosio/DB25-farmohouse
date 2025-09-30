@@ -1,4 +1,10 @@
 # 🏡 Farmhouse - Agritourism Management System
+70226 - Academic Year 2024/25, Bachelor's Degree in Computer Science and Engineering, University of Bologna - Cesena Campus
+
+Instructors: Annalisa Franco    
+Programming Language: Python
+
+# 📝 Overview
 This project implements a comprehensive database system for managing an agritourism facility. The system handles:
 - 🛏️ Guest reservations
 - 🚜 Activity bookings
@@ -12,7 +18,6 @@ This project implements a comprehensive database system for managing an agritour
 - **MySQL Server**: 8.0 or higher
 - **pip**: Python package installer
 - **MySQL client**: Command line tool (`mysql`)
-- **django-compositepk-model**: 1.0.3
 
 ## ⚙️ Installation & Setup
 
@@ -37,8 +42,8 @@ pip install -r requirements.txt
 ### 4. Database Setup
 **Create MySQL Database:**
 ```bash
-mysql -u root -p < src/main/resources/db.sql
-mysql -u root -p < src/main/resources/demo.sql
+mysql -u root -p < src/resources/db.sql
+mysql -u root -p < src/resources/demo.sql
 ```
 
 ## 🚀 Running the Application
@@ -48,7 +53,7 @@ mysql -u root -p < src/main/resources/demo.sql
 python src/main/manage.py runserver
 ```
 
-The application will be available at: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+The application will be available at: **[http://localhost:8000](http://localhost:8000)**
 
 ## 📦 Dependencies
 The project uses the following main dependencies (see `requirements.txt`):
