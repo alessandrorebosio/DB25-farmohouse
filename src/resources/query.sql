@@ -8,14 +8,14 @@ SELECT
     WHEN s.type = 'ROOM' THEN CONCAT('Room - ', ro.code)
     ELSE s.type
   END AS service_name,
-  COUNT(rd.service) AS booking_count
+  COUNT(bd.service) AS booking_count
 FROM SERVICE AS s
 LEFT JOIN RESTAURANT AS r
   ON s.id = r.service
 LEFT JOIN ROOM AS ro
   ON s.id = ro.service
-JOIN BOOKING_DETAIL AS rd
-  ON s.id = rd.service
+JOIN BOOKING_DETAIL AS bd
+  ON s.id = bd.service
 GROUP BY
   s.id,
   s.type,
@@ -96,9 +96,9 @@ JOIN SERVICE AS s
 WHERE
   ro.max_capacity >= @n_people
   AND ro.service NOT IN (
-    SELECT rd.service
-    FROM BOOKING_DETAIL AS rd
-    WHERE NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
+    SELECT bd.service
+    FROM BOOKING_DETAIL AS bd
+    WHERE NOT (bd.end_date <= @start_date OR bd.start_date >= @end_date)
   );
 
 -- Restaurant availability with remaining seats in a period
@@ -107,13 +107,13 @@ SELECT
   r.code AS restaurant,
   s.price AS price,
   r.max_capacity,
-  (r.max_capacity - IFNULL(SUM(rd.people), 0)) AS available_seats
+  (r.max_capacity - IFNULL(SUM(bd.people), 0)) AS available_seats
 FROM RESTAURANT AS r
 JOIN SERVICE AS s
   ON s.id = r.service
-LEFT JOIN BOOKING_DETAIL AS rd
-  ON rd.service = r.service
-  AND NOT (rd.end_date <= @start_date OR rd.start_date >= @end_date)
+LEFT JOIN BOOKING_DETAIL AS bd
+  ON bd.service = r.service
+  AND NOT (bd.end_date <= @start_date OR bd.start_date >= @end_date)
 GROUP BY
   r.service,
   r.code,
@@ -152,13 +152,13 @@ SELECT
   4 AS rating,
   'Good service and friendly staff.' AS comment
 FROM SERVICE AS s
-INNER JOIN BOOKING_DETAIL AS rd
-  ON s.id = rd.service
-INNER JOIN BOOKING AS r
-  ON rd.booking = r.id
+INNER JOIN BOOKING_DETAIL AS bd
+  ON s.id = bd.service
+INNER JOIN BOOKING AS b
+  ON bd.booking = b.id
 WHERE
-  r.username = 'aneri'
-  AND rd.end_date < NOW()
+  b.username = 'aneri'
+  AND bd.end_date < NOW()
   AND s.type = 'RESTAURANT'
   AND NOT EXISTS (
     SELECT 1
@@ -290,10 +290,10 @@ WHERE
     AND username = @username
     AND NOT EXISTS (
     SELECT 1
-    FROM BOOKING_DETAIL AS rd
+    FROM BOOKING_DETAIL AS bd
         WHERE
-  rd.booking = @booking_id
-            AND rd.start_date <= NOW()
+  bd.booking = @booking_id
+            AND bd.start_date <= NOW()
     );
 
 -- Get user profile details with role classification (employee/customer)

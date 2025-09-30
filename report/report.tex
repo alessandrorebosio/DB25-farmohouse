@@ -1573,11 +1573,11 @@ SELECT
   4 AS rating,
   'Good service and friendly staff.' AS comment
 FROM SERVICE AS s
-INNER JOIN BOOKING_DETAIL AS rd ON s.id = rd.service
-INNER JOIN BOOKING AS r ON rd.booking = r.id
+INNER JOIN BOOKING_DETAIL AS bd ON s.id = rd.service
+INNER JOIN BOOKING AS b ON bd.booking = b.id
 WHERE
   r.username = 'aneri'
-  AND rd.end_date < NOW()
+  AND bd.end_date < NOW()
   AND s.type = 'RESTAURANT'
   AND NOT EXISTS (
     SELECT 1
@@ -1784,10 +1784,10 @@ WHERE
   AND username = @username
   AND NOT EXISTS (
     SELECT 1
-  FROM BOOKING_DETAIL AS rd
+  FROM BOOKING_DETAIL AS bd
     WHERE
-      rd.booking = @booking_id
-      AND rd.start_date <= NOW()
+      bd.booking = @booking_id
+      AND bd.start_date <= NOW()
   );
 \end{sqlcode}
 % tex-fmt: on
