@@ -305,17 +305,12 @@ WHERE
 -- Get user profile details with role classification (employee/customer)
 SELECT
   u.username,
-  u.email,
   u.password,
-  p.name,
-  p.surname,
-  CASE WHEN e.username IS NOT NULL THEN 'employee' ELSE 'customer' END AS user_type,
-  e.role AS employee_role
+  u.email,
+  a.role
 FROM USER AS u
-INNER JOIN PERSON AS p
-  ON u.cf = p.cf
-LEFT JOIN EMPLOYEE AS e
-  ON u.username = e.username
+LEFT JOIN active_employees AS a
+  ON a.username = u.username;
 WHERE
   u.username = 'mrossi'
   OR u.email = 'mrossi@farm.com';
