@@ -396,7 +396,7 @@ def statistic_view(request: HttpRequest) -> HttpResponse:
     SELECT * FROM "free_services_now" ORDER BY "available" DESC, "type" ASC, "service_id" ASC LIMIT 200;
     """
     users_count = models.User.objects.count()
-    employees_count = models.Employee.objects.count()
+    employees_count = models.ActiveEmployee.objects.count()
     orders_count = Orders.objects.count()
 
     product_revenue = OrderDetail.objects.annotate(
