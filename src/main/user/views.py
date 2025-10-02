@@ -220,7 +220,7 @@ def logout_view(request: HttpRequest) -> HttpResponse:
 @staff_member_required(login_url="/login")
 def statistic_view(request: HttpRequest) -> HttpResponse:
     users_count = models.User.objects.count()
-    employees_count = models.Employee.objects.count()
+    employees_count = models.ActiveEmployee.objects.count()
     orders_count = Orders.objects.count()
 
     product_revenue = OrderDetail.objects.annotate(
