@@ -1,44 +1,32 @@
 \documentclass[a4paper,12pt]{report}
 
-% Codifica, lingua, font
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[italian]{babel}
 \usepackage{lmodern}
 
-% Impaginazione
 \usepackage{geometry}
 
-% Grafica, colori, tabelle, float
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage[table]{xcolor}
 \usepackage{tabularx}
 
-% Matematica
 \usepackage{amsmath}
 
-% Verbatim e listing
 \usepackage{fancyvrb}
 \usepackage{alltt}
 \usepackage{listings}
 
-% Liste
-% \usepackage{enumitem}
-
-% Link e riferimenti intelligenti (hyperref prima di cleveref)
 \usepackage{hyperref}
-% \usepackage[italian]{cleveref}
 
 \geometry{margin=1in}
 
-% colori
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codeBlue}{HTML}{6495ED}
 \definecolor{codegreen}{HTML}{12911F}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
-% stile listings
 \lstdefinestyle{sqlstyle}{
   language=SQL,
   backgroundcolor=\color{backcolour},
@@ -58,7 +46,6 @@
   showtabs=false
 }
 
-% ambiente dedicato
 \lstnewenvironment{sqlcode}[1][]{
   \lstset{style=sqlstyle,#1}
 }{}
@@ -173,17 +160,17 @@ disponibili}, saranno visibili e prenotabili secondo regole di
 capienza stabilite dall'azienda.
 
 Gli \underline{utenti} potranno creare un account
-fornendo\textbf{nome utente}, \textbf{email}e \textbf{password}; ogni
-account sarà associato a una\underline{persona} identificata
-da\textbf{codice fiscale}, in modo da mantenere un'anagrafica solida
-epriva di duplicati. Unavolta autenticati, gli \underline{utenti}
-potranno consultare ilcatalogo e comporre\underline{ordini}, che
-verranno registrati con \textbf{data} e\textbf{ora} e articolati
-in\underline{righe d'ordine} di dettaglio con \textbf{quantità}
-e \textbf{prezzo unitario},garantendo la correttezza dei totali e la
-tracciabilità nel tempo.Gli \underline{acquisti}resteranno
-permanentemente associati al profilodell'\underline{utente},
-consentendostoricizzazione e successive analisi gestionali.
+fornendo \textbf{nome utente}, \textbf{email} e \textbf{password}; ogni
+account sarà associato a una \underline{persona} identificata
+da \textbf{codice fiscale}, in modo da mantenere un'anagrafica solida
+e priva di duplicati. Una volta autenticati, gli \underline{utenti}
+potranno consultare il catalogo e comporre \underline{ordini}, che
+verranno registrati con \textbf{data} e \textbf{ora} e articolati
+in \underline{righe d'ordine} di dettaglio con \textbf{quantità}
+e \textbf{prezzo unitario}, garantendo la correttezza dei totali e la
+tracciabilità nel tempo. Gli \underline{acquisti} resteranno
+permanentemente associati al profilo dell'\underline{utente},
+consentendo storicizzazione e successive analisi gestionali.
 
 La dimensione esperienziale sarà supportata da un modulo
 \underline{eventi}: la creazione degli \underline{eventi} è affidata
@@ -197,7 +184,7 @@ del \underline{personale} è fondata su \underline{ruoli} e
 \underline{turni}: ogni \underline{dipendente} possiede un
 \textbf{ruolo} corrente, con storico delle variazioni per fini di
 audit, e partecipa a una pianificazione che combina
-\underline{modelli di turno} (\textbf{giorno della   settimana},
+\underline{modelli di turno} (\textbf{giorno della settimana},
 \textbf{nome}, \textbf{orari}) con \underline{assegnazioni di turno}
 a calendario per \textbf{date} specifiche. Ogni assegnazione registra
 lo \textbf{stato} effettivo (\textbf{programmato},
@@ -379,7 +366,7 @@ ciascuna tabella e associazione, riferiti a un periodo di un anno.
     \texttt{EMPLOYEE\_SHIFT}     & 15\,000  & E \\
     \texttt{EMPLOYEE\_HISTORY}   & 100      & E \\
     \hline
-    \texttt{EVENT\_SUBSCRIPTION}  & 2\,000   & R \\
+    \texttt{EVENT\_SUBSCRIPTION} & 2\,000   & R \\
     \texttt{WRITES}              & 2\,500   & R \\
     \texttt{REGISTER}            & 3\,000   & R \\
     \texttt{MAKE}                & 6\,000   & R \\
@@ -757,7 +744,7 @@ $$Op_{sett} = 20$$
   \vspace{-1em}
 \end{table}
 
-$$\mathbf{C_{tot}} = 20 \cdot (2 + 2 \cdot 1) = \mathbf{60}$$
+$$\mathbf{C_{tot}} = 20 \cdot (2 + 2 \cdot 1) = \mathbf{80}$$
 
 \subsection*{Inserimento recensione servizio} \label{op10}
 \colorbox{yellow}{Inserisce una recensione per un servizio.}
@@ -1122,7 +1109,7 @@ punto di vista delle prestazioni.
     \hline
     Verifica disponibilità tavoli & 241\,600 & Tutti \\
     \hline
-    Inserimento recensione evento & 60 & Cliente \\
+    Inserimento recensione evento & 80 & Cliente \\
     \hline
     Inserimento recensione servizio & 150 & Cliente \\
     \hline
@@ -1147,7 +1134,7 @@ punto di vista delle prestazioni.
     Creazione nuovo ordine & 780 & Cliente / Staff \\
     \hline
     \rowcolor{gray!20}
-    \textbf{TOTALE} & \textbf{3\,660\,575} & \\
+    \textbf{TOTALE} & \textbf{3\,660\,555} & \\
     \hline
   \end{tabularx}
   \caption{Riepilogo delle operazioni con costi settimanali e tipi di utente}
@@ -1237,7 +1224,7 @@ significativa dal punto di vista progettuale. Questo approccio consente:
 \subsubsection{Gestione storica del personale}
 La tabella \texttt{Employee\_History} consente di verificare se un
 utente è un ex dipendente: se lo username è presente in
-\texttt{Employee} l'utente è dipendente attivo, se compare anche in
+\texttt{Employee} l'utente è un dipendente attivo, se compare anche in
 \texttt{Employee\_History} significa che non lavora più nell'azienda.
 L'intreccio tra le due tabelle permette di distinguere tra dipendenti
 attuali ed ex dipendenti, soddisfacendo il requisito di audit trail.
@@ -1272,93 +1259,90 @@ semplici proprietà degli attributi. Di seguito un esempio di vincolo
 per assicurare che il prezzo di ogni prodotto sia maggiore zero:
 
 % tex-fmt: off
-\begin{sqlcode}[caption={},label={lst:check}]
+\begin{sqlcode}[caption={Vincolo CHECK sul prezzo prodotto},label={lst:check}]
 CREATE TABLE PRODUCT (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
-    price DECIMAL(8,2) NOT NULL CHECK (price > 0)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT NOT NULL,
+  price DECIMAL(8,2) NOT NULL CHECK (price > 0)
 );
 \end{sqlcode}
 % tex-fmt: on
 
 \section{Viste}
-La seguente vista \texttt{Active\_Employees} restituisce l'elenco dei
-dipendenti attivi, mostrando per ciascuno username, email, nome,
-cognome e ruolo. Un dipendente è considerato attivo se il suo
-username non compare nella tabella \texttt{Employee\_History}, che
-traccia lo storico delle variazioni di stato.
+La seguente vista \texttt{active\_employees} restituisce l'elenco dei
+dipendenti attivi, mostrando per ciascuno username e ruolo. Un dipendente è
+considerato attivo se il suo username non compare nella tabella
+\texttt{EMPLOYEE\_HISTORY}, che traccia lo storico delle variazioni di stato.
 
 % tex-fmt: off
-\begin{sqlcode}[caption={},label={lst:view}]
+\begin{sqlcode}[caption={Vista dipendenti attivi},label={lst:view}]
 CREATE VIEW active_employees AS
 SELECT
-    e.username,
-    u.email,
-    p.name,
-    p.surname,
-    e.role
+  e.username,
+  e.role
 FROM EMPLOYEE e
-JOIN USER u ON e.username = u.username
-JOIN PERSON p ON u.cf = p.cf
 WHERE e.username NOT IN (
-    SELECT username FROM EMPLOYEE_HISTORY
-  );
+  SELECT username FROM EMPLOYEE_HISTORY
+);
 \end{sqlcode}
 % tex-fmt: on
 
+\newpage
 \section{Trigger}
-Esempio di trigger per vincolare le recensioni: impedisce di
-recensire sia evento che servizio insieme, e consente la recensione
-solo se l'utente ha partecipato all'evento (già svolto) o ha
-usufruito del servizio.
+Il seguente trigger garantisce che ogni recensione sia associata solo
+a un evento oppure a un servizio, mai a entrambi o a nessuno.
+Consente la recensione di un evento soltanto se l'utente ha
+partecipato e l'evento si è già concluso, mentre permette la
+recensione di un servizio solo dopo il completamento della relativa
+prenotazione.
 
 % tex-fmt: off
-\begin{sqlcode}[caption={},label={lst:trigger}]
+\begin{sqlcode}[caption={Trigger per vincoli sulle recensioni},label={lst:trigger}]
 DROP TRIGGER IF EXISTS trg_review_before_insert;
 DELIMITER $$
 CREATE TRIGGER trg_review_before_insert
 BEFORE INSERT ON REVIEW
 FOR EACH ROW
 BEGIN
-    DECLARE cnt INT DEFAULT 0;
+  DECLARE cnt INT DEFAULT 0;
 
-    IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
+  IF (NEW.event IS NOT NULL AND NEW.service IS NOT NULL) OR (NEW.event IS NULL AND NEW.service IS NULL) THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Set either event or service (not both) for the review.';
+  END IF;
+
+  IF NEW.event IS NOT NULL THEN
+    SELECT COUNT(*)
+      INTO cnt
+      FROM EVENT e
+      JOIN EVENT_SUBSCRIPTION es
+        ON es.event = e.id
+       AND es.`user` = NEW.`user`
+     WHERE e.id = NEW.event
+       AND e.event_date < CURDATE();
+
+    IF cnt = 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
     END IF;
+  END IF;
 
-    IF NEW.event IS NOT NULL THEN
-        SELECT COUNT(*)
-            INTO cnt
-            FROM EVENT e
-            JOIN EVENT_SUBSCRIPTION es
-                ON es.event = e.id
-             AND es.`user` = NEW.`user`
-         WHERE e.id = NEW.event
-             AND e.event_date < CURDATE();
+  IF NEW.service IS NOT NULL THEN
+    SELECT COUNT(*)
+      INTO cnt
+    FROM BOOKING r
+    JOIN BOOKING_DETAIL rd
+    ON rd.booking = r.id
+       AND rd.service = NEW.service
+     WHERE r.username = NEW.`user`
+       AND rd.end_date < NOW();
 
-        IF cnt = 0 THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'You can review the event only if you were subscribed and the event date is in the past.';
-        END IF;
+    IF cnt = 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed booking).';
     END IF;
-
-    IF NEW.service IS NOT NULL THEN
-        SELECT COUNT(*)
-            INTO cnt
-      FROM BOOKING r
-      JOIN BOOKING_DETAIL rd
-        ON rd.booking = r.id
-             AND rd.service = NEW.service
-         WHERE r.username = NEW.`user`
-             AND rd.end_date < NOW();
-
-        IF cnt = 0 THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'You can review the service only after you have used it (completed booking).';
-        END IF;
-    END IF;
+  END IF;
 END$$
 DELIMITER ;
 \end{sqlcode}
@@ -1378,8 +1362,7 @@ amministrativa con le metriche principali del sistema.
 
 \subsubsection{Migliori servizi per prenotazioni}
 Analizza le prenotazioni per identificare i servizi più richiesti,
-distinguendo tra ristoranti e camere attraverso un'articolata
-procedura di join e raggruppamento.
+distinguendo tra ristoranti e camere tramite join e raggruppamento.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
@@ -1450,7 +1433,7 @@ LIMIT 5;
 % tex-fmt: on
 
 \subsubsection{Fatturato totale}
-Calcolo del ricavo complessivo generato dalle vendite dei prodotti.
+Calcola del ricavo complessivo generato dalle vendite dei prodotti.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
@@ -1462,9 +1445,9 @@ SELECT
 % tex-fmt: on
 
 \subsubsection{Statistiche generali del sistema}
-Query composita che fornisce un riepilogo completo delle metriche di
-sistema tramite sottoselezioni multiple, aggregando dati da diverse
-tabelle per offrire una visione d'insieme immediata.
+Fornisce un riepilogo completo delle metriche di sistema tramite
+sottoselezioni multiple, aggregando dati da diverse tabelle per
+offrire una visione d'insieme immediata.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
@@ -1487,7 +1470,7 @@ temporali definite dal sistema.
 
 \subsubsection{Verifica disponibilità camere}
 La disponibilità delle camere viene verificata analizzando le
-prenotazioni esistenti e selezionando solo quelle con capacità
+prenotazioni esistenti, selezionando solo quelle con capacità
 sufficiente e libere nel periodo richiesto. Il controllo si basa
 sulla non sovrapposizione temporale tra le prenotazioni già
 registrate e l'intervallo desiderato, così da garantire che la camera
@@ -1541,10 +1524,10 @@ partecipato o servizi già prenotati e utilizzati, garantendo
 valutazioni autentiche.
 
 \subsubsection{Inserimento recensione evento}
-Questa query consente di inserire una recensione per un evento solo
-se l'utente è iscritto, l'evento si è concluso e non esiste già una
-recensione per quell'evento da parte dello stesso utente. In questo
-modo si garantisce la correttezza e l'integrità dei dati.
+Consente di inserire una recensione per un evento solo se l'utente è
+iscritto, l'evento si è concluso e non esiste già una recensione per
+quell'evento da parte dello stesso utente. In questo modo si
+garantisce la correttezza e l'integrità dei dati.
 
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
@@ -1680,7 +1663,8 @@ WHERE NOT EXISTS (
 
 \subsubsection{Prenotazione tavolo ristorante}
 Prenotazione di tavoli al ristorante, con join sulla tabella
-RESTAURANT per identificare correttamente il servizio.
+Restaurant per identificare correttamente il servizio.
+
 % tex-fmt: off
 \begin{sqlcode}[caption={}]
 SET @new_booking_id = LAST_INSERT_ID();
@@ -1784,7 +1768,7 @@ WHERE
 
 \subsubsection{Eliminazione prenotazione con controllo temporale}
 L'eliminazione di una prenotazione è consentita solo se non è già
-iniziata; viene implementato un controllo temporale che previene la
+iniziata. Viene implementato un controllo temporale che previene la
 cancellazione di prenotazioni in corso o concluse.
 
 % tex-fmt: off
@@ -1809,11 +1793,11 @@ L'autenticazione utente consente l'accesso sicuro alla piattaforma
 tramite verifica di username e password. Per distinguere tra clienti
 e dipendenti, viene utilizzata la vista \texttt{active\_employees}:
 se il campo \texttt{role} restituito dalla vista è \texttt{NULL},
-l'utente è considerato un cliente normale; se invece è valorizzato,
+l'utente è considerato un cliente normale, se invece è valorizzato,
 l'utente è un dipendente attivo e il ruolo viene mostrato.
 
 \subsubsection{Verifica credenziali di login}
-La query seguente verifica le credenziali di login e determina il
+Vengono verificate le credenziali di login e determina il
 profilo utente, sfruttando la vista \texttt{active\_employees} per
 identificare i dipendenti attivi.
 
@@ -1821,21 +1805,19 @@ identificare i dipendenti attivi.
 \begin{sqlcode}[caption={}]
 SELECT
   u.username,
+  u.password,
   u.email,
-  p.name,
-  p.surname,
-  CASE WHEN ae.role IS NOT NULL THEN 'employee' ELSE 'customer' END AS user_type,
-  ae.role AS employee_role
+  a.role
 FROM USER AS u
-JOIN PERSON AS p ON u.cf = p.cf
-LEFT JOIN active_employees AS ae ON u.username = ae.username
+LEFT JOIN active_employees AS a
+  ON a.username = u.username;
 WHERE u.username = 'mrossi' OR u.email = 'mrossi@farm.com';
 \end{sqlcode}
 % tex-fmt: on
 
 \newpage
 \subsection{Gestione ordini prodotti}
-Gli ordini prodotti vengono gestiti tramite una transazione che crea
+Gli ordini dei prodotti vengono gestiti tramite una transazione che crea
 l'ordine principale e inserisce i dettagli dei prodotti selezionati,
 con quantità e prezzo corrente. Il sistema assicura che ogni ordine
 sia associato all'utente e che i dati siano registrati in modo consistente.
@@ -1883,13 +1865,12 @@ LIMIT 1;
 
 \chapter{Progettazione dell'applicazione}
 L'applicazione è stata sviluppata con il framework \textbf{Django},
-che gestisce routing,
-database e autenticazione in modo sicuro e scalabile.
+che gestisce routing, database e autenticazione in modo sicuro e scalabile.
 
 \section{Barra di Navigazione}
 La \textbf{barra di navigazione} permette un accesso rapido alle
-principali sezioni del sito,
-come prodotti, eventi, servizi, area personale e funzioni amministrative.
+principali sezioni del sito, come prodotti, eventi, servizi, area
+personale e funzioni amministrative.
 
 \begin{figure}[H]
   \centering
@@ -1900,11 +1881,10 @@ come prodotti, eventi, servizi, area personale e funzioni amministrative.
 
 \newpage
 \subsection*{Login}
-
 Il form di login consente agli utenti registrati di accedere
-rapidamente alla piattaforma inserendo username e
-password. Il sistema verifica le credenziali e, in caso di errore,
-mostra un messaggio di avviso.
+rapidamente alla piattaforma inserendo username e password. Il
+sistema verifica le credenziali e, in caso di errore, mostra un
+messaggio di avviso.
 
 \begin{figure}[H]
   \centering
@@ -1915,10 +1895,9 @@ mostra un messaggio di avviso.
 
 \subsection*{Registrazione}
 Anche per registrarsi è disponibile un form semplice e intuitivo, che
-permette agli utenti di creare un nuovo
-account inserendo i dati richiesti. Dopo la registrazione, l'utente
-potrà accedere a tutte le funzionalità della
-piattaforma.
+permette agli utenti di creare un nuovo account inserendo i dati
+richiesti. Dopo la registrazione, l'utente potrà accedere a tutte le
+funzionalità della piattaforma.
 
 \begin{figure}[H]
   \centering
@@ -1930,8 +1909,8 @@ piattaforma.
 \newpage
 \section{Interfaccia Utente}
 Dopo l'accesso, l'utente potrà visualizzare il profilo, con le
-prenotazioni e gli ordini, con
-la possibilità di recensire o annullare prenotazioni future.
+prenotazioni e gli ordini, con la possibilità di recensire o
+annullare prenotazioni future.
 
 \begin{figure}[H]
   \centering
@@ -1942,8 +1921,8 @@ la possibilità di recensire o annullare prenotazioni future.
 
 \subsection*{Servizi}
 Dopo aver scelto il servizio da prenotare, è sufficiente inserire i
-dati necessari; il sistema
-mostrerà la disponibilità aggiornata del servizio selezionato.
+dati necessari; il sistema mostrerà la disponibilità aggiornata del
+servizio selezionato.
 
 \begin{figure}[H]
   \centering
@@ -1954,9 +1933,8 @@ mostrerà la disponibilità aggiornata del servizio selezionato.
 
 \subsection*{Eventi}
 Nella sezione eventi, viene mostrato l'elenco degli eventi
-disponibili. L'utente può selezionare
-l'evento di interesse, specificare il numero di partecipanti e
-procedere con la prenotazione.
+disponibili. L'utente può selezionare l'evento di interesse,
+specificare il numero di partecipanti e procedere con la prenotazione.
 
 \begin{figure}[H]
   \centering
@@ -1977,9 +1955,8 @@ evento o servizio.
 \end{figure}
 
 Il form permette agli utenti di lasciare una recensione su eventi o
-servizi a cui hanno partecipato,
-inserendo commento e voto. La recensione è consentita solo dopo la
-partecipazione effettiva.
+servizi a cui hanno partecipato, inserendo commento e voto. La
+recensione è consentita solo dopo la partecipazione effettiva.
 
 \begin{figure}[H]
   \centering
@@ -1990,10 +1967,9 @@ partecipazione effettiva.
 
 \subsection*{Prodotti}
 La sezione prodotti consente agli utenti di consultare il catalogo
-aggiungerli al carrello per
-l'acquisto. Il sistema mostra in tempo reale il contenuto del
-carrello e il totale dell'ordine.
-Fatto il checkout sarà visibile il riepilogo nella sezione profilo.
+e aggiungerli al carrello per l'acquisto. Il sistema mostra in tempo
+reale il contenuto del carrello e il totale dell'ordine. Fatto il
+checkout sarà visibile il riepilogo nella sezione profilo.
 
 \begin{figure}[H]
   \centering
@@ -2004,14 +1980,11 @@ Fatto il checkout sarà visibile il riepilogo nella sezione profilo.
 
 \subsection*{Carrello}
 Il \textbf{carrello} è una funzionalità applicativa che consente agli
-utenti di selezionare e
-gestire i prodotti da acquistare prima di confermare l'ordine. Il
-carrello non è rappresentato
-nel database, ma viene gestito lato applicazione: i prodotti
-selezionati vengono memorizzati
-temporaneamente fino al checkout, momento in cui viene creato
-l'ordine definitivo e
-registrato nel sistema.
+utenti di selezionare e gestire i prodotti da acquistare prima di
+confermare l'ordine. Il carrello non è rappresentato nel database, ma
+viene gestito lato applicazione: i prodotti selezionati vengono
+memorizzati temporaneamente fino al checkout, momento in cui viene
+creato l'ordine definitivo e registrato nel sistema.
 
 \begin{figure}[H]
   \centering
@@ -2023,10 +1996,9 @@ registrato nel sistema.
 \newpage
 \section{Interfaccia Amministratore}
 Per la gestione amministrativa, l'applicazione sfrutta la sezione
-\textbf{Django Admin},
-che consente agli amministratori di accedere rapidamente a tutte le
-tabelle del database,
-modificare dati, tramite un'interfaccia web sicura e strutturata.
+\textbf{Django Admin}, che consente agli amministratori di accedere
+rapidamente a tutte le tabelle del database e modificare dati, tramite
+un'interfaccia web sicura e strutturata.
 
 \begin{figure}[H]
   \centering
@@ -2089,8 +2061,8 @@ assicurarsi di avere MySQL
 installato e in esecuzione.
 
 \begin{verbatim}
-> mysql -u root -p < app/sql/db.sql
-> mysql -u root -p < app/sql/demo.sql
+> mysql -u root -p < src/resources/db.sql
+> mysql -u root -p < src/resources/demo.sql
 \end{verbatim}
 
 Verrà richiesta la password dell'utente \texttt{root}. Il comando
