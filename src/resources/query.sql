@@ -298,15 +298,13 @@ WHERE
 
 -- Get user profile details with role classification (employee/customer)
 SELECT
-	u.username,
-	u.email,
-	p.name,
-	p.surname,
-	CASE WHEN ae.role IS NOT NULL THEN 'employee' ELSE 'customer' END AS user_type,
-	ae.role AS employee_role
+  u.username,
+  u.password,
+  u.email,
+  a.role
 FROM USER AS u
-JOIN PERSON AS p ON u.cf = p.cf
-LEFT JOIN active_employees AS ae ON u.username = ae.username
+LEFT JOIN active_employees AS a
+  ON a.username = u.username;
 WHERE u.username = 'mrossi' OR u.email = 'mrossi@farm.com';
 
 -- Create a new order for user 'aneri' today if one doesn't already exist
