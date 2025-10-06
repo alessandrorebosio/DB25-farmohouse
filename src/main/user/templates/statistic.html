@@ -76,21 +76,23 @@
     {% endlist_card %}
 
     {% list_card title="Free services now" items=free_services_now empty="No service available." %}
+    {% if item.available %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
         <span class="text-truncate" title="{{ item.type|title }} (ID {{ item.service_id }})">
             {{ item.type|title }} (ID {{ item.service_id }})
         </span>
         <span class="badge rounded-pill 
-                {% if item.available_seats is not None and item.available_seats > 0 %}
-                    bg-success
-                {% elif item.available_seats is not None %}
-                    bg-secondary
-                {% else %}
-                    text-bg-light
-                {% endif %}">
+                    {% if item.available_seats is not None and item.available_seats > 0 %}
+                        bg-success
+                    {% elif item.available_seats is not None %}
+                        bg-secondary
+                    {% else %}
+                        text-bg-light
+                    {% endif %}">
             {{ item.available_seats|default:"—" }}
         </span>
     </li>
+    {% endif %}
     {% endlist_card %}
 </div>
 {% endblock %}

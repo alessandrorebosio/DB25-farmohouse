@@ -273,40 +273,35 @@ HAVING IFNULL(SUM(es.participants), 0) >= e.seats;
 -- View: services currently free/available (no active reservations now)
 CREATE VIEW free_services_now AS
 SELECT 
-	s.id AS service_id,
-	s.type,
-	r.code AS restaurant_code,
-	ro.code AS room_code,
-	r.max_capacity AS restaurant_max_capacity,
-	ro.max_capacity AS room_max_capacity,
-IFNULL(b.people_now, 0) AS people_booked_now,
-IFNULL(b.reservations_now, 0) AS reservations_now,
-CASE
-	WHEN s.type = 'ROOM' THEN (IFNULL(b.reservations_now,0) = 0)
-	WHEN s.type = 'RESTAURANT' THEN (IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0))
-	ELSE (IFNULL(b.reservations_now,0) = 0)
-END AS available,
-CASE
-	WHEN s.type = 'RESTAURANT' THEN GREATEST(IFNULL(r.max_capacity,0) - IFNULL(b.people_now,0), 0)
-	WHEN s.type = 'ROOM' THEN ro.max_capacity
-	ELSE NULL
-END AS available_seats
+    s.id AS service_id,
+    s.type,
+    r.code AS restaurant_code,
+    ro.code AS room_code,
+    r.max_capacity AS restaurant_max_capacity,
+    ro.max_capacity AS room_max_capacity,
+    IFNULL(b.people_now, 0) AS people_booked_now,
+    IFNULL(b.reservations_now, 0) AS reservations_now,
+    (IFNULL(b.reservations_now, 0) = 0) AS available,
+    CASE
+        WHEN s.type = 'RESTAURANT' THEN GREATEST(IFNULL(r.max_capacity, 0) - IFNULL(b.people_now, 0), 0)
+        WHEN s.type = 'ROOM' THEN ro.max_capacity
+        ELSE NULL
+    END AS available_seats
 FROM SERVICE s
 LEFT JOIN RESTAURANT r ON r.service = s.id
 LEFT JOIN ROOM ro ON ro.service = s.id
 LEFT JOIN (
-	SELECT rd.service,
-				 SUM(rd.people) AS people_now,
-				 COUNT(*) AS reservations_now
-	FROM BOOKING_DETAIL rd
-	JOIN BOOKING r2 ON rd.booking = r2.id
-	WHERE rd.start_date <= NOW() AND rd.end_date >= NOW()
-	GROUP BY rd.service
+    SELECT bd.service,
+           SUM(bd.people) AS people_now,
+           COUNT(*) AS reservations_now
+    FROM BOOKING_DETAIL bd
+    JOIN BOOKING b ON bd.booking = b.id
+    WHERE bd.start_date <= NOW() AND bd.end_date >= NOW()
+    GROUP BY bd.service
 ) b ON b.service = s.id
 WHERE 
-	(s.type = 'ROOM' AND IFNULL(b.reservations_now,0) = 0) OR
-	(s.type = 'RESTAURANT' AND IFNULL(b.people_now,0) < IFNULL(r.max_capacity,0)) OR
-	(s.type IN ('POOL', 'PLAYGROUND') AND IFNULL(b.reservations_now,0) = 0);
+    (s.type = 'ROOM' AND IFNULL(b.reservations_now, 0) = 0) OR
+    (s.type = 'RESTAURANT' AND IFNULL(b.people_now, 0) < IFNULL(r.max_capacity, 0));
 
 -- View: booking revenue per service (total people * unit_price)
 CREATE VIEW booking_revenue_per_service AS
