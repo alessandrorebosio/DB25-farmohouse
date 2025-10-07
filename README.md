@@ -1,8 +1,8 @@
 # 🏡 Farmhouse - Agritourism Management System
-10906 - Academic Year 2024/25, Bachelor's Degree in Computer Science and Engineering, University of Bologna - Cesena Campus
+**10906 - Academic Year 2024/25, Bachelor's Degree in Computer Science and Engineering, University of Bologna - Cesena Campus**
 
-Instructors: Annalisa Franco    
-Programming Language: Python
+**Instructors:** Annalisa Franco    
+**Programming Language:** SQL and Phython
 
 # 📝 Overview
 This project implements a comprehensive database system for managing an agritourism facility. The system handles:
